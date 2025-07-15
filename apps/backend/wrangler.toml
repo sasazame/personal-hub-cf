@@ -1,0 +1,22 @@
+name = "personal-hub-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "personal-hub-db"
+database_id = "local"
+
+[env.production]
+name = "personal-hub-api-production"
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "personal-hub-db-production"
+database_id = "production-db-id"
+
+[env.staging]
+name = "personal-hub-api-staging"
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "personal-hub-db-staging"
+database_id = "staging-db-id"
