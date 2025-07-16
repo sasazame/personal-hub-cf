@@ -14,6 +14,7 @@ import {
   type PaginatedTodos,
 } from '@personal-hub/shared';
 import { initializeLucia } from '../lib/auth';
+import { serializeTodo, serializeTodos } from '../helpers/todo-serializer';
 import type { Context } from 'hono';
 
 type Env = {
@@ -50,7 +51,7 @@ const requireAuth = async (c: Context<Env>, next: () => Promise<void>) => {
 todoRouter.use('*', requireAuth);
 
 // Create a new todo
-todoRouter.post('/', zValidator('json', createTodoSchema as any), async (c) => {
+todoRouter.post('/', zValidator('json', createTodoSchema), async (c) => {
   const db = drizzle(c.env.DB);
   const data = c.req.valid('json');
   const user = c.get('user');
@@ -85,7 +86,7 @@ todoRouter.post('/', zValidator('json', createTodoSchema as any), async (c) => {
       })
       .returning();
 
-    return c.json(newTodo, 201);
+    return c.json(serializeTodo(newTodo), 201);
   } catch (error) {
     console.error('Error creating todo:', error);
     return c.json({ error: 'Failed to create todo' }, 500);
@@ -112,11 +113,11 @@ todoRouter.get('/:id', async (c) => {
     return c.json({ error: 'Todo not found' }, 404);
   }
 
-  return c.json(todo);
+  return c.json(serializeTodo(todo));
 });
 
 // Get paginated list of todos
-todoRouter.get('/', zValidator('query', todoQuerySchema as any), async (c) => {
+todoRouter.get('/', zValidator('query', todoQuerySchema), async (c) => {
   const db = drizzle(c.env.DB);
   const user = c.get('user');
   const query = c.req.valid('query');
@@ -169,17 +170,7 @@ todoRouter.get('/', zValidator('query', todoQuerySchema as any), async (c) => {
     .offset(offset);
 
   const response: PaginatedTodos = {
-    todos: results.map(todo => ({
-      ...todo,
-      status: todo.status as TodoStatus,
-      priority: todo.priority as TodoPriority,
-      repeatType: todo.repeatType as RepeatType | null,
-      isRepeatable: Boolean(todo.isRepeatable),
-      createdAt: todo.createdAt.toISOString(),
-      updatedAt: todo.updatedAt.toISOString(),
-      dueDate: todo.dueDate ? todo.dueDate.toISOString() : null,
-      repeatEndDate: todo.repeatEndDate ? todo.repeatEndDate.toISOString() : null,
-    })) as TodoType[],
+    todos: serializeTodos(results) as TodoType[],
     total: totalCount,
     page: query.page,
     limit: query.limit,
@@ -190,7 +181,7 @@ todoRouter.get('/', zValidator('query', todoQuerySchema as any), async (c) => {
 });
 
 // Update a todo
-todoRouter.put('/:id', zValidator('json', updateTodoSchema as any), async (c) => {
+todoRouter.put('/:id', zValidator('json', updateTodoSchema), async (c) => {
   const db = drizzle(c.env.DB);
   const todoId = c.req.param('id');
   const data = c.req.valid('json');
@@ -249,14 +240,7 @@ todoRouter.put('/:id', zValidator('json', updateTodoSchema as any), async (c) =>
       )
       .returning();
 
-    return c.json({
-      ...updatedTodo,
-      isRepeatable: Boolean(updatedTodo.isRepeatable),
-      createdAt: updatedTodo.createdAt.toISOString(),
-      updatedAt: updatedTodo.updatedAt.toISOString(),
-      dueDate: updatedTodo.dueDate ? updatedTodo.dueDate.toISOString() : null,
-      repeatEndDate: updatedTodo.repeatEndDate ? updatedTodo.repeatEndDate.toISOString() : null,
-    });
+    return c.json(serializeTodo(updatedTodo));
   } catch (error) {
     console.error('Error updating todo:', error);
     return c.json({ error: 'Failed to update todo' }, 500);
@@ -324,14 +308,20 @@ todoRouter.post('/:id/toggle-status', async (c) => {
       return c.json({ error: 'Todo not found' }, 404);
     }
 
-    // Determine new status
+    // Determine new status - comprehensive state transitions
     let newStatus: TodoStatus;
-    if (todo.status === TodoStatus.TODO) {
-      newStatus = TodoStatus.DONE;
-    } else if (todo.status === TodoStatus.IN_PROGRESS) {
-      newStatus = TodoStatus.DONE;
-    } else {
-      newStatus = TodoStatus.TODO;
+    switch (todo.status) {
+      case TodoStatus.TODO:
+        newStatus = TodoStatus.IN_PROGRESS;
+        break;
+      case TodoStatus.IN_PROGRESS:
+        newStatus = TodoStatus.DONE;
+        break;
+      case TodoStatus.DONE:
+        newStatus = TodoStatus.TODO;
+        break;
+      default:
+        newStatus = TodoStatus.TODO;
     }
 
     // Update status
@@ -349,14 +339,7 @@ todoRouter.post('/:id/toggle-status', async (c) => {
       )
       .returning();
 
-    return c.json({
-      ...updatedTodo,
-      isRepeatable: Boolean(updatedTodo.isRepeatable),
-      createdAt: updatedTodo.createdAt.toISOString(),
-      updatedAt: updatedTodo.updatedAt.toISOString(),
-      dueDate: updatedTodo.dueDate ? updatedTodo.dueDate.toISOString() : null,
-      repeatEndDate: updatedTodo.repeatEndDate ? updatedTodo.repeatEndDate.toISOString() : null,
-    });
+    return c.json(serializeTodo(updatedTodo));
   } catch (error) {
     console.error('Error toggling todo status:', error);
     return c.json({ error: 'Failed to toggle todo status' }, 500);
@@ -396,14 +379,7 @@ todoRouter.get('/:id/children', async (c) => {
     )
     .orderBy(desc(todos.createdAt));
 
-  return c.json(children.map(todo => ({
-    ...todo,
-    isRepeatable: Boolean(todo.isRepeatable),
-    createdAt: todo.createdAt.toISOString(),
-    updatedAt: todo.updatedAt.toISOString(),
-    dueDate: todo.dueDate ? todo.dueDate.toISOString() : null,
-    repeatEndDate: todo.repeatEndDate ? todo.repeatEndDate.toISOString() : null,
-  })));
+  return c.json(serializeTodos(children));
 });
 
 export default todoRouter;

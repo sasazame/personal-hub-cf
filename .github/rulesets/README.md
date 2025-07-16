@@ -9,7 +9,7 @@ This directory contains GitHub ruleset configurations for the personal-hub-cf pr
 Protects the main branch with the following rules:
 - **Deletion Protection**: Prevents branch deletion
 - **Pull Request Requirements**:
-  - No approving reviews required (for solo development)
+  - One approving review required
   - Dismiss stale reviews on new pushes
   - Require all conversation threads to be resolved
   - Enable automatic Copilot code review
