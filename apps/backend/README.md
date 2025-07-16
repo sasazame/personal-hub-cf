@@ -18,6 +18,18 @@ This directory contains the backend API for the Personal Hub application, built 
 
 ## Local Development
 
+### Prerequisites
+
+Before running the backend server, ensure you have set up the required environment variables:
+
+```bash
+cp .dev.vars.example .dev.vars
+```
+
+Edit `.dev.vars` with your authentication provider secrets. See the [main README](../../README.md#local-development) for detailed setup instructions.
+
+### Running the Server
+
 To start the backend server locally, run:
 
 ```bash
@@ -31,8 +43,8 @@ The server will be available at `http://localhost:8787`.
 ### Authentication
 
 - `POST /api/auth/signup` - Create a new user account
-- `POST /api/auth/login` - Login with email and password
-- `POST /api/auth/logout` - Logout the current user
+- `POST /api/auth/login` - Log in with email and password
+- `POST /api/auth/logout` - Log out the current user
 - `GET /api/auth/me` - Get current user information
 
 ### Todos

@@ -44,7 +44,7 @@ This project is a monorepo managed by `pnpm` workspaces.
 - **Build Tool:** Vite
 - **Deployment:** Cloudflare Pages
 - **Styling:** Tailwind CSS
-- **Components:** Shadcn/ui
+- **Components:** shadcn/ui
 - **State Management:** TanStack Query (React Query)
 - **Forms:** React Hook Form
 
@@ -151,3 +151,7 @@ A successful CI run is required to merge a PR into `main`. Merging to `main` aut
 - Real-time sync across devices
 - Note-taking with rich text support
 - Goal tracking and progress visualization
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](./LICENSE) for details.

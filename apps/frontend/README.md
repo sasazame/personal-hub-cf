@@ -5,7 +5,7 @@ This directory contains the frontend React application for the Personal Hub, bui
 ## Features
 
 - **Fast Development:** Near-instant server start and HMR with Vite.
-- **Modern UI:** Built with Tailwind CSS and Shadcn/ui for a clean and responsive user interface.
+- **Modern UI:** Built with Tailwind CSS and shadcn/ui for a clean and responsive user interface.
 - **Efficient Data Fetching:** Uses TanStack Query (React Query) for robust server state management.
 
 ## Key Technologies
@@ -13,11 +13,21 @@ This directory contains the frontend React application for the Personal Hub, bui
 - **Framework:** React
 - **Build Tool:** Vite
 - **Styling:** Tailwind CSS
-- **Components:** Shadcn/ui
+- **Components:** shadcn/ui
 - **State Management:** TanStack Query
 - **Forms:** React Hook Form
 
 ## Local Development
+
+### Environment Variables
+
+The frontend needs to know where to find the backend API. Create a `.env.local` file:
+
+```bash
+VITE_API_BASE_URL=http://localhost:8787
+```
+
+### Running the Development Server
 
 To start the frontend development server, run:
 
@@ -32,7 +42,7 @@ The application will be available at `http://localhost:5173`.
 The frontend currently includes:
 - Authentication forms (login/signup)
 - Basic routing setup
-- Shadcn/ui components integration
+- shadcn/ui components integration
 
 ## Upcoming Features
 
