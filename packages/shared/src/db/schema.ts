@@ -28,7 +28,7 @@ export const sessions = sqliteTable('sessions', {
   userId: text('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+  expiresAt: integer('expires_at').notNull(), // Lucia expects number, not Date
 });
 
 // Todos table
@@ -39,14 +39,17 @@ export const todos = sqliteTable('todos', {
     .references(() => users.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   description: text('description'),
-  status: text('status').default('PENDING').notNull(),
+  status: text('status').default('TODO').notNull(),
   priority: text('priority').default('MEDIUM'),
   dueDate: integer('due_date', { mode: 'timestamp' }),
-  parentId: text('parent_id').references(() => todos.id, { onDelete: 'cascade' }),
+  parentId: text('parent_id'),
+  isRepeatable: integer('is_repeatable', { mode: 'boolean' }).default(false).notNull(),
   repeatType: text('repeat_type'),
   repeatInterval: integer('repeat_interval'),
+  repeatDaysOfWeek: text('repeat_days_of_week'),
+  repeatDayOfMonth: integer('repeat_day_of_month'),
   repeatEndDate: integer('repeat_end_date', { mode: 'timestamp' }),
-  completionDate: integer('completion_date', { mode: 'timestamp' }),
+  originalTodoId: text('original_todo_id'),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .default(sql`(unixepoch())`)
     .notNull(),
