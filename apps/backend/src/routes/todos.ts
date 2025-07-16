@@ -1,5 +1,4 @@
 import { Hono } from 'hono';
-import { z } from 'zod';
 import { eq, and, desc, asc, count, isNull } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { todos } from '@personal-hub/shared';
@@ -9,6 +8,7 @@ import {
   todoQuerySchema,
   TodoStatus,
   TodoPriority,
+  RepeatType,
   type TodoType,
   type PaginatedTodos,
   type CreateTodoInput,
@@ -265,6 +265,11 @@ todoRouter.patch('/:id', async (c) => {
       if (!parent) {
         return c.json({ error: 'Parent todo not found or access denied' }, 404);
       }
+
+      // Prevent circular dependencies
+      if (parent.parentId === todoId) {
+        return c.json({ error: 'Circular dependency detected' }, 400);
+      }
     }
 
     // Update the todo - convert dates and filter out undefined values
@@ -329,6 +334,61 @@ todoRouter.delete('/:id', async (c) => {
   } catch (error) {
     console.error('Error deleting todo:', error);
     return c.json({ error: 'Failed to delete todo' }, 500);
+  }
+});
+
+// Toggle todo status
+todoRouter.post('/:id/toggle-status', async (c) => {
+  const db = drizzle(c.env.DB);
+  const todoId = c.req.param('id');
+  const user = c.get('user');
+
+  try {
+    // Get current todo
+    const [todo] = await db
+      .select()
+      .from(todos)
+      .where(
+        and(
+          eq(todos.id, todoId),
+          eq(todos.userId, user.id)
+        )
+      );
+
+    if (!todo) {
+      return c.json({ error: 'Todo not found' }, 404);
+    }
+
+    // Determine new status
+    let newStatus: TodoStatus;
+    switch (todo.status) {
+      case TodoStatus.TODO:
+        newStatus = TodoStatus.IN_PROGRESS;
+        break;
+      case TodoStatus.IN_PROGRESS:
+        newStatus = TodoStatus.DONE;
+        break;
+      case TodoStatus.DONE:
+        newStatus = TodoStatus.TODO;
+        break;
+      default:
+        newStatus = TodoStatus.TODO;
+    }
+
+    // Update status
+    const [updatedTodo] = await db
+      .update(todos)
+      .set({
+        status: newStatus,
+        updatedAt: new Date(),
+      })
+      .where(eq(todos.id, todoId))
+      .returning();
+
+    return c.json(serializeTodo(updatedTodo));
+  } catch (error) {
+    console.error('Error toggling todo status:', error);
+    return c.json({ error: 'Failed to toggle todo status' }, 500);
   }
 });
 

@@ -16,7 +16,7 @@ const queryClient = new QueryClient({
 });
 
 function AuthenticatedApp() {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
