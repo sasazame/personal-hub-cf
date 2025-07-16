@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import authRouter from './routes/auth';
+import todoRouter from './routes/todos';
 
 type Env = {
   Bindings: {
@@ -25,5 +26,8 @@ app.get('/health', (c) => {
 
 // Mount auth routes
 app.route('/api/auth', authRouter);
+
+// Mount todo routes
+app.route('/api/todos', todoRouter);
 
 export default app;

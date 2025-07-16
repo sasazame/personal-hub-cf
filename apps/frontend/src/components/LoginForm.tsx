@@ -3,6 +3,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { loginSchema, LoginInput, authApi } from '../lib/auth';
 import { useState } from 'react';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -27,7 +31,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       onSuccess?.();
     },
     onError: (error: any) => {
-      setError(error.response?.data?.error || 'Login failed');
+      setError(error.response?.data?.error || 'Invalid email or password');
     },
   });
 
@@ -36,66 +40,75 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
   };
 
   return (
-    <div className="login-form">
-      <h2>Login</h2>
+    <Card className="w-full max-w-md">
+      <CardHeader>
+        <CardTitle>Login</CardTitle>
+        <CardDescription>Enter your credentials to access your account</CardDescription>
+      </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
-        {error && (
-          <div className="error-message" style={{ color: 'red', marginBottom: '1rem' }}>
-            {error}
+        <CardContent className="space-y-4">
+          {error && (
+            <div className="text-sm text-destructive">
+              {error}
+            </div>
+          )}
+          
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              {...register('email')}
+              placeholder="Enter your email"
+              aria-describedby={errors.email ? 'email-error' : undefined}
+            />
+            {errors.email && (
+              <p id="email-error" className="text-sm text-destructive">
+                {errors.email.message}
+              </p>
+            )}
           </div>
-        )}
-        
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            {...register('email')}
-            placeholder="Enter your email"
-          />
-          {errors.email && (
-            <span className="field-error" style={{ color: 'red', fontSize: '0.875rem' }}>
-              {errors.email.message}
-            </span>
-          )}
-        </div>
 
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            {...register('password')}
-            placeholder="Enter your password"
-          />
-          {errors.password && (
-            <span className="field-error" style={{ color: 'red', fontSize: '0.875rem' }}>
-              {errors.password.message}
-            </span>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          disabled={loginMutation.isPending}
-          style={{ marginTop: '1rem' }}
-        >
-          {loginMutation.isPending ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
-
-      {onSwitchToRegister && (
-        <p style={{ marginTop: '1rem' }}>
-          Don't have an account?{' '}
-          <button
-            type="button"
-            onClick={onSwitchToRegister}
-            style={{ background: 'none', border: 'none', color: 'blue', cursor: 'pointer' }}
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              {...register('password')}
+              placeholder="Enter your password"
+              aria-describedby={errors.password ? 'password-error' : undefined}
+            />
+            {errors.password && (
+              <p id="password-error" className="text-sm text-destructive">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-4">
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={loginMutation.isPending}
           >
-            Register here
-          </button>
-        </p>
-      )}
-    </div>
+            {loginMutation.isPending ? 'Logging in...' : 'Log in'}
+          </Button>
+          
+          {onSwitchToRegister && (
+            <p className="text-sm text-center text-muted-foreground">
+              Don't have an account?{' '}
+              <Button
+                type="button"
+                variant="link"
+                className="p-0 h-auto font-normal"
+                onClick={onSwitchToRegister}
+              >
+                Register here
+              </Button>
+            </p>
+          )}
+        </CardFooter>
+      </form>
+    </Card>
   );
 }

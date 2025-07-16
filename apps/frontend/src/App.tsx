@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
+import { Button } from './components/ui/button';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -17,10 +18,17 @@ function AuthenticatedApp() {
   const { user, logout } = useAuth();
 
   return (
-    <div>
-      <h1>Welcome to Personal Hub</h1>
-      <p>Hello, {user?.firstName || user?.username || user?.email}!</p>
-      <button onClick={logout}>Logout</button>
+    <div className="min-h-screen bg-background">
+      <header className="border-b">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Personal Hub</h1>
+          <Button onClick={logout} variant="outline">Logout</Button>
+        </div>
+      </header>
+      <main className="container mx-auto px-4 py-8">
+        <h2 className="text-xl mb-4">Hello, {user?.firstName || user?.username || user?.email}!</h2>
+        <p className="text-muted-foreground">Welcome to your personal hub. Features coming soon!</p>
+      </main>
     </div>
   );
 }
@@ -34,19 +42,26 @@ function UnauthenticatedApp() {
   };
 
   return (
-    <div className="auth-container">
-      <h1>Personal Hub</h1>
-      {showRegister ? (
-        <RegisterForm
-          onSuccess={handleAuthSuccess}
-          onSwitchToLogin={() => setShowRegister(false)}
-        />
-      ) : (
-        <LoginForm
-          onSuccess={handleAuthSuccess}
-          onSwitchToRegister={() => setShowRegister(true)}
-        />
-      )}
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold">Personal Hub</h1>
+          <p className="text-muted-foreground mt-2">
+            {showRegister ? 'Create your account' : 'Sign in to your account'}
+          </p>
+        </div>
+        {showRegister ? (
+          <RegisterForm
+            onSuccess={handleAuthSuccess}
+            onSwitchToLogin={() => setShowRegister(false)}
+          />
+        ) : (
+          <LoginForm
+            onSuccess={handleAuthSuccess}
+            onSwitchToRegister={() => setShowRegister(true)}
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -55,7 +70,11 @@ function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
   }
 
   return isAuthenticated ? <AuthenticatedApp /> : <UnauthenticatedApp />;

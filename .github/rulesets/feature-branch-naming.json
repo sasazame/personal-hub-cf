@@ -1,0 +1,27 @@
+{
+  "name": "feature-branch-naming",
+  "target": "branch",
+  "source_type": "Repository",
+  "source": "sasazame/personal-hub-cf",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "exclude": [
+        "refs/heads/main"
+      ],
+      "include": [
+        "refs/heads/**"
+      ]
+    }
+  },
+  "rules": [
+    {
+      "type": "restriction",
+      "parameters": {
+        "restrict_creations": false,
+        "restrict_updates": false
+      }
+    }
+  ],
+  "bypass_actors": []
+}
