@@ -1,11 +1,11 @@
 import { test as base } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
-// Define test user credentials
+// Define test user credentials from environment or use defaults
 export const TEST_USER = {
-  email: 'test@example.com',
-  password: 'Password123!',
-  username: 'testuser',
+  email: process.env.TEST_USER_EMAIL || 'test@example.com',
+  password: process.env.TEST_USER_PASSWORD || 'Password123!',
+  username: process.env.TEST_USER_USERNAME || 'testuser',
 };
 
 // Extend the base test with custom fixtures

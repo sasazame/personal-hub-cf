@@ -18,6 +18,7 @@ import {
 import { initializeLucia } from '../lib/auth';
 import { serializeTodo, serializeTodos } from '../helpers/todo-serializer';
 import type { Context } from 'hono';
+import type { D1Database } from '@cloudflare/workers-types';
 
 type Env = {
   Bindings: {

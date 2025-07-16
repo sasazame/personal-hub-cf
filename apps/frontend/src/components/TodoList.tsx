@@ -6,14 +6,16 @@ import { Button } from '@personal-hub/ui'
 import { TodoForm } from './TodoForm'
 import type { TodoQuery } from '@personal-hub/shared'
 
+const DEFAULT_FILTER: TodoQuery = {
+  limit: 10,
+  page: 1,
+  sortBy: 'createdAt',
+  sortOrder: 'desc',
+}
+
 export function TodoList() {
   const [showForm, setShowForm] = useState(false)
-  const [filter, setFilter] = useState<TodoQuery>({
-    limit: 10,
-    page: 1,
-    sortBy: 'createdAt',
-    sortOrder: 'desc',
-  })
+  const [filter, setFilter] = useState<TodoQuery>(DEFAULT_FILTER)
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['todos', filter],
