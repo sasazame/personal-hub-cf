@@ -14,7 +14,7 @@ This project is a migration of the original Personal Hub, re-architected to leve
 
 This project is a monorepo managed by `pnpm` workspaces.
 
-```
+```text
 /personal-hub-cf/
 ├── apps/
 │   ├── frontend/  # React SPA (Cloudflare Pages)
@@ -119,17 +119,17 @@ We use the **Conventional Commits** specification. This allows for automated cha
 
 **Format:** `<type>(<scope>): <subject>`
 
--   **Examples:**
-    -   `feat(api): add user login endpoint`
-    -   `fix(ui): correct button alignment`
-    -   `docs(readme): update setup instructions`
+- **Examples:**
+  - `feat(api): add user login endpoint`
+  - `fix(ui): correct button alignment`
+  - `docs(readme): update setup instructions`
 
 ### CI/CD
 
 The CI/CD pipeline is managed by GitHub Actions. On every push to a feature branch or PR, the following checks are run:
--   Linting & Formatting
--   Unit & Component Tests (Vitest)
--   End-to-End Tests (Playwright)
+- Linting & Formatting
+- Unit & Component Tests (Vitest)
+- End-to-End Tests (Playwright)
 
 A successful CI run is required to merge a PR into `main`. Merging to `main` automatically deploys the application to the staging environment on Cloudflare.
 
