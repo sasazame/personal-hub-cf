@@ -1,12 +1,9 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
-import { loginSchema, LoginInput, authApi } from '../lib/auth';
+import { loginSchema, type LoginInput, authApi } from '../lib/auth';
 import { useState } from 'react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
+import { Button, Input, Label, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@personal-hub/ui';
 
 interface LoginFormProps {
   onSuccess?: () => void;

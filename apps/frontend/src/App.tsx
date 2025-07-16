@@ -3,7 +3,8 @@ import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/reac
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
-import { Button } from './components/ui/button';
+import { TodoList } from './components/TodoList';
+import { Button } from '@personal-hub/ui';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -15,7 +16,7 @@ const queryClient = new QueryClient({
 });
 
 function AuthenticatedApp() {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -26,8 +27,7 @@ function AuthenticatedApp() {
         </div>
       </header>
       <main className="container mx-auto px-4 py-8">
-        <h2 className="text-xl mb-4">Hello, {user?.firstName || user?.username || user?.email}!</h2>
-        <p className="text-muted-foreground">Welcome to your personal hub. Features coming soon!</p>
+        <TodoList />
       </main>
     </div>
   );
