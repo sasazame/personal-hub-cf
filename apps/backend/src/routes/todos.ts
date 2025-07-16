@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
 import { eq, and, desc, asc, count, isNull } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { todos } from '@personal-hub/shared';
@@ -9,9 +9,11 @@ import {
   todoQuerySchema,
   TodoStatus,
   TodoPriority,
-  RepeatType,
   type TodoType,
   type PaginatedTodos,
+  type CreateTodoInput,
+  type UpdateTodoInput,
+  type TodoQuery,
 } from '@personal-hub/shared';
 import { initializeLucia } from '../lib/auth';
 import { serializeTodo, serializeTodos } from '../helpers/todo-serializer';
@@ -29,31 +31,42 @@ type Env = {
 
 const todoRouter = new Hono<Env>();
 
-// Middleware to ensure authentication
-const requireAuth = async (c: Context<Env>, next: () => Promise<void>) => {
+// Middleware to ensure user is authenticated
+async function requireAuth(c: Context<Env>, next: () => Promise<void>) {
   const lucia = initializeLucia(c.env.DB);
   const sessionId = lucia.readSessionCookie(c.req.header('Cookie') ?? '');
+  
   if (!sessionId) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
   const { session, user } = await lucia.validateSession(sessionId);
+  
   if (!session || !user) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
   c.set('user', user);
   c.set('session', session);
+  
   await next();
-};
+}
 
 // Apply auth middleware to all routes
 todoRouter.use('*', requireAuth);
 
 // Create a new todo
-todoRouter.post('/', zValidator('json', createTodoSchema), async (c) => {
+todoRouter.post('/', async (c) => {
   const db = drizzle(c.env.DB);
-  const data = c.req.valid('json');
+  const body = await c.req.json();
+  
+  // Validate input
+  const parseResult = createTodoSchema.safeParse(body);
+  if (!parseResult.success) {
+    return c.json({ error: 'Invalid input', details: parseResult.error }, 400);
+  }
+  
+  const data = parseResult.data;
   const user = c.get('user');
 
   try {
@@ -78,11 +91,19 @@ todoRouter.post('/', zValidator('json', createTodoSchema), async (c) => {
     const [newTodo] = await db
       .insert(todos)
       .values({
-        ...data,
+        title: data.title,
+        description: data.description || null,
         userId: user.id,
         status: data.status || TodoStatus.TODO,
         priority: data.priority || TodoPriority.MEDIUM,
+        dueDate: data.dueDate ? new Date(data.dueDate) : null,
+        parentId: data.parentId || null,
         isRepeatable: data.isRepeatable || false,
+        repeatType: data.repeatType || null,
+        repeatInterval: data.repeatInterval || null,
+        repeatDaysOfWeek: data.repeatDaysOfWeek || null,
+        repeatDayOfMonth: data.repeatDayOfMonth || null,
+        repeatEndDate: data.repeatEndDate ? new Date(data.repeatEndDate) : null,
       })
       .returning();
 
@@ -117,10 +138,17 @@ todoRouter.get('/:id', async (c) => {
 });
 
 // Get paginated list of todos
-todoRouter.get('/', zValidator('query', todoQuerySchema), async (c) => {
+todoRouter.get('/', async (c) => {
   const db = drizzle(c.env.DB);
   const user = c.get('user');
-  const query = c.req.valid('query');
+  
+  // Parse query parameters
+  const parseResult = todoQuerySchema.safeParse(c.req.query());
+  if (!parseResult.success) {
+    return c.json({ error: 'Invalid query parameters', details: parseResult.error }, 400);
+  }
+  
+  const query = parseResult.data;
 
   // Build where conditions
   const conditions = [eq(todos.userId, user.id)];
@@ -150,12 +178,22 @@ todoRouter.get('/', zValidator('query', todoQuerySchema), async (c) => {
     .where(and(...conditions));
 
   // Build order by
-  const orderColumn = {
-    createdAt: todos.createdAt,
-    updatedAt: todos.updatedAt,
-    dueDate: todos.dueDate,
-    priority: todos.priority,
-  }[query.sortBy];
+  let orderColumn;
+  switch (query.sortBy) {
+    case 'updatedAt':
+      orderColumn = todos.updatedAt;
+      break;
+    case 'dueDate':
+      orderColumn = todos.dueDate;
+      break;
+    case 'priority':
+      orderColumn = todos.priority;
+      break;
+    case 'createdAt':
+    default:
+      orderColumn = todos.createdAt;
+      break;
+  }
 
   const orderFn = query.sortOrder === 'asc' ? asc : desc;
 
@@ -170,7 +208,7 @@ todoRouter.get('/', zValidator('query', todoQuerySchema), async (c) => {
     .offset(offset);
 
   const response: PaginatedTodos = {
-    todos: serializeTodos(results) as TodoType[],
+    todos: serializeTodos(results),
     total: totalCount,
     page: query.page,
     limit: query.limit,
@@ -181,11 +219,19 @@ todoRouter.get('/', zValidator('query', todoQuerySchema), async (c) => {
 });
 
 // Update a todo
-todoRouter.put('/:id', zValidator('json', updateTodoSchema), async (c) => {
+todoRouter.patch('/:id', async (c) => {
   const db = drizzle(c.env.DB);
   const todoId = c.req.param('id');
-  const data = c.req.valid('json');
   const user = c.get('user');
+  const body = await c.req.json();
+  
+  // Validate input
+  const parseResult = updateTodoSchema.safeParse(body);
+  if (!parseResult.success) {
+    return c.json({ error: 'Invalid input', details: parseResult.error }, 400);
+  }
+  
+  const data = parseResult.data;
 
   try {
     // Check if todo exists and belongs to user
@@ -204,7 +250,7 @@ todoRouter.put('/:id', zValidator('json', updateTodoSchema), async (c) => {
     }
 
     // Validate parent todo if updating parentId
-    if (data.parentId && data.parentId !== existingTodo.parentId) {
+    if (data.parentId !== undefined && data.parentId !== null) {
       const [parent] = await db
         .select()
         .from(todos)
@@ -218,26 +264,30 @@ todoRouter.put('/:id', zValidator('json', updateTodoSchema), async (c) => {
       if (!parent) {
         return c.json({ error: 'Parent todo not found or access denied' }, 404);
       }
-
-      // Prevent circular dependencies
-      if (parent.parentId === todoId) {
-        return c.json({ error: 'Circular dependency detected' }, 400);
-      }
     }
 
-    // Update the todo
+    // Update the todo - convert dates and filter out undefined values
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+    
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.status !== undefined) updateData.status = data.status;
+    if (data.priority !== undefined) updateData.priority = data.priority;
+    if (data.dueDate !== undefined) updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null;
+    if (data.parentId !== undefined) updateData.parentId = data.parentId;
+    if (data.isRepeatable !== undefined) updateData.isRepeatable = data.isRepeatable;
+    if (data.repeatType !== undefined) updateData.repeatType = data.repeatType;
+    if (data.repeatInterval !== undefined) updateData.repeatInterval = data.repeatInterval;
+    if (data.repeatDaysOfWeek !== undefined) updateData.repeatDaysOfWeek = data.repeatDaysOfWeek;
+    if (data.repeatDayOfMonth !== undefined) updateData.repeatDayOfMonth = data.repeatDayOfMonth;
+    if (data.repeatEndDate !== undefined) updateData.repeatEndDate = data.repeatEndDate ? new Date(data.repeatEndDate) : null;
+    
     const [updatedTodo] = await db
       .update(todos)
-      .set({
-        ...data,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(todos.id, todoId),
-          eq(todos.userId, user.id)
-        )
-      )
+      .set(updateData)
+      .where(eq(todos.id, todoId))
       .returning();
 
     return c.json(serializeTodo(updatedTodo));
@@ -269,80 +319,15 @@ todoRouter.delete('/:id', async (c) => {
       return c.json({ error: 'Todo not found' }, 404);
     }
 
-    // Delete the todo (cascade will handle children)
+    // Delete the todo
     await db
       .delete(todos)
-      .where(
-        and(
-          eq(todos.id, todoId),
-          eq(todos.userId, user.id)
-        )
-      );
+      .where(eq(todos.id, todoId));
 
     return c.json({ message: 'Todo deleted successfully' });
   } catch (error) {
     console.error('Error deleting todo:', error);
     return c.json({ error: 'Failed to delete todo' }, 500);
-  }
-});
-
-// Toggle todo status
-todoRouter.post('/:id/toggle-status', async (c) => {
-  const db = drizzle(c.env.DB);
-  const todoId = c.req.param('id');
-  const user = c.get('user');
-
-  try {
-    // Get current todo
-    const [todo] = await db
-      .select()
-      .from(todos)
-      .where(
-        and(
-          eq(todos.id, todoId),
-          eq(todos.userId, user.id)
-        )
-      );
-
-    if (!todo) {
-      return c.json({ error: 'Todo not found' }, 404);
-    }
-
-    // Determine new status - comprehensive state transitions
-    let newStatus: TodoStatus;
-    switch (todo.status) {
-      case TodoStatus.TODO:
-        newStatus = TodoStatus.IN_PROGRESS;
-        break;
-      case TodoStatus.IN_PROGRESS:
-        newStatus = TodoStatus.DONE;
-        break;
-      case TodoStatus.DONE:
-        newStatus = TodoStatus.TODO;
-        break;
-      default:
-        newStatus = TodoStatus.TODO;
-    }
-
-    // Update status
-    const [updatedTodo] = await db
-      .update(todos)
-      .set({
-        status: newStatus,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(todos.id, todoId),
-          eq(todos.userId, user.id)
-        )
-      )
-      .returning();
-
-    return c.json(serializeTodo(updatedTodo));
-  } catch (error) {
-    console.error('Error toggling todo status:', error);
-    return c.json({ error: 'Failed to toggle todo status' }, 500);
   }
 });
 
@@ -352,8 +337,8 @@ todoRouter.get('/:id/children', async (c) => {
   const parentId = c.req.param('id');
   const user = c.get('user');
 
-  // Verify parent exists and belongs to user
-  const [parent] = await db
+  // Check if parent todo exists and belongs to user
+  const [parentTodo] = await db
     .select()
     .from(todos)
     .where(
@@ -363,11 +348,11 @@ todoRouter.get('/:id/children', async (c) => {
       )
     );
 
-  if (!parent) {
+  if (!parentTodo) {
     return c.json({ error: 'Parent todo not found' }, 404);
   }
 
-  // Get children
+  // Get all children
   const children = await db
     .select()
     .from(todos)
@@ -382,4 +367,4 @@ todoRouter.get('/:id/children', async (c) => {
   return c.json(serializeTodos(children));
 });
 
-export default todoRouter;
+export { todoRouter };
