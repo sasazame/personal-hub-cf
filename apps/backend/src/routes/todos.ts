@@ -8,7 +8,6 @@ import {
   todoQuerySchema,
   TodoStatus,
   TodoPriority,
-  type TodoType,
   type PaginatedTodos,
 } from '@personal-hub/shared';
 import { initializeLucia } from '../lib/auth';
@@ -320,7 +319,18 @@ todoRouter.delete('/:id', async (c) => {
       return c.json({ error: 'Todo not found' }, 404);
     }
 
-    // Delete the todo
+    // Delete the todo and its children
+    // First delete all child todos
+    await db
+      .delete(todos)
+      .where(
+        and(
+          eq(todos.parentId, todoId),
+          eq(todos.userId, user.id)
+        )
+      );
+
+    // Then delete the parent todo
     await db
       .delete(todos)
       .where(eq(todos.id, todoId));
