@@ -1,6 +1,5 @@
 import { test, expect } from './fixtures/base-test';
-import { GoalTypes, GoalStatuses, type GoalType, type GoalStatus } from '@personal-hub/shared';
-import { createSingleGoal } from './helpers/goals';
+import { GoalTypes, GoalStatuses } from '@personal-hub/shared';
 
 test.describe('Goal CRUD Operations', () => {
   test.beforeEach(async ({ authenticatedPage: page }) => {

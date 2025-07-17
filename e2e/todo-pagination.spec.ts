@@ -4,7 +4,6 @@ import { login } from './helpers/auth';
 // Pagination constants
 const ITEMS_PER_PAGE = 20;
 const TOTAL_TEST_ITEMS = 25;
-const EXPECTED_PAGES = Math.ceil(TOTAL_TEST_ITEMS / ITEMS_PER_PAGE);
 const EXPECTED_SECOND_PAGE_ITEMS = TOTAL_TEST_ITEMS - ITEMS_PER_PAGE;
 
 test.describe('Todo Pagination', () => {

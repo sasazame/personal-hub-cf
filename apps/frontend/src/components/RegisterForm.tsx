@@ -34,6 +34,7 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
   });
 
   const onSubmit = (data: RegisterInput) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword, ...registerData } = data;
     registerMutation.mutate(registerData);
   };

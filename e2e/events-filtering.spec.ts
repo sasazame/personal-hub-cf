@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/base-test';
-import { format, addDays, startOfWeek, endOfWeek } from 'date-fns';
+import { format, addDays, endOfWeek } from 'date-fns';
 import type { Page } from '@playwright/test';
 
 test.describe('Events Filtering and Search', () => {

@@ -27,8 +27,13 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       setError(null);
       onSuccess?.();
     },
-    onError: (error: any) => {
-      setError(error.response?.data?.error || 'Invalid email or password');
+    onError: (error: unknown) => {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { error?: string } } };
+        setError(axiosError.response?.data?.error || 'Invalid email or password');
+      } else {
+        setError('Invalid email or password');
+      }
     },
   });
 
