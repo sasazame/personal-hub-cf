@@ -7,6 +7,7 @@ compatibility_flags = ["nodejs_compat"]
 binding = "DB"
 database_name = "personal-hub-db"
 database_id = "local"
+migrations_dir = "../../migrations"
 
 [env.production]
 name = "personal-hub-api-production"

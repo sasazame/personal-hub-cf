@@ -12,7 +12,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "db:generate": "drizzle-kit generate --config ./drizzle.config.ts"
   },
   "keywords": [],
   "author": "",
@@ -27,5 +28,8 @@
     "eslint-config-prettier": "^10.1.5",
     "prettier": "^3.6.2",
     "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44.3"
   }
 }
