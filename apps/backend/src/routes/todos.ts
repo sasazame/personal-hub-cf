@@ -29,9 +29,15 @@ type Env = {
 
 const todoRouter = new Hono<Env>();
 
+// Helper to check if we're in development
+const isDevelopment = (c: any) => {
+  const origin = c.req.header('origin') || '';
+  return origin.includes('localhost');
+};
+
 // Middleware to ensure authentication
 const requireAuth = async (c: Context<Env>, next: () => Promise<void>) => {
-  const lucia = initializeLucia(c.env.DB);
+  const lucia = initializeLucia(c.env.DB, isDevelopment(c));
   const sessionId = lucia.readSessionCookie(c.req.header('Cookie') ?? '');
   if (!sessionId) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -74,16 +80,21 @@ todoRouter.post('/', zValidator('json', createTodoSchema), async (c) => {
       }
     }
 
+    // Convert date strings to Date objects for the database
+    const todoData = {
+      ...data,
+      userId: user.id,
+      status: data.status || TodoStatus.TODO,
+      priority: data.priority || TodoPriority.MEDIUM,
+      isRepeatable: data.isRepeatable || false,
+      dueDate: data.dueDate ? new Date(data.dueDate) : null,
+      repeatEndDate: data.repeatEndDate ? new Date(data.repeatEndDate) : null,
+    };
+
     // Create the todo
     const [newTodo] = await db
       .insert(todos)
-      .values({
-        ...data,
-        userId: user.id,
-        status: data.status || TodoStatus.TODO,
-        priority: data.priority || TodoPriority.MEDIUM,
-        isRepeatable: data.isRepeatable || false,
-      })
+      .values(todoData)
       .returning();
 
     return c.json(serializeTodo(newTodo), 201);
@@ -225,13 +236,18 @@ todoRouter.put('/:id', zValidator('json', updateTodoSchema), async (c) => {
       }
     }
 
+    // Convert date strings to Date objects for the database
+    const updateData = {
+      ...data,
+      updatedAt: new Date(),
+      dueDate: data.dueDate !== undefined ? (data.dueDate ? new Date(data.dueDate) : null) : undefined,
+      repeatEndDate: data.repeatEndDate !== undefined ? (data.repeatEndDate ? new Date(data.repeatEndDate) : null) : undefined,
+    };
+
     // Update the todo
     const [updatedTodo] = await db
       .update(todos)
-      .set({
-        ...data,
-        updatedAt: new Date(),
-      })
+      .set(updateData)
       .where(
         and(
           eq(todos.id, todoId),

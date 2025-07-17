@@ -4,14 +4,14 @@ import { drizzle } from 'drizzle-orm/d1';
 import { users, sessions } from '@personal-hub/shared';
 import type { User } from '@personal-hub/shared';
 
-export function initializeLucia(db: D1Database) {
+export function initializeLucia(db: D1Database, isDevelopment = false) {
   const drizzleDb = drizzle(db);
   const adapter = new DrizzleSQLiteAdapter(drizzleDb, sessions, users);
 
   return new Lucia(adapter, {
     sessionCookie: {
       attributes: {
-        secure: true, // Always use HTTPS in production
+        secure: !isDevelopment, // Only secure in production
         sameSite: 'lax',
       },
     },
