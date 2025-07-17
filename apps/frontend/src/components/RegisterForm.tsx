@@ -1,12 +1,10 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
-import { registerSchema, RegisterInput, authApi } from '../lib/auth';
+import { registerSchema, type RegisterInput, authApi } from '../lib/auth';
 import { useState } from 'react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
+import { Button, Input, Label, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@personal-hub/ui';
+import type { AxiosError } from 'axios';
 
 interface RegisterFormProps {
   onSuccess?: () => void;
@@ -25,21 +23,19 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
   });
 
   const registerMutation = useMutation({
-    mutationFn: (data: RegisterInput) => {
-      const { confirmPassword, ...registerData } = data;
-      return authApi.register(registerData);
-    },
+    mutationFn: authApi.register,
     onSuccess: () => {
       setError(null);
       onSuccess?.();
     },
-    onError: (error: any) => {
-      setError(error.response?.data?.error || 'Registration failed');
+    onError: (error: AxiosError<{ error?: string }>) => {
+      setError(error.response?.data?.error || 'Failed to create account');
     },
   });
 
   const onSubmit = (data: RegisterInput) => {
-    registerMutation.mutate(data);
+    const { confirmPassword, ...registerData } = data;
+    registerMutation.mutate(registerData);
   };
 
   return (
@@ -73,7 +69,7 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="username">Username (optional)</Label>
+            <Label htmlFor="username">Username</Label>
             <Input
               id="username"
               type="text"
@@ -88,35 +84,13 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">First Name (optional)</Label>
-              <Input
-                id="firstName"
-                type="text"
-                {...register('firstName')}
-                placeholder="First name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name (optional)</Label>
-              <Input
-                id="lastName"
-                type="text"
-                {...register('lastName')}
-                placeholder="Last name"
-              />
-            </div>
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
               {...register('password')}
-              placeholder="Enter your password"
+              placeholder="Create a password"
               aria-describedby={errors.password ? 'password-error' : undefined}
             />
             {errors.password && (
@@ -160,7 +134,7 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
                 className="p-0 h-auto font-normal"
                 onClick={onSwitchToLogin}
               >
-                Login here
+                Log in here
               </Button>
             </p>
           )}

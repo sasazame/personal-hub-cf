@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import authRouter from './routes/auth';
-import todoRouter from './routes/todos';
+import { todoRouter } from './routes/todos';
+import type { D1Database } from '@cloudflare/workers-types';
 
 type Env = {
   Bindings: {
