@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures/base-test';
 import { format, addDays } from 'date-fns';
+import type { Page } from '@playwright/test';
 
 test.describe('Events Pagination', () => {
   test.beforeEach(async ({ page, authenticatedPage }) => {
@@ -121,7 +122,7 @@ test.describe('Events Pagination', () => {
 });
 
 // Helper function to create events quickly
-async function createEvent(page: any, event: {
+async function createEvent(page: Page, event: {
   title: string;
   startDate: string;
   startTime: string;

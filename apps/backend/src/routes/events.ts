@@ -138,8 +138,15 @@ app.put('/:id', requireAuth, zValidator('json', updateEventSchema), async (c) =>
     }
   }
 
-  const updateData: any = {
-    ...updates,
+  // Build update data with proper types
+  const updateData: Partial<typeof events.$inferInsert> = {
+    title: updates.title,
+    description: updates.description,
+    location: updates.location,
+    allDay: updates.allDay,
+    reminderMinutes: updates.reminderMinutes,
+    color: updates.color,
+    googleEventId: updates.googleEventId,
     updatedAt: new Date(),
   };
 

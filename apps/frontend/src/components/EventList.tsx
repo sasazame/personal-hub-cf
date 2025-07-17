@@ -34,7 +34,7 @@ export function EventList() {
   const getDateRange = (): { startDate?: string; endDate?: string } => {
     const now = new Date();
     switch (dateFilter) {
-      case 'today':
+      case 'today': {
         const today = new Date(now);
         today.setHours(0, 0, 0, 0);
         const todayEnd = new Date(now);
@@ -43,16 +43,19 @@ export function EventList() {
           startDate: today.toISOString(),
           endDate: todayEnd.toISOString(),
         };
-      case 'week':
+      }
+      case 'week': {
         return {
           startDate: startOfWeek(now).toISOString(),
           endDate: endOfWeek(now).toISOString(),
         };
-      case 'month':
+      }
+      case 'month': {
         return {
           startDate: startOfMonth(now).toISOString(),
           endDate: endOfMonth(now).toISOString(),
         };
+      }
       default:
         return {};
     }
