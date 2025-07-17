@@ -2,13 +2,22 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { Button, Card, Input, Label } from '@personal-hub/ui';
-import { createGoalSchema, GoalType, type CreateGoalInput } from '@personal-hub/shared';
+import { createGoalSchema, GoalTypes, type GoalType, type CreateGoalInput } from '@personal-hub/shared';
 import { goalApi } from '../lib/goals';
 
 interface GoalFormProps {
   onCancel: () => void;
   onSuccess: () => void;
 }
+
+const getDefaultDates = () => {
+  const now = new Date();
+  const thirtyDaysLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  return {
+    startDate: now.toISOString().split('T')[0] + 'T00:00:00Z',
+    endDate: thirtyDaysLater.toISOString().split('T')[0] + 'T23:59:59Z',
+  };
+};
 
 export function GoalForm({ onCancel, onSuccess }: GoalFormProps) {
   const {
@@ -18,9 +27,8 @@ export function GoalForm({ onCancel, onSuccess }: GoalFormProps) {
   } = useForm<CreateGoalInput>({
     resolver: zodResolver(createGoalSchema),
     defaultValues: {
-      type: GoalType.MONTHLY,
-      startDate: new Date().toISOString().split('T')[0] + 'T00:00:00Z',
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] + 'T23:59:59Z',
+      type: GoalTypes.MONTHLY,
+      ...getDefaultDates(),
     },
   });
 
@@ -69,10 +77,10 @@ export function GoalForm({ onCancel, onSuccess }: GoalFormProps) {
               {...register('type')}
               className="mt-1 w-full px-3 py-2 border rounded-md"
             >
-              <option value={GoalType.ANNUAL}>Annual</option>
-              <option value={GoalType.MONTHLY}>Monthly</option>
-              <option value={GoalType.WEEKLY}>Weekly</option>
-              <option value={GoalType.DAILY}>Daily</option>
+              <option value={GoalTypes.ANNUAL}>Annual</option>
+              <option value={GoalTypes.MONTHLY}>Monthly</option>
+              <option value={GoalTypes.WEEKLY}>Weekly</option>
+              <option value={GoalTypes.DAILY}>Daily</option>
             </select>
           </div>
 

@@ -9,7 +9,6 @@ import {
   TodoStatus,
   TodoPriority,
   type TodoStatusType,
-  type TodoPriorityType,
   type PaginatedTodos,
 } from '@personal-hub/shared';
 import { initializeLucia } from '../lib/auth';

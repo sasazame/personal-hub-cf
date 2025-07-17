@@ -1,30 +1,30 @@
 import { z } from 'zod';
 
 // Goal type enum
-export const GoalType = {
+export const GoalTypes = {
   ANNUAL: 'ANNUAL',
   MONTHLY: 'MONTHLY',
   WEEKLY: 'WEEKLY',
   DAILY: 'DAILY',
 } as const;
 
-export type GoalType = typeof GoalType[keyof typeof GoalType];
+export type GoalType = typeof GoalTypes[keyof typeof GoalTypes];
 
 // Goal status enum
-export const GoalStatus = {
+export const GoalStatuses = {
   ACTIVE: 'ACTIVE',
   PAUSED: 'PAUSED',
   COMPLETED: 'COMPLETED',
   ARCHIVED: 'ARCHIVED',
 } as const;
 
-export type GoalStatus = typeof GoalStatus[keyof typeof GoalStatus];
+export type GoalStatus = typeof GoalStatuses[keyof typeof GoalStatuses];
 
 // Goal schema for validation
 export const createGoalSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
   description: z.string().optional(),
-  type: z.enum(['ANNUAL', 'MONTHLY', 'WEEKLY', 'DAILY']),
+  type: z.enum(Object.values(GoalTypes) as [string, ...string[]]),
   targetValue: z.number().positive().optional(),
   unit: z.string().optional(),
   startDate: z.string().datetime(),
@@ -38,7 +38,7 @@ export const updateGoalSchema = z.object({
   targetValue: z.number().positive().optional(),
   currentValue: z.number().min(0).optional(),
   unit: z.string().optional(),
-  status: z.enum(['ACTIVE', 'PAUSED', 'COMPLETED', 'ARCHIVED']).optional(),
+  status: z.enum(Object.values(GoalStatuses) as [string, ...string[]]).optional(),
   color: z.string().regex(/^#[0-9A-F]{6}$/i).optional(),
 });
 
@@ -52,7 +52,7 @@ export const goalQuerySchema = z.object({
   page: z.coerce.number().min(1).default(1),
   limit: z.coerce.number().min(1).max(100).default(20),
   type: z.enum(['ANNUAL', 'MONTHLY', 'WEEKLY', 'DAILY']).optional(),
-  status: z.enum(['ACTIVE', 'PAUSED', 'COMPLETED', 'ARCHIVED']).optional(),
+  status: z.enum(Object.values(GoalStatuses) as [string, ...string[]]).optional(),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
 });

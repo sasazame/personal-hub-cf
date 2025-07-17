@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { GoalType, GoalStatus, type GoalQuery } from '@personal-hub/shared';
+import { GoalTypes, GoalStatuses, type GoalType, type GoalStatus, type GoalQuery } from '@personal-hub/shared';
 import { goalApi } from '../lib/goals';
 import { GoalItem } from './GoalItem';
 import { GoalForm } from './GoalForm';
@@ -11,7 +11,7 @@ export function GoalList() {
   const [filter, setFilter] = useState<Partial<GoalQuery>>({
     page: 1,
     limit: 20,
-    status: GoalStatus.ACTIVE,
+    status: GoalStatuses.ACTIVE,
   });
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -62,10 +62,10 @@ export function GoalList() {
           className="px-3 py-2 border rounded-md"
         >
           <option value="">All Status</option>
-          <option value={GoalStatus.ACTIVE}>Active</option>
-          <option value={GoalStatus.PAUSED}>Paused</option>
-          <option value={GoalStatus.COMPLETED}>Completed</option>
-          <option value={GoalStatus.ARCHIVED}>Archived</option>
+          <option value={GoalStatuses.ACTIVE}>Active</option>
+          <option value={GoalStatuses.PAUSED}>Paused</option>
+          <option value={GoalStatuses.COMPLETED}>Completed</option>
+          <option value={GoalStatuses.ARCHIVED}>Archived</option>
         </select>
 
         <select
@@ -74,10 +74,10 @@ export function GoalList() {
           className="px-3 py-2 border rounded-md"
         >
           <option value="">All Types</option>
-          <option value={GoalType.ANNUAL}>Annual</option>
-          <option value={GoalType.MONTHLY}>Monthly</option>
-          <option value={GoalType.WEEKLY}>Weekly</option>
-          <option value={GoalType.DAILY}>Daily</option>
+          <option value={GoalTypes.ANNUAL}>Annual</option>
+          <option value={GoalTypes.MONTHLY}>Monthly</option>
+          <option value={GoalTypes.WEEKLY}>Weekly</option>
+          <option value={GoalTypes.DAILY}>Daily</option>
         </select>
       </div>
 

@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Card, Button } from '@personal-hub/ui';
-import { GoalStatus, type Goal, type GoalProgressInput } from '@personal-hub/shared';
+import { GoalStatuses, type GoalStatus, type Goal, type GoalProgressInput } from '@personal-hub/shared';
 import { goalApi } from '../lib/goals';
 
 interface GoalItemProps {
@@ -44,12 +44,13 @@ export function GoalItem({ goal, onDeleted, onUpdated }: GoalItemProps) {
   });
 
   const handleDelete = () => {
-    if (confirm('Are you sure you want to delete this goal?')) {
+    // TODO: Replace with custom confirmation modal
+    if (window.confirm('Are you sure you want to delete this goal?')) {
       deleteMutation.mutate();
     }
   };
 
-  const handleAddProgress = (e: React.FormEvent) => {
+  const handleAddProgress = (e: FormEvent) => {
     e.preventDefault();
     const value = parseFloat(progressValue);
     if (!isNaN(value)) {
@@ -66,13 +67,13 @@ export function GoalItem({ goal, onDeleted, onUpdated }: GoalItemProps) {
 
   const getStatusColor = (status: GoalStatus) => {
     switch (status) {
-      case GoalStatus.ACTIVE:
+      case GoalStatuses.ACTIVE:
         return 'text-green-600';
-      case GoalStatus.PAUSED:
+      case GoalStatuses.PAUSED:
         return 'text-yellow-600';
-      case GoalStatus.COMPLETED:
+      case GoalStatuses.COMPLETED:
         return 'text-blue-600';
-      case GoalStatus.ARCHIVED:
+      case GoalStatuses.ARCHIVED:
         return 'text-gray-600';
       default:
         return 'text-gray-600';
@@ -142,7 +143,7 @@ export function GoalItem({ goal, onDeleted, onUpdated }: GoalItemProps) {
       {isExpanded && (
         <div className="mt-4 space-y-4 border-t pt-4">
           <div className="flex gap-2">
-            {goal.status !== GoalStatus.COMPLETED && (
+            {goal.status !== GoalStatuses.COMPLETED && (
               <Button
                 size="sm"
                 variant="outline"
@@ -151,31 +152,31 @@ export function GoalItem({ goal, onDeleted, onUpdated }: GoalItemProps) {
                 Add Progress
               </Button>
             )}
-            {goal.status === GoalStatus.ACTIVE && (
+            {goal.status === GoalStatuses.ACTIVE && (
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => statusMutation.mutate(GoalStatus.PAUSED)}
+                onClick={() => statusMutation.mutate(GoalStatuses.PAUSED)}
                 disabled={statusMutation.isPending}
               >
                 Pause
               </Button>
             )}
-            {goal.status === GoalStatus.PAUSED && (
+            {goal.status === GoalStatuses.PAUSED && (
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => statusMutation.mutate(GoalStatus.ACTIVE)}
+                onClick={() => statusMutation.mutate(GoalStatuses.ACTIVE)}
                 disabled={statusMutation.isPending}
               >
                 Resume
               </Button>
             )}
-            {goal.status !== GoalStatus.COMPLETED && goal.status !== GoalStatus.ARCHIVED && (
+            {goal.status !== GoalStatuses.COMPLETED && goal.status !== GoalStatuses.ARCHIVED && (
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => statusMutation.mutate(GoalStatus.COMPLETED)}
+                onClick={() => statusMutation.mutate(GoalStatuses.COMPLETED)}
                 disabled={statusMutation.isPending}
               >
                 Mark Complete

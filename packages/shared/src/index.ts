@@ -21,8 +21,10 @@ export {
 
 // Export goal types
 export {
-  GoalType,
-  GoalStatus,
+  GoalTypes,
+  GoalStatuses,
+  type GoalType,
+  type GoalStatus,
   createGoalSchema,
   updateGoalSchema,
   goalProgressSchema,

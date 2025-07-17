@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures/base-test';
-import { GoalType, GoalStatus } from '@personal-hub/shared';
+import { GoalTypes, GoalStatuses, type GoalType, type GoalStatus } from '@personal-hub/shared';
+import { createSingleGoal } from './helpers/goals';
 
 test.describe('Goal CRUD Operations', () => {
   test.beforeEach(async ({ authenticatedPage: page }) => {
@@ -15,7 +16,7 @@ test.describe('Goal CRUD Operations', () => {
     // Fill in the goal form
     await page.getByLabel('Title').fill('Read 12 books');
     await page.getByLabel('Description').fill('Read one book per month');
-    await page.getByLabel('Type').selectOption(GoalType.ANNUAL);
+    await page.getByLabel('Type').selectOption(GoalTypes.ANNUAL);
     await page.getByLabel('Target Value').fill('12');
     await page.getByLabel('Unit').fill('books');
     
@@ -41,7 +42,7 @@ test.describe('Goal CRUD Operations', () => {
     // Create a goal first
     await page.getByRole('button', { name: 'Add Goal' }).click();
     await page.getByLabel('Title').fill('Daily Exercise');
-    await page.getByLabel('Type').selectOption(GoalType.DAILY);
+    await page.getByLabel('Type').selectOption(GoalTypes.DAILY);
     await page.getByLabel('Target Value').fill('30');
     await page.getByLabel('Unit').fill('minutes');
     
@@ -72,7 +73,7 @@ test.describe('Goal CRUD Operations', () => {
     // Create a goal
     await page.getByRole('button', { name: 'Add Goal' }).click();
     await page.getByLabel('Title').fill('Learn TypeScript');
-    await page.getByLabel('Type').selectOption(GoalType.MONTHLY);
+    await page.getByLabel('Type').selectOption(GoalTypes.MONTHLY);
     
     const today = new Date();
     await page.getByLabel('Start Date').fill(today.toISOString().slice(0, 16));
@@ -86,22 +87,22 @@ test.describe('Goal CRUD Operations', () => {
     await page.getByRole('button', { name: 'Pause' }).click();
     
     // Verify status changed
-    await expect(page.getByText(GoalStatus.PAUSED)).toBeVisible();
+    await expect(page.getByText(GoalStatuses.PAUSED)).toBeVisible();
 
     // Resume the goal
     await page.getByRole('button', { name: 'Resume' }).click();
-    await expect(page.getByText(GoalStatus.ACTIVE)).toBeVisible();
+    await expect(page.getByText(GoalStatuses.ACTIVE)).toBeVisible();
 
     // Complete the goal
     await page.getByRole('button', { name: 'Mark Complete' }).click();
-    await expect(page.getByText(GoalStatus.COMPLETED)).toBeVisible();
+    await expect(page.getByText(GoalStatuses.COMPLETED)).toBeVisible();
   });
 
   test('should delete a goal', async ({ authenticatedPage: page }) => {
     // Create a goal
     await page.getByRole('button', { name: 'Add Goal' }).click();
     await page.getByLabel('Title').fill('Temporary Goal');
-    await page.getByLabel('Type').selectOption(GoalType.WEEKLY);
+    await page.getByLabel('Type').selectOption(GoalTypes.WEEKLY);
     
     const today = new Date();
     await page.getByLabel('Start Date').fill(today.toISOString().slice(0, 16));
@@ -123,7 +124,7 @@ test.describe('Goal CRUD Operations', () => {
     // Active goal
     await page.getByRole('button', { name: 'Add Goal' }).click();
     await page.getByLabel('Title').fill('Active Goal');
-    await page.getByLabel('Type').selectOption(GoalType.MONTHLY);
+    await page.getByLabel('Type').selectOption(GoalTypes.MONTHLY);
     const today = new Date();
     await page.getByLabel('Start Date').fill(today.toISOString().slice(0, 16));
     await page.getByLabel('End Date').fill(today.toISOString().slice(0, 16));
@@ -132,7 +133,7 @@ test.describe('Goal CRUD Operations', () => {
     // Paused goal
     await page.getByRole('button', { name: 'Add Goal' }).click();
     await page.getByLabel('Title').fill('Paused Goal');
-    await page.getByLabel('Type').selectOption(GoalType.MONTHLY);
+    await page.getByLabel('Type').selectOption(GoalTypes.MONTHLY);
     await page.getByLabel('Start Date').fill(today.toISOString().slice(0, 16));
     await page.getByLabel('End Date').fill(today.toISOString().slice(0, 16));
     await page.getByRole('button', { name: 'Create Goal' }).click();
@@ -142,12 +143,12 @@ test.describe('Goal CRUD Operations', () => {
     await page.getByRole('button', { name: 'Pause' }).click();
 
     // Filter by Active status
-    await page.getByRole('combobox').first().selectOption(GoalStatus.ACTIVE);
+    await page.getByRole('combobox').first().selectOption(GoalStatuses.ACTIVE);
     await expect(page.getByText('Active Goal')).toBeVisible();
     await expect(page.getByText('Paused Goal')).not.toBeVisible();
 
     // Filter by Paused status
-    await page.getByRole('combobox').first().selectOption(GoalStatus.PAUSED);
+    await page.getByRole('combobox').first().selectOption(GoalStatuses.PAUSED);
     await expect(page.getByText('Active Goal')).not.toBeVisible();
     await expect(page.getByText('Paused Goal')).toBeVisible();
 
@@ -164,7 +165,7 @@ test.describe('Goal CRUD Operations', () => {
     // Annual goal
     await page.getByRole('button', { name: 'Add Goal' }).click();
     await page.getByLabel('Title').fill('Annual Goal');
-    await page.getByLabel('Type').selectOption(GoalType.ANNUAL);
+    await page.getByLabel('Type').selectOption(GoalTypes.ANNUAL);
     await page.getByLabel('Start Date').fill(today.toISOString().slice(0, 16));
     await page.getByLabel('End Date').fill(today.toISOString().slice(0, 16));
     await page.getByRole('button', { name: 'Create Goal' }).click();
@@ -172,18 +173,18 @@ test.describe('Goal CRUD Operations', () => {
     // Monthly goal
     await page.getByRole('button', { name: 'Add Goal' }).click();
     await page.getByLabel('Title').fill('Monthly Goal');
-    await page.getByLabel('Type').selectOption(GoalType.MONTHLY);
+    await page.getByLabel('Type').selectOption(GoalTypes.MONTHLY);
     await page.getByLabel('Start Date').fill(today.toISOString().slice(0, 16));
     await page.getByLabel('End Date').fill(today.toISOString().slice(0, 16));
     await page.getByRole('button', { name: 'Create Goal' }).click();
 
     // Filter by Annual type
-    await page.getByRole('combobox').nth(1).selectOption(GoalType.ANNUAL);
+    await page.getByRole('combobox').nth(1).selectOption(GoalTypes.ANNUAL);
     await expect(page.getByText('Annual Goal')).toBeVisible();
     await expect(page.getByText('Monthly Goal')).not.toBeVisible();
 
     // Filter by Monthly type
-    await page.getByRole('combobox').nth(1).selectOption(GoalType.MONTHLY);
+    await page.getByRole('combobox').nth(1).selectOption(GoalTypes.MONTHLY);
     await expect(page.getByText('Annual Goal')).not.toBeVisible();
     await expect(page.getByText('Monthly Goal')).toBeVisible();
   });

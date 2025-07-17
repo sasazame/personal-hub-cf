@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures/base-test';
-import { GoalType } from '@personal-hub/shared';
+import { GoalTypes, type GoalType } from '@personal-hub/shared';
+import { createSingleGoal } from './helpers/goals';
 
 test.describe('Goal Progress Tracking', () => {
   test.beforeEach(async ({ authenticatedPage: page }) => {
@@ -12,7 +13,7 @@ test.describe('Goal Progress Tracking', () => {
     // Create a goal with target value
     await page.getByRole('button', { name: 'Add Goal' }).click();
     await page.getByLabel('Title').fill('Read 100 pages');
-    await page.getByLabel('Type').selectOption(GoalType.WEEKLY);
+    await page.getByLabel('Type').selectOption(GoalTypes.WEEKLY);
     await page.getByLabel('Target Value').fill('100');
     await page.getByLabel('Unit').fill('pages');
     
@@ -71,7 +72,7 @@ test.describe('Goal Progress Tracking', () => {
     // Create a goal without target value
     await page.getByRole('button', { name: 'Add Goal' }).click();
     await page.getByLabel('Title').fill('Daily Meditation');
-    await page.getByLabel('Type').selectOption(GoalType.DAILY);
+    await page.getByLabel('Type').selectOption(GoalTypes.DAILY);
     await page.getByLabel('Unit').fill('sessions');
     
     const today = new Date();
@@ -99,7 +100,7 @@ test.describe('Goal Progress Tracking', () => {
     // Create a goal with custom color
     await page.getByRole('button', { name: 'Add Goal' }).click();
     await page.getByLabel('Title').fill('Water Intake');
-    await page.getByLabel('Type').selectOption(GoalType.DAILY);
+    await page.getByLabel('Type').selectOption(GoalTypes.DAILY);
     await page.getByLabel('Target Value').fill('8');
     await page.getByLabel('Unit').fill('glasses');
     await page.getByLabel('Color').fill('#00AAFF');
@@ -124,7 +125,7 @@ test.describe('Goal Progress Tracking', () => {
     // Create and complete a goal
     await page.getByRole('button', { name: 'Add Goal' }).click();
     await page.getByLabel('Title').fill('Finish Project');
-    await page.getByLabel('Type').selectOption(GoalType.MONTHLY);
+    await page.getByLabel('Type').selectOption(GoalTypes.MONTHLY);
     
     const today = new Date();
     await page.getByLabel('Start Date').fill(today.toISOString().slice(0, 16));
@@ -143,7 +144,7 @@ test.describe('Goal Progress Tracking', () => {
     // Create a goal
     await page.getByRole('button', { name: 'Add Goal' }).click();
     await page.getByLabel('Title').fill('Study Hours');
-    await page.getByLabel('Type').selectOption(GoalType.WEEKLY);
+    await page.getByLabel('Type').selectOption(GoalTypes.WEEKLY);
     await page.getByLabel('Target Value').fill('20');
     await page.getByLabel('Unit').fill('hours');
     
