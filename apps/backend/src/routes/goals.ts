@@ -1,12 +1,13 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { drizzle } from 'drizzle-orm/d1';
-import { and, eq, desc, asc, gte, lte, sql } from 'drizzle-orm';
+import { and, eq, desc, gte, lte, sql } from 'drizzle-orm';
 import {
   goals,
   goalProgress,
 } from '@personal-hub/shared';
 import type { Goal as DbGoal, GoalProgress as DbGoalProgress } from '@personal-hub/shared/src/db/schema';
+import type { D1Database } from '@cloudflare/workers-types';
 import {
   createGoalSchema,
   updateGoalSchema,
@@ -206,7 +207,7 @@ goalRouter.put('/:id', zValidator('json', updateGoalSchema), async (c) => {
     }
 
     // Build update data
-    const updateData: any = {
+    const updateData: Partial<DbGoal> = {
       updatedAt: new Date(),
     };
 

@@ -1,5 +1,29 @@
 import { test, expect } from './fixtures/base-test';
 import { login } from './helpers/auth';
+import type { Page } from '@playwright/test';
+
+// Helper function to create todo with specific status
+async function createTodoWithStatus(page: Page, title: string, priority: string, status: string) {
+  await page.click('[data-testid="add-todo-button"]');
+  await page.fill('[data-testid="todo-title-input"]', title);
+  await page.selectOption('[data-testid="todo-priority-select"]', priority);
+  await page.click('[data-testid="todo-submit-button"]');
+  await page.waitForSelector('[data-testid="todo-title-input"]', { state: 'hidden' });
+  
+  if (status !== 'TODO') {
+    const todoItem = page.locator(`[data-testid^="todo-item-"]`).filter({ hasText: title });
+    const toggleButton = todoItem.locator('[data-testid^="todo-status-toggle-"]');
+    
+    if (status === 'IN_PROGRESS') {
+      await toggleButton.click();
+      await expect(todoItem.locator('[data-testid^="todo-status-display-"]')).toContainText('IN PROGRESS');
+    } else if (status === 'DONE') {
+      await toggleButton.click(); // To IN_PROGRESS
+      await toggleButton.click(); // To DONE
+      await expect(todoItem.locator('[data-testid^="todo-status-display-"]')).toContainText('DONE');
+    }
+  }
+}
 
 test.describe('Todo Filtering and Sorting', () => {
   test.beforeEach(async ({ page }) => {
@@ -15,28 +39,7 @@ test.describe('Todo Filtering and Sorting', () => {
     ];
 
     for (const todo of todos) {
-      await page.click('[data-testid="add-todo-button"]');
-      await page.fill('[data-testid="todo-title-input"]', todo.title);
-      await page.selectOption('[data-testid="todo-priority-select"]', todo.priority);
-      await page.click('[data-testid="todo-submit-button"]');
-      
-      // Wait for the form to close
-      await page.waitForSelector('[data-testid="todo-title-input"]', { state: 'hidden' });
-      
-      // If status needs to be changed from TODO
-      if (todo.status !== 'TODO') {
-        const todoItem = page.locator(`[data-testid^="todo-item-"]`).filter({ hasText: todo.title });
-        const toggleButton = todoItem.locator('[data-testid^="todo-status-toggle-"]');
-        
-        if (todo.status === 'IN_PROGRESS') {
-          await toggleButton.click();
-          await expect(todoItem.locator('[data-testid^="todo-status-"]')).toContainText('IN PROGRESS');
-        } else if (todo.status === 'DONE') {
-          await toggleButton.click(); // To IN_PROGRESS
-          await toggleButton.click(); // To DONE
-          await expect(todoItem.locator('[data-testid^="todo-status-"]')).toContainText('DONE');
-        }
-      }
+      await createTodoWithStatus(page, todo.title, todo.priority, todo.status);
     }
   });
 
@@ -54,7 +57,7 @@ test.describe('Todo Filtering and Sorting', () => {
     
     // Verify all visible items have TODO status
     for (let i = 0; i < todoCount; i++) {
-      const status = todoItems.nth(i).locator('[data-testid^="todo-status-"]');
+      const status = todoItems.nth(i).locator('[data-testid^="todo-status-display-"]');
       await expect(status).toContainText('TODO');
     }
     
@@ -126,7 +129,7 @@ test.describe('Todo Filtering and Sorting', () => {
     
     // Verify the item matches both filters
     const item = todoItems.first();
-    await expect(item.locator('[data-testid^="todo-status-"]')).toContainText('IN PROGRESS');
+    await expect(item.locator('[data-testid^="todo-status-display-"]')).toContainText('IN PROGRESS');
     await expect(item.locator('[data-testid^="todo-priority-"]')).toContainText('HIGH');
     
     // Filter by LOW priority and TODO status
@@ -177,6 +180,6 @@ test.describe('Todo Filtering and Sorting', () => {
     // The todo should now be visible in the IN_PROGRESS filter
     const inProgressTodo = page.locator('[data-testid^="todo-item-"]').filter({ hasText: todoTitle || '' });
     await expect(inProgressTodo).toBeVisible();
-    await expect(inProgressTodo.locator('[data-testid^="todo-status-"]')).toContainText('IN PROGRESS');
+    await expect(inProgressTodo.locator('[data-testid^="todo-status-display-"]')).toContainText('IN PROGRESS');
   });
 });

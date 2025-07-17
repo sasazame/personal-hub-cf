@@ -1,6 +1,9 @@
 import { test, expect } from './fixtures/base-test';
 import { login, clearAllTodos } from './helpers/auth';
 
+// Test constants
+const DAYS_IN_FUTURE = 7;
+
 test.describe('Todo CRUD Operations', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
@@ -28,7 +31,8 @@ test.describe('Todo CRUD Operations', () => {
     await expect(todoItem.locator('[data-testid^="todo-title-"]')).toContainText('Test Todo Item');
     await expect(todoItem.locator('[data-testid^="todo-description-"]')).toContainText('This is a test description');
     await expect(todoItem.locator('[data-testid^="todo-priority-"]')).toContainText('HIGH');
-    await expect(todoItem.locator('[data-testid^="todo-status-"]:not([data-testid*="toggle"])')).toContainText('TODO');
+    // Using a more specific selector for status display
+    await expect(todoItem.locator('[data-testid^="todo-status-display-"]')).toContainText('TODO');
   });
 
   test('should edit an existing todo', async ({ page }) => {
@@ -80,7 +84,7 @@ test.describe('Todo CRUD Operations', () => {
     await expect(todoItem).toBeVisible();
     
     // Verify initial status is TODO
-    const statusElement = todoItem.locator('[data-testid^="todo-status-"]:not([data-testid*="toggle"])');
+    const statusElement = todoItem.locator('[data-testid^="todo-status-display-"]');
     await expect(statusElement).toContainText('TODO');
     
     // Toggle status to IN_PROGRESS
@@ -170,7 +174,7 @@ test.describe('Todo CRUD Operations', () => {
     
     // Set a future date
     const futureDate = new Date();
-    futureDate.setDate(futureDate.getDate() + 7);
+    futureDate.setDate(futureDate.getDate() + DAYS_IN_FUTURE);
     const dateString = futureDate.toISOString().split('T')[0];
     
     await page.fill('[data-testid="todo-due-date-input"]', dateString);

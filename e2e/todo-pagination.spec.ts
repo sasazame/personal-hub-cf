@@ -1,12 +1,18 @@
 import { test, expect } from './fixtures/base-test';
 import { login } from './helpers/auth';
 
+// Pagination constants
+const ITEMS_PER_PAGE = 20;
+const TOTAL_TEST_ITEMS = 25;
+const EXPECTED_PAGES = Math.ceil(TOTAL_TEST_ITEMS / ITEMS_PER_PAGE);
+const EXPECTED_SECOND_PAGE_ITEMS = TOTAL_TEST_ITEMS - ITEMS_PER_PAGE;
+
 test.describe('Todo Pagination', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
     
-    // Create 25 todos to test pagination (default limit is 20)
-    for (let i = 1; i <= 25; i++) {
+    // Create todos to test pagination
+    for (let i = 1; i <= TOTAL_TEST_ITEMS; i++) {
       await page.click('[data-testid="add-todo-button"]');
       await page.fill('[data-testid="todo-title-input"]', `Todo Item ${i.toString().padStart(2, '0')}`);
       await page.click('[data-testid="todo-submit-button"]');
@@ -29,10 +35,10 @@ test.describe('Todo Pagination', () => {
     // Verify page info shows page 1
     await expect(page.locator('text=Page 1 of 2')).toBeVisible();
     
-    // Verify only 20 items are shown on first page
+    // Verify only ITEMS_PER_PAGE items are shown on first page
     const todoItems = page.locator('[data-testid^="todo-item-"]');
     const count = await todoItems.count();
-    expect(count).toBe(20);
+    expect(count).toBe(ITEMS_PER_PAGE);
   });
 
   test('should navigate to next and previous pages', async ({ page }) => {
@@ -47,10 +53,10 @@ test.describe('Todo Pagination', () => {
     // Verify page info updated
     await expect(page.locator('text=Page 2 of 2')).toBeVisible();
     
-    // Verify 5 items on second page (25 total - 20 on first page)
+    // Verify remaining items on second page
     const todoItems = page.locator('[data-testid^="todo-item-"]');
     const secondPageCount = await todoItems.count();
-    expect(secondPageCount).toBe(5);
+    expect(secondPageCount).toBe(EXPECTED_SECOND_PAGE_ITEMS);
     
     // Verify the items are different (should show Todo 05 to Todo 01 on page 2 due to desc sort)
     const firstItemOnPage2 = todoItems.first();
@@ -62,7 +68,7 @@ test.describe('Todo Pagination', () => {
     // Verify back on page 1
     await expect(page.locator('text=Page 1 of 2')).toBeVisible();
     const firstPageCount = await todoItems.count();
-    expect(firstPageCount).toBe(20);
+    expect(firstPageCount).toBe(ITEMS_PER_PAGE);
   });
 
   test('should disable navigation buttons appropriately', async ({ page }) => {
@@ -106,8 +112,8 @@ test.describe('Todo Pagination', () => {
     const todoItems = page.locator('[data-testid^="todo-item-"]');
     const highPriorityCount = await todoItems.count();
     
-    // Should show filtered results (less than 20 if not all are HIGH priority)
-    expect(highPriorityCount).toBeLessThanOrEqual(20);
+    // Should show filtered results (less than or equal to ITEMS_PER_PAGE)
+    expect(highPriorityCount).toBeLessThanOrEqual(ITEMS_PER_PAGE);
     
     // All visible items should be HIGH priority
     for (let i = 0; i < highPriorityCount; i++) {
@@ -142,8 +148,8 @@ test.describe('Todo Pagination', () => {
     const todoItems = page.locator('[data-testid^="todo-item-"]');
     const count = await todoItems.count();
     
-    // If there are any medium priority todos but less than 20
-    if (count > 0 && count <= 20) {
+    // If there are any medium priority todos but less than ITEMS_PER_PAGE
+    if (count > 0 && count <= ITEMS_PER_PAGE) {
       // Pagination controls should not be visible
       await expect(page.locator('[data-testid="todo-prev-page"]')).not.toBeVisible();
       await expect(page.locator('[data-testid="todo-next-page"]')).not.toBeVisible();
