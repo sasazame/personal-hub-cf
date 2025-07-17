@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { Button, Card, Input, Label } from '@personal-hub/ui';
-import { createGoalSchema, GoalTypes, type GoalType, type CreateGoalInput } from '@personal-hub/shared';
+import { createGoalSchema, GoalTypes, type CreateGoalInput } from '@personal-hub/shared';
 import { goalApi } from '../lib/goals';
 
 interface GoalFormProps {
@@ -130,7 +130,15 @@ export function GoalForm({ onCancel, onSuccess }: GoalFormProps) {
               id="startDate"
               type="datetime-local"
               {...register('startDate', {
-                setValueAs: (value) => value ? new Date(value).toISOString() : '',
+                setValueAs: (value) => {
+                  if (!value) return '';
+                  try {
+                    return new Date(value).toISOString();
+                  } catch (error) {
+                    console.error('Invalid start date value:', error);
+                    return '';
+                  }
+                },
               })}
               className="mt-1"
             />
@@ -145,7 +153,15 @@ export function GoalForm({ onCancel, onSuccess }: GoalFormProps) {
               id="endDate"
               type="datetime-local"
               {...register('endDate', {
-                setValueAs: (value) => value ? new Date(value).toISOString() : '',
+                setValueAs: (value) => {
+                  if (!value) return '';
+                  try {
+                    return new Date(value).toISOString();
+                  } catch (error) {
+                    console.error('Invalid end date value:', error);
+                    return '';
+                  }
+                },
               })}
               className="mt-1"
             />

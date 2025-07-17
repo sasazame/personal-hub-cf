@@ -10,36 +10,38 @@ test.describe('Goal Pagination', () => {
   });
 
   test('should paginate goals correctly', async ({ authenticatedPage: page }) => {
-    // Create 25 goals (more than default page size of 20)
-    await createGoals(page, 25);
+    // Test pagination with explicit page size assumption
+    const PAGE_SIZE = 20;
+    const TOTAL_GOALS = 25;
+    await createGoals(page, TOTAL_GOALS);
 
-    // Verify first page shows goals 25-6 (newest first)
-    for (let i = 25; i > 5; i--) {
+    // Verify first page shows the most recent PAGE_SIZE goals (newest first)
+    for (let i = TOTAL_GOALS; i > TOTAL_GOALS - PAGE_SIZE; i--) {
       await expect(page.getByText(`Goal ${i}`)).toBeVisible();
     }
 
-    // Verify goals 1-5 are not visible on first page
-    for (let i = 1; i <= 5; i++) {
+    // Verify remaining goals are not visible on first page
+    for (let i = 1; i <= TOTAL_GOALS - PAGE_SIZE; i++) {
       await expect(page.getByText(`Goal ${i}`)).not.toBeVisible();
     }
 
     // Go to second page
     await page.getByRole('button', { name: 'Next' }).click();
 
-    // Verify second page shows goals 5-1
-    for (let i = 5; i >= 1; i--) {
+    // Verify second page shows remaining goals
+    for (let i = TOTAL_GOALS - PAGE_SIZE; i >= 1; i--) {
       await expect(page.getByText(`Goal ${i}`)).toBeVisible();
     }
 
     // Verify goals from first page are not visible
-    await expect(page.getByText('Goal 25')).not.toBeVisible();
-    await expect(page.getByText('Goal 20')).not.toBeVisible();
+    await expect(page.getByText(`Goal ${TOTAL_GOALS}`)).not.toBeVisible();
+    await expect(page.getByText(`Goal ${TOTAL_GOALS - 5}`)).not.toBeVisible();
 
     // Go back to first page
     await page.getByRole('button', { name: 'Previous' }).click();
 
     // Verify we're back on first page
-    await expect(page.getByText('Goal 25')).toBeVisible();
+    await expect(page.getByText(`Goal ${TOTAL_GOALS}`)).toBeVisible();
     await expect(page.getByText('Goal 1')).not.toBeVisible();
 
     // Verify pagination info
