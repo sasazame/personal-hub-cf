@@ -8,6 +8,8 @@ import {
   todoQuerySchema,
   TodoStatus,
   TodoPriority,
+  type TodoStatusType,
+  type TodoPriorityType,
   type PaginatedTodos,
 } from '@personal-hub/shared';
 import { initializeLucia } from '../lib/auth';
@@ -365,7 +367,7 @@ todoRouter.post('/:id/toggle-status', async (c) => {
     }
 
     // Determine new status
-    let newStatus: TodoStatus;
+    let newStatus: TodoStatusType;
     switch (todo.status) {
       case TodoStatus.TODO:
         newStatus = TodoStatus.IN_PROGRESS;

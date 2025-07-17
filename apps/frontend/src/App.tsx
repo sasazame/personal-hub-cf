@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
 import { TodoList } from './components/TodoList';
+import { GoalList } from './components/GoalList';
 import { Button } from '@personal-hub/ui';
 import './App.css';
 
@@ -16,7 +17,8 @@ const queryClient = new QueryClient({
 });
 
 function AuthenticatedApp() {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
+  const [activeTab, setActiveTab] = useState<'todos' | 'goals'>('todos');
 
   return (
     <div className="min-h-screen bg-background">
@@ -27,7 +29,31 @@ function AuthenticatedApp() {
         </div>
       </header>
       <main className="container mx-auto px-4 py-8">
-        <TodoList />
+        <div className="mb-6 border-b">
+          <nav className="flex gap-4">
+            <button
+              onClick={() => setActiveTab('todos')}
+              className={`pb-2 px-1 font-medium transition-colors ${
+                activeTab === 'todos'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Todos
+            </button>
+            <button
+              onClick={() => setActiveTab('goals')}
+              className={`pb-2 px-1 font-medium transition-colors ${
+                activeTab === 'goals'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Goals
+            </button>
+          </nav>
+        </div>
+        {activeTab === 'todos' ? <TodoList /> : <GoalList />}
       </main>
     </div>
   );

@@ -22,9 +22,9 @@ export const RepeatType = {
 } as const;
 
 // Types
-export type TodoStatus = typeof TodoStatus[keyof typeof TodoStatus];
-export type TodoPriority = typeof TodoPriority[keyof typeof TodoPriority];
-export type RepeatType = typeof RepeatType[keyof typeof RepeatType];
+export type TodoStatusType = typeof TodoStatus[keyof typeof TodoStatus];
+export type TodoPriorityType = typeof TodoPriority[keyof typeof TodoPriority];
+export type RepeatTypeType = typeof RepeatType[keyof typeof RepeatType];
 
 // Base Todo type (from database)
 export interface Todo {
@@ -32,12 +32,12 @@ export interface Todo {
   userId: string;
   title: string;
   description: string | null;
-  status: TodoStatus;
-  priority: TodoPriority;
+  status: TodoStatusType;
+  priority: TodoPriorityType;
   dueDate: string | null; // ISO date string
   parentId: string | null;
   isRepeatable: boolean;
-  repeatType: RepeatType | null;
+  repeatType: RepeatTypeType | null;
   repeatInterval: number | null;
   repeatDaysOfWeek: string | null; // comma-separated "1,2,3"
   repeatDayOfMonth: number | null;

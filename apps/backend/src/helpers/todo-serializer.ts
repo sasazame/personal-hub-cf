@@ -1,4 +1,4 @@
-import type { TodoStatus, TodoPriority, RepeatType } from '@personal-hub/shared';
+import type { TodoStatusType, TodoPriorityType, RepeatTypeType } from '@personal-hub/shared';
 
 interface DbTodo {
   id: string;
@@ -25,12 +25,12 @@ interface SerializedTodo {
   userId: string;
   title: string;
   description: string | null;
-  status: TodoStatus;
-  priority: TodoPriority;
+  status: TodoStatusType;
+  priority: TodoPriorityType;
   dueDate: string | null;
   parentId: string | null;
   isRepeatable: boolean;
-  repeatType: RepeatType | null;
+  repeatType: RepeatTypeType | null;
   repeatInterval: number | null;
   repeatDaysOfWeek: string | null;
   repeatDayOfMonth: number | null;
@@ -43,9 +43,9 @@ interface SerializedTodo {
 export function serializeTodo(todo: DbTodo): SerializedTodo {
   return {
     ...todo,
-    status: todo.status as TodoStatus,
-    priority: (todo.priority || 'MEDIUM') as TodoPriority,
-    repeatType: todo.repeatType as RepeatType | null,
+    status: todo.status as TodoStatusType,
+    priority: (todo.priority || 'MEDIUM') as TodoPriorityType,
+    repeatType: todo.repeatType as RepeatTypeType | null,
     isRepeatable: Boolean(todo.isRepeatable),
     createdAt: todo.createdAt.toISOString(),
     updatedAt: todo.updatedAt.toISOString(),

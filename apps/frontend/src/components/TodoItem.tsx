@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Card, CardContent, Button } from '@personal-hub/ui'
 import { todoApi } from '../lib/todos'
-import { TodoStatus, TodoPriority, type TodoType } from '@personal-hub/shared'
+import { TodoStatus, TodoPriority, type TodoType, type TodoStatusType } from '@personal-hub/shared'
 import { Check, Circle, Clock, Trash2, Edit2, AlertCircle } from 'lucide-react'
 
 interface TodoItemProps {
@@ -14,7 +14,7 @@ export function TodoItem({ todo, onUpdate }: TodoItemProps) {
   const [isEditing, setIsEditing] = useState(false)
 
   const updateMutation = useMutation({
-    mutationFn: (data: { status?: TodoStatus }) => 
+    mutationFn: (data: { status?: TodoStatusType }) => 
       todoApi.update(todo.id, data),
     onSuccess: () => {
       onUpdate()
