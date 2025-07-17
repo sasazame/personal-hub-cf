@@ -39,5 +39,20 @@ export {
   type GoalWithProgress
 } from './types/goal';
 
+// Export event types
+export {
+  eventSchema,
+  createEventSchema,
+  updateEventSchema,
+  listEventsQuerySchema,
+  type CreateEventRequest,
+  type UpdateEventRequest,
+  type ListEventsQuery,
+  type EventResponse,
+  type EventsListResponse,
+  eventToResponse,
+  requestToNewEvent
+} from './api/events';
+
 // Export database schema - but rename conflicting types
 export * from './db/schema';

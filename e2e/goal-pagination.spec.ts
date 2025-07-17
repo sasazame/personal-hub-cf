@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/base-test';
-import { GoalTypes, type GoalType } from '@personal-hub/shared';
+import { GoalTypes } from '@personal-hub/shared';
 import { createGoals } from './helpers/goals';
 
 test.describe('Goal Pagination', () => {
@@ -59,7 +59,6 @@ test.describe('Goal Pagination', () => {
 
   test('should maintain filters across pagination', async ({ authenticatedPage: page }) => {
     // Create multiple goals of different types
-    const today = new Date();
     
     // Create 15 annual goals
     await createGoals(page, 15, { titlePrefix: 'Annual Goal', type: GoalTypes.ANNUAL });

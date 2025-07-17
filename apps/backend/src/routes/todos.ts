@@ -11,43 +11,11 @@ import {
   type TodoStatusType,
   type PaginatedTodos,
 } from '@personal-hub/shared';
-import { initializeLucia } from '../lib/auth';
+import { requireAuth } from '../middleware/auth';
 import { serializeTodo, serializeTodos } from '../helpers/todo-serializer';
-import type { Context } from 'hono';
-import type { D1Database } from '@cloudflare/workers-types';
+import type { AuthEnv } from '../types';
 
-type Env = {
-  Bindings: {
-    DB: D1Database;
-  };
-  Variables: {
-    user: { id: string };
-    session: { id: string };
-  };
-};
-
-const todoRouter = new Hono<Env>();
-
-// Middleware to ensure user is authenticated
-async function requireAuth(c: Context<Env>, next: () => Promise<void>) {
-  const lucia = initializeLucia(c.env.DB);
-  const sessionId = lucia.readSessionCookie(c.req.header('Cookie') ?? '');
-  
-  if (!sessionId) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-
-  const { session, user } = await lucia.validateSession(sessionId);
-  
-  if (!session || !user) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-
-  c.set('user', user);
-  c.set('session', session);
-  
-  await next();
-}
+const todoRouter = new Hono<AuthEnv>();
 
 // Apply auth middleware to all routes
 todoRouter.use('*', requireAuth);

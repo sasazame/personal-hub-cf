@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { TEST_USER } from '../fixtures/base-test';
 
-export async function setupTestUser(page: Page) {
+export async function setupTestUser(_page: Page) {
   // This would normally interact with a test API or database
   // For now, we'll assume the test user exists
   // In a real scenario, you might want to:

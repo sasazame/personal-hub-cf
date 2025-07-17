@@ -3,6 +3,7 @@ import { cors } from 'hono/cors';
 import authRouter from './routes/auth';
 import { todoRouter } from './routes/todos';
 import { goalRouter } from './routes/goals';
+import eventsRouter from './routes/events';
 import type { D1Database } from '@cloudflare/workers-types';
 
 type Env = {
@@ -34,5 +35,8 @@ app.route('/api/todos', todoRouter);
 
 // Mount goal routes
 app.route('/api/goals', goalRouter);
+
+// Mount events routes
+app.route('/api/events', eventsRouter);
 
 export default app;

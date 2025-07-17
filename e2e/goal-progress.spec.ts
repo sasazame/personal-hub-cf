@@ -1,6 +1,5 @@
 import { test, expect } from './fixtures/base-test';
-import { GoalTypes, type GoalType } from '@personal-hub/shared';
-import { createSingleGoal } from './helpers/goals';
+import { GoalTypes } from '@personal-hub/shared';
 
 test.describe('Goal Progress Tracking', () => {
   test.beforeEach(async ({ authenticatedPage: page }) => {

@@ -2,7 +2,6 @@ import { Lucia } from 'lucia';
 import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
 import { drizzle } from 'drizzle-orm/d1';
 import { users, sessions } from '@personal-hub/shared';
-import type { User } from '@personal-hub/shared';
 
 export function initializeLucia(db: D1Database) {
   const drizzleDb = drizzle(db);

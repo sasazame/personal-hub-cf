@@ -24,11 +24,15 @@ The personal-hub-cf migration project is progressing well through Phase 2. We ha
 - **UI Components Library** - Shadcn/ui components (Button, Card, Input, Label)
 - **Authentication UI** - Login and Register forms with error handling
 - **Todo Components** - TodoList, TodoItem, and TodoForm with full functionality
-- **App Shell** - Basic layout with navigation and auth context
+- **Goals Components** - GoalList, GoalItem, and GoalForm with progress tracking
+- **App Shell** - Basic layout with navigation tabs for Todos and Goals
 
 #### Testing ✅
-- **E2E Test Suite** - Comprehensive tests for Todo CRUD, filtering, and pagination
+- **E2E Test Suite** - Comprehensive tests for Todo and Goals features
+  - Todo: CRUD operations, filtering, pagination
+  - Goals: CRUD operations, progress tracking, status management, filtering, pagination
 - **Test Fixtures** - Authentication helpers and base test configuration
+- **Test Helpers** - Reusable goal creation helpers for E2E tests
 
 ## Current Technical Stack
 
@@ -48,22 +52,37 @@ The personal-hub-cf migration project is progressing well through Phase 2. We ha
 
 ## Recent Changes (Latest Session)
 
-1. **Added E2E Tests** - Comprehensive test suite for Todo functionality
-2. **Implemented Goals API** - Backend API with progress tracking
-3. **Fixed CodeRabbitAI Review Comments** - Addressed ESLint issues and improved test maintainability
+1. **Implemented Calendar/Events Feature** - Complete implementation
+   - Backend API with full CRUD operations, filtering, and pagination
+   - Frontend components: EventList, EventForm, EventItem
+   - Support for all-day events, reminders, and custom colors
+   - Date range filtering (today, this week, this month)
+   - Search functionality across title, description, and location
+   - Added required UI components (dialog, select, textarea, checkbox)
+2. **Added Events E2E Tests** - Comprehensive test coverage
+   - CRUD operations tests
+   - Filtering and search tests
+   - Pagination tests
+3. **Fixed CodeRabbit Review Feedback**
+   - Added proper error handling to auth middleware
+   - Fixed switch case variable scoping in EventList
+   - Improved type safety in backend update route
+   - Removed any types from E2E tests
+4. **Created PR #8** - Calendar/Events feature ready for review
 
 ## Next Priority Tasks
 
 ### Immediate Tasks
-1. **Goals Frontend Components** - Implement GoalList, GoalItem, GoalForm components
-2. **Goals Progress UI** - Create progress tracking and visualization
-3. **Goals E2E Tests** - Add comprehensive tests for Goals feature
+1. **Notes Feature** - Next major feature to implement
+   - Backend API with markdown support
+   - Frontend components with rich text editing
+   - E2E tests
 
 ### Upcoming Features
-1. **Calendar/Events Feature** - Backend API and frontend implementation
-2. **Notes Feature** - Markdown support with rich text editing
-3. **Moments Feature** - Quick capture functionality
-4. **Pomodoro Timer** - With session tracking
+1. **Moments Feature** - Quick capture functionality
+2. **Pomodoro Timer** - With session tracking
+3. **Dashboard** - Unified view of all features
+4. **Calendar View** - Enhanced calendar visualization for events
 
 ## Known Issues
 
@@ -92,7 +111,7 @@ pnpm test:e2e    # E2E tests
 - PR reviews required before merge
 
 ### Current Branch Structure
-- `main` - Latest stable version with Todo and Goals backend
+- `main` - Latest stable version with complete Todo and Goals features (backend + frontend)
 
 ## Environment Configuration
 
@@ -102,7 +121,13 @@ Ensure `.dev.vars` file exists in `apps/backend/` with required secrets for loca
 
 According to TECHNICAL_STACK_MIGRATION.md:
 - Phase 1: ✅ Complete
-- Phase 2: 🟡 In Progress (Todo ✅, Goals backend ✅, Goals frontend 🔲)
+- Phase 2: 🟡 In Progress
+  - Todo: ✅ Complete (backend + frontend + E2E tests)
+  - Goals: ✅ Complete (backend + frontend + E2E tests)
+  - Calendar/Events: ✅ Complete (backend + frontend + E2E tests)
+  - Notes: 🔲 Not Started
+  - Moments: 🔲 Not Started
+  - Pomodoro: 🔲 Not Started
 - Phase 3: 🔲 Not Started
 
 ## Session Notes
