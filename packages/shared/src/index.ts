@@ -16,5 +16,23 @@ export {
   type Todo as TodoType
 } from './types/todo';
 
+// Export goal types
+export {
+  GoalType,
+  GoalStatus,
+  createGoalSchema,
+  updateGoalSchema,
+  goalProgressSchema,
+  goalQuerySchema,
+  type CreateGoalInput,
+  type UpdateGoalInput,
+  type GoalProgressInput,
+  type GoalQuery,
+  type PaginatedGoals,
+  type Goal,
+  type GoalProgressType,
+  type GoalWithProgress
+} from './types/goal';
+
 // Export database schema - but rename conflicting types
 export * from './db/schema';
