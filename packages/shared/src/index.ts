@@ -9,6 +9,9 @@ export {
   createTodoSchema,
   updateTodoSchema,
   todoQuerySchema,
+  type TodoStatusType,
+  type TodoPriorityType,
+  type RepeatTypeType,
   type CreateTodoInput,
   type UpdateTodoInput,
   type TodoQuery,
@@ -18,8 +21,10 @@ export {
 
 // Export goal types
 export {
-  GoalType,
-  GoalStatus,
+  GoalTypes,
+  GoalStatuses,
+  type GoalType,
+  type GoalStatus,
   createGoalSchema,
   updateGoalSchema,
   goalProgressSchema,

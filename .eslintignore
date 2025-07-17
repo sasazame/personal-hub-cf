@@ -1,0 +1,11 @@
+apps/backend/.wrangler/
+node_modules/
+dist/
+build/
+coverage/
+.next/
+.turbo/
+storybook-static/
+cypress/videos/
+*.config.js
+*.config.ts
