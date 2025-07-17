@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { registerSchema, type RegisterInput, authApi } from '../lib/auth';
 import { useState } from 'react';
 import { Button, Input, Label, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@personal-hub/ui';
+import type { AxiosError } from 'axios';
 
 interface RegisterFormProps {
   onSuccess?: () => void;
@@ -27,13 +28,14 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
       setError(null);
       onSuccess?.();
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ error?: string }>) => {
       setError(error.response?.data?.error || 'Failed to create account');
     },
   });
 
   const onSubmit = (data: RegisterInput) => {
-    registerMutation.mutate(data);
+    const { confirmPassword, ...registerData } = data;
+    registerMutation.mutate(registerData);
   };
 
   return (

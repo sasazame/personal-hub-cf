@@ -1,19 +1,15 @@
 import { Hono } from 'hono';
 import { eq, and, desc, asc, count, isNull } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { todos } from '@personal-hub/shared';
+import { todos, type NewTodo } from '@personal-hub/shared';
 import {
   createTodoSchema,
   updateTodoSchema,
   todoQuerySchema,
   TodoStatus,
   TodoPriority,
-  RepeatType,
   type TodoType,
   type PaginatedTodos,
-  type CreateTodoInput,
-  type UpdateTodoInput,
-  type TodoQuery,
 } from '@personal-hub/shared';
 import { initializeLucia } from '../lib/auth';
 import { serializeTodo, serializeTodos } from '../helpers/todo-serializer';
@@ -190,7 +186,6 @@ todoRouter.get('/', async (c) => {
     case 'priority':
       orderColumn = todos.priority;
       break;
-    case 'createdAt':
     default:
       orderColumn = todos.createdAt;
       break;
@@ -273,7 +268,7 @@ todoRouter.patch('/:id', async (c) => {
     }
 
     // Update the todo - convert dates and filter out undefined values
-    const updateData: any = {
+    const updateData: Partial<NewTodo> = {
       updatedAt: new Date(),
     };
     
