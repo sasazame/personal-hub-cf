@@ -3,7 +3,7 @@ import type { ExportMetadata } from '@personal-hub/shared';
 /**
  * Escapes CSV field values according to RFC 4180
  */
-function escapeCSVField(field: any): string {
+function escapeCSVField(field: string | number | boolean | null | undefined | Date | unknown): string {
   if (field === null || field === undefined) {
     return '';
   }
@@ -21,7 +21,7 @@ function escapeCSVField(field: any): string {
 /**
  * Converts an array of objects to CSV format
  */
-export function objectsToCSV<T extends Record<string, any>>(
+export function objectsToCSV<T extends Record<string, unknown>>(
   data: T[],
   columns?: (keyof T)[]
 ): string {
@@ -49,8 +49,8 @@ export function objectsToCSV<T extends Record<string, any>>(
       }
       
       // Handle dates - check if it's a Date-like object
-      if (value && typeof value === 'object' && 'toISOString' in value) {
-        return escapeCSVField((value as any).toISOString());
+      if (value && typeof value === 'object' && 'toISOString' in value && typeof value.toISOString === 'function') {
+        return escapeCSVField((value as { toISOString(): string }).toISOString());
       }
       
       return escapeCSVField(value);
@@ -65,22 +65,26 @@ export function objectsToCSV<T extends Record<string, any>>(
  */
 export function createExportMetadata(
   recordCount: number,
-  filters: Record<string, any>
+  filters: Record<string, unknown>
 ): ExportMetadata {
   return {
     exportDate: new Date().toISOString(),
     recordCount,
     filters: Object.fromEntries(
       Object.entries(filters).filter(([_, value]) => value !== undefined)
-    ),
+    ) as Record<string, string | boolean | number | undefined>,
   };
 }
 
 /**
  * Sets appropriate headers for file download
  */
+interface HttpContext {
+  header(key: string, value: string): void;
+}
+
 export function setDownloadHeaders(
-  c: any,
+  c: HttpContext,
   filename: string,
   format: 'csv' | 'json'
 ): void {

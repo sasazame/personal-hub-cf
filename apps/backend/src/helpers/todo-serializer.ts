@@ -20,7 +20,7 @@ interface DbTodo {
   updatedAt: Date;
 }
 
-interface SerializedTodo {
+export interface SerializedTodo {
   id: string;
   userId: string;
   title: string;

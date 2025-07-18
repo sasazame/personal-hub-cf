@@ -9,8 +9,7 @@ import {
   noteExportQuerySchema,
   momentExportQuerySchema,
   pomodoroExportQuerySchema,
-  type JsonExportResponse,
-  type ExportFormat
+  type JsonExportResponse
 } from '@personal-hub/shared';
 import {
   todos,
@@ -22,7 +21,7 @@ import {
 } from '@personal-hub/shared';
 import type { AuthEnv } from '../types';
 import { requireAuth } from '../middleware/auth';
-import { serializeTodos } from '../helpers/todo-serializer';
+import { serializeTodos, type SerializedTodo } from '../helpers/todo-serializer';
 import { serializeGoals } from '../helpers/goals-serializer';
 import { createExportMetadata, objectsToCSV, setDownloadHeaders } from '../helpers/export';
 
@@ -70,7 +69,7 @@ exportRouter.get('/todos', zValidator('query', todoExportQuerySchema), async (c)
 
     // Generate response based on format
     if (query.format === 'csv') {
-      const csv = objectsToCSV(serializedTodos, [
+      const csv = objectsToCSV(serializedTodos as unknown as Record<string, unknown>[], [
         'id', 'title', 'description', 'status', 'priority', 
         'dueDate', 'createdAt', 'updatedAt'
       ]);
@@ -135,7 +134,7 @@ exportRouter.get('/goals', zValidator('query', goalExportQuerySchema), async (c)
 
     // Generate response based on format
     if (query.format === 'csv') {
-      const csv = objectsToCSV(serializedGoals, [
+      const csv = objectsToCSV(serializedGoals as unknown as Record<string, unknown>[], [
         'id', 'title', 'description', 'type', 'status',
         'targetValue', 'currentValue', 'unit', 'startDate', 
         'endDate', 'createdAt', 'updatedAt'
@@ -195,7 +194,20 @@ exportRouter.get('/events', zValidator('query', eventExportQuerySchema), async (
     const metadata = createExportMetadata(eventRecords.length, query);
 
     // Transform events for export
-    const exportEvents = eventRecords.map((event: any) => ({
+    interface EventRecord {
+      id: string;
+      title: string;
+      description: string | null;
+      startDateTime: Date;
+      endDateTime: Date;
+      allDay: boolean;
+      location: string | null;
+      reminderMinutes: number | null;
+      createdAt: Date;
+      updatedAt: Date;
+    }
+    
+    const exportEvents = eventRecords.map((event: EventRecord) => ({
       id: event.id,
       title: event.title,
       description: event.description,
@@ -203,7 +215,7 @@ exportRouter.get('/events', zValidator('query', eventExportQuerySchema), async (
       endDate: event.endDateTime.toISOString(),
       allDay: event.allDay,
       location: event.location,
-      reminder: event.reminder,
+      reminder: event.reminderMinutes?.toString() || null,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     }));
@@ -249,7 +261,9 @@ exportRouter.get('/notes', zValidator('query', noteExportQuerySchema), async (c)
     if (query.tags) {
       const tagList = query.tags.split(',').map(t => t.trim());
       // Check if any of the tags are in the note's tags array
-      const tagConditions = tagList.map(tag => like(notes.tags, `%${tag}%`));
+      const tagConditions = tagList.map(tag => 
+        like(notes.tags, `%${tag.replace(/[%_\\]/g, '\\$&')}%`)
+      );
       if (tagConditions.length > 0) {
         conditions.push(or(...tagConditions)!);
       }
@@ -274,10 +288,19 @@ exportRouter.get('/notes', zValidator('query', noteExportQuerySchema), async (c)
     const metadata = createExportMetadata(noteRecords.length, query);
 
     // Transform notes for export
-    const exportNotes = noteRecords.map((note: any) => ({
+    interface NoteRecord {
+      id: string;
+      title: string;
+      content: string | null;
+      tags: string | null;
+      createdAt: Date;
+      updatedAt: Date;
+    }
+    
+    const exportNotes = noteRecords.map((note: NoteRecord) => ({
       id: note.id,
       title: note.title,
-      content: note.content,
+      content: note.content || '',
       tags: note.tags,
       createdAt: note.createdAt.toISOString(),
       updatedAt: note.updatedAt.toISOString(),
@@ -322,7 +345,9 @@ exportRouter.get('/moments', zValidator('query', momentExportQuerySchema), async
     
     if (query.tags) {
       const tagList = query.tags.split(',').map(t => t.trim());
-      const tagConditions = tagList.map(tag => like(moments.tags, `%${tag}%`));
+      const tagConditions = tagList.map(tag => 
+        like(moments.tags, `%${tag.replace(/[%_\\]/g, '\\$&')}%`)
+      );
       if (tagConditions.length > 0) {
         conditions.push(or(...tagConditions)!);
       }
@@ -347,7 +372,15 @@ exportRouter.get('/moments', zValidator('query', momentExportQuerySchema), async
     const metadata = createExportMetadata(momentRecords.length, query);
 
     // Transform moments for export
-    const exportMoments = momentRecords.map((moment: any) => ({
+    interface MomentRecord {
+      id: string;
+      content: string;
+      tags: string | null;
+      createdAt: Date;
+      updatedAt: Date;
+    }
+    
+    const exportMoments = momentRecords.map((moment: MomentRecord) => ({
       id: moment.id,
       content: moment.content,
       tags: moment.tags,
@@ -419,7 +452,17 @@ exportRouter.get('/pomodoro', zValidator('query', pomodoroExportQuerySchema), as
     const metadata = createExportMetadata(sessionRecords.length, query);
 
     // Transform sessions for export
-    const exportSessions = sessionRecords.map((session: any) => ({
+    interface PomodoroSessionRecord {
+      id: string;
+      sessionType: string;
+      duration: number;
+      startTime: Date;
+      endTime: Date | null;
+      completed: boolean;
+      createdAt: Date;
+    }
+    
+    const exportSessions = sessionRecords.map((session: PomodoroSessionRecord) => ({
       id: session.id,
       type: session.sessionType,
       duration: session.duration,

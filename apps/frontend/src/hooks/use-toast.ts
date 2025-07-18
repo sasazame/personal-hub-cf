@@ -38,7 +38,7 @@ export function useToast() {
     notify();
 
     // Auto-remove after 5 seconds
-    setTimeout(() => {
+    window.setTimeout(() => {
       const index = toasts.findIndex(t => t.id === id);
       if (index > -1) {
         toasts.splice(index, 1);

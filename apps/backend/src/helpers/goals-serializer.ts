@@ -1,4 +1,3 @@
-import type { GoalWithProgress } from '@personal-hub/shared';
 
 interface SerializedGoal {
   id: string;
@@ -6,16 +5,32 @@ interface SerializedGoal {
   description: string | null;
   type: string;
   status: string;
-  targetValue: number;
-  currentValue: number;
+  targetValue: number | null;
+  currentValue: number | null;
   unit: string | null;
   startDate: string | null;
   endDate: string | null;
   createdAt: string;
   updatedAt: string;
+  [key: string]: string | number | boolean | null;
 }
 
-export function serializeGoal(goal: any): SerializedGoal {
+interface GoalRecord {
+  id: string;
+  title: string;
+  description: string | null;
+  type: string;
+  status: string;
+  targetValue: number | null;
+  currentValue: number | null;
+  unit: string | null;
+  startDate: Date | null;
+  endDate: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export function serializeGoal(goal: GoalRecord): SerializedGoal {
   return {
     id: goal.id,
     title: goal.title,
@@ -32,6 +47,6 @@ export function serializeGoal(goal: any): SerializedGoal {
   };
 }
 
-export function serializeGoals(goals: any[]): SerializedGoal[] {
+export function serializeGoals(goals: GoalRecord[]): SerializedGoal[] {
   return goals.map(serializeGoal);
 }

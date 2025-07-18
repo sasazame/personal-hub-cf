@@ -47,7 +47,7 @@ export const pomodoroExportQuerySchema = baseExportQuerySchema.extend({
 export interface ExportMetadata {
   exportDate: string;
   recordCount: number;
-  filters: Record<string, any>;
+  filters: Record<string, string | boolean | number | undefined>;
 }
 
 export interface JsonExportResponse<T> {

@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 import type { ExportFormat } from '@personal-hub/shared';
 import { api } from '../api';
 
@@ -5,7 +6,15 @@ interface ExportOptions {
   format: ExportFormat;
   dateFrom?: string;
   dateTo?: string;
-  [key: string]: any; // For feature-specific filters
+  // Feature-specific filters
+  status?: string;
+  priority?: string;
+  type?: string;
+  tags?: string;
+  sessionType?: string;
+  completed?: string;
+  allDay?: string;
+  [key: string]: string | undefined;
 }
 
 async function downloadFile(blob: Blob, filename: string) {
@@ -19,7 +28,18 @@ async function downloadFile(blob: Blob, filename: string) {
   window.URL.revokeObjectURL(url);
 }
 
-export async function exportTodos(options: ExportOptions) {
+function extractFilename(contentDisposition: string | null, fallback: string): string {
+  if (!contentDisposition) return fallback;
+  
+  const matches = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+  if (matches && matches[1]) {
+    return matches[1].replace(/['"]/g, '');
+  }
+  
+  return fallback;
+}
+
+async function exportData(endpoint: string, options: ExportOptions) {
   const params = new URLSearchParams();
   Object.entries(options).forEach(([key, value]) => {
     if (value !== undefined) {
@@ -27,108 +47,38 @@ export async function exportTodos(options: ExportOptions) {
     }
   });
 
-  const response = await api.get(`/api/export/todos?${params.toString()}`, {
+  const response = await api.get(`/api/export/${endpoint}?${params.toString()}`, {
     responseType: 'blob'
   });
   const blob = response.data;
-  const filename = response.headers.get('content-disposition')
-    ?.split('filename=')[1]
-    ?.replace(/"/g, '') || `todos-export.${options.format}`;
+  const filename = extractFilename(
+    response.headers['content-disposition'],
+    `${endpoint}-export.${options.format}`
+  );
   
   await downloadFile(blob, filename);
+}
+
+export async function exportTodos(options: ExportOptions) {
+  return exportData('todos', options);
 }
 
 export async function exportGoals(options: ExportOptions) {
-  const params = new URLSearchParams();
-  Object.entries(options).forEach(([key, value]) => {
-    if (value !== undefined) {
-      params.append(key, value.toString());
-    }
-  });
-
-  const response = await api.get(`/api/export/goals?${params.toString()}`, {
-    responseType: 'blob'
-  });
-  const blob = response.data;
-  const filename = response.headers.get('content-disposition')
-    ?.split('filename=')[1]
-    ?.replace(/"/g, '') || `goals-export.${options.format}`;
-  
-  await downloadFile(blob, filename);
+  return exportData('goals', options);
 }
 
 export async function exportEvents(options: ExportOptions) {
-  const params = new URLSearchParams();
-  Object.entries(options).forEach(([key, value]) => {
-    if (value !== undefined) {
-      params.append(key, value.toString());
-    }
-  });
-
-  const response = await api.get(`/api/export/events?${params.toString()}`, {
-    responseType: 'blob'
-  });
-  const blob = response.data;
-  const filename = response.headers.get('content-disposition')
-    ?.split('filename=')[1]
-    ?.replace(/"/g, '') || `events-export.${options.format}`;
-  
-  await downloadFile(blob, filename);
+  return exportData('events', options);
 }
 
 export async function exportNotes(options: ExportOptions) {
-  const params = new URLSearchParams();
-  Object.entries(options).forEach(([key, value]) => {
-    if (value !== undefined) {
-      params.append(key, value.toString());
-    }
-  });
-
-  const response = await api.get(`/api/export/notes?${params.toString()}`, {
-    responseType: 'blob'
-  });
-  const blob = response.data;
-  const filename = response.headers.get('content-disposition')
-    ?.split('filename=')[1]
-    ?.replace(/"/g, '') || `notes-export.${options.format}`;
-  
-  await downloadFile(blob, filename);
+  return exportData('notes', options);
 }
 
 export async function exportMoments(options: ExportOptions) {
-  const params = new URLSearchParams();
-  Object.entries(options).forEach(([key, value]) => {
-    if (value !== undefined) {
-      params.append(key, value.toString());
-    }
-  });
-
-  const response = await api.get(`/api/export/moments?${params.toString()}`, {
-    responseType: 'blob'
-  });
-  const blob = response.data;
-  const filename = response.headers.get('content-disposition')
-    ?.split('filename=')[1]
-    ?.replace(/"/g, '') || `moments-export.${options.format}`;
-  
-  await downloadFile(blob, filename);
+  return exportData('moments', options);
 }
 
 export async function exportPomodoro(options: ExportOptions) {
-  const params = new URLSearchParams();
-  Object.entries(options).forEach(([key, value]) => {
-    if (value !== undefined) {
-      params.append(key, value.toString());
-    }
-  });
-
-  const response = await api.get(`/api/export/pomodoro?${params.toString()}`, {
-    responseType: 'blob'
-  });
-  const blob = response.data;
-  const filename = response.headers.get('content-disposition')
-    ?.split('filename=')[1]
-    ?.replace(/"/g, '') || `pomodoro-export.${options.format}`;
-  
-  await downloadFile(blob, filename);
+  return exportData('pomodoro', options);
 }

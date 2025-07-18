@@ -1,5 +1,4 @@
 import { test, expect } from './fixtures/base-test';
-import path from 'path';
 import fs from 'fs/promises';
 
 test.describe('Data Export', () => {
@@ -34,7 +33,7 @@ test.describe('Data Export', () => {
     await expect(authenticatedPage.getByText('Please select at least one type')).toBeVisible();
   });
 
-  test('should export todos as JSON', async ({ authenticatedPage, context }) => {
+  test('should export todos as JSON', async ({ authenticatedPage }) => {
     // Create a todo first
     await authenticatedPage.goto('http://localhost:5173');
     await authenticatedPage.getByRole('button', { name: 'Todos' }).click();
@@ -70,12 +69,17 @@ test.describe('Data Export', () => {
       expect(Array.isArray(data.data)).toBe(true);
       
       // Check if our test todo is in the export
-      const testTodo = data.data.find((todo: any) => todo.title === 'Test Todo for Export');
+      interface TodoData {
+        title: string;
+        id: string;
+      }
+      
+      const testTodo = data.data.find((todo: TodoData) => todo.title === 'Test Todo for Export');
       expect(testTodo).toBeDefined();
     }
   });
 
-  test('should export multiple types as CSV', async ({ authenticatedPage, context }) => {
+  test('should export multiple types as CSV', async ({ authenticatedPage }) => {
     // Create test data
     await authenticatedPage.goto('http://localhost:5173');
     
@@ -87,7 +91,12 @@ test.describe('Data Export', () => {
     await authenticatedPage.waitForTimeout(1000);
 
     // Export todos and goals as CSV
-    const downloads: any[] = [];
+    interface DownloadEvent {
+      suggestedFilename(): string;
+      path(): Promise<string | null>;
+    }
+    
+    const downloads: DownloadEvent[] = [];
     
     authenticatedPage.on('download', download => {
       downloads.push(download);

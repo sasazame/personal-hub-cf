@@ -24,10 +24,17 @@ import {
 } from '@/lib/api/export';
 import type { ExportFormat } from '@personal-hub/shared';
 
+interface ExportOptions {
+  format: ExportFormat;
+  dateFrom?: string;
+  dateTo?: string;
+  [key: string]: string | undefined;
+}
+
 interface ExportOption {
   id: string;
   label: string;
-  exportFn: (options: any) => Promise<void>;
+  exportFn: (options: ExportOptions) => Promise<void>;
 }
 
 const exportOptions: ExportOption[] = [
@@ -65,9 +72,36 @@ export function ExportDialog() {
         const option = exportOptions.find(opt => opt.id === itemId);
         if (!option) return Promise.resolve();
         
-        const exportParams: any = { format };
-        if (dateFrom) exportParams.dateFrom = new Date(dateFrom).toISOString();
-        if (dateTo) exportParams.dateTo = new Date(dateTo).toISOString();
+        const exportParams: ExportOptions = { format };
+        // Validate date range
+        if (dateFrom && dateTo) {
+          const fromDate = new Date(dateFrom);
+          const toDate = new Date(dateTo);
+          if (fromDate > toDate) {
+            toast({
+              title: 'Invalid date range',
+              description: 'Start date must be before end date.',
+              variant: 'destructive',
+            });
+            return Promise.reject('Invalid date range');
+          }
+        }
+        
+        if (dateFrom) {
+          const fromDate = new Date(dateFrom);
+          if (isNaN(fromDate.getTime())) {
+            return Promise.reject('Invalid start date');
+          }
+          exportParams.dateFrom = fromDate.toISOString();
+        }
+        
+        if (dateTo) {
+          const toDate = new Date(dateTo);
+          if (isNaN(toDate.getTime())) {
+            return Promise.reject('Invalid end date');
+          }
+          exportParams.dateTo = toDate.toISOString();
+        }
         
         return option.exportFn(exportParams);
       });
