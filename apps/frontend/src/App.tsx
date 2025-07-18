@@ -12,7 +12,9 @@ import { MomentList } from './components/MomentList';
 import { PomodoroTimer } from './components/PomodoroTimer';
 import { PomodoroStats } from './components/PomodoroStats';
 import { Dashboard } from './components/Dashboard';
+import { SearchPage } from './components/SearchPage';
 import { Button } from '@personal-hub/ui';
+import { Search } from 'lucide-react';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -25,7 +27,7 @@ const queryClient = new QueryClient({
 
 function AuthenticatedApp() {
   const { logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'todos' | 'goals' | 'events' | 'notes' | 'moments' | 'pomodoro'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'todos' | 'goals' | 'events' | 'notes' | 'moments' | 'pomodoro' | 'search'>('dashboard');
   const [eventsViewMode, setEventsViewMode] = useState<'list' | 'calendar'>('list');
 
   const renderTabContent = () => {
@@ -51,6 +53,8 @@ function AuthenticatedApp() {
             <PomodoroStats />
           </div>
         );
+      case 'search':
+        return <SearchPage />;
       default:
         return <Dashboard />;
     }
@@ -61,7 +65,18 @@ function AuthenticatedApp() {
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold">Personal Hub</h1>
-          <Button onClick={logout} variant="outline">Logout</Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setActiveTab('search')}
+              variant="ghost"
+              size="icon"
+              className={activeTab === 'search' ? 'bg-accent' : ''}
+              aria-label="Search"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+            <Button onClick={logout} variant="outline">Logout</Button>
+          </div>
         </div>
       </header>
       <main className="container mx-auto px-4 py-8">
@@ -136,6 +151,16 @@ function AuthenticatedApp() {
               }`}
             >
               Pomodoro
+            </button>
+            <button
+              onClick={() => setActiveTab('search')}
+              className={`pb-2 px-1 font-medium transition-colors ${
+                activeTab === 'search'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Search
             </button>
           </nav>
         </div>

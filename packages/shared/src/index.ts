@@ -117,5 +117,17 @@ export {
   type DashboardQuery
 } from './api/dashboard';
 
+// Export search types
+export {
+  searchRequestSchema,
+  searchResultItemSchema,
+  searchResponseSchema,
+  entityTypes,
+  type SearchRequest,
+  type SearchResultItem,
+  type SearchResponse,
+  type EntityType
+} from './api/search';
+
 // Export database schema - but rename conflicting types
 export * from './db/schema';

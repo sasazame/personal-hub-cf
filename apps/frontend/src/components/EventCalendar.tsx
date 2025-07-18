@@ -1,11 +1,11 @@
-import { useCallback, useMemo, useState, type CSSProperties } from 'react';
+import React, { useCallback, useMemo, useState, type CSSProperties } from 'react';
 import {
   Calendar,
   dateFnsLocalizer,
-  Event as RBCEvent,
-  View,
-  SlotInfo,
-  EventProps,
+  type Event as RBCEvent,
+  type View,
+  type SlotInfo,
+  type EventProps,
 } from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
@@ -13,12 +13,10 @@ import { enUS } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import { useEvents } from '@/lib/api/events';
-import { EventResponse } from '@personal-hub-cf/shared';
-import { Button } from '@personal-hub-cf/ui/src/button';
+import type { EventResponse } from '@personal-hub/shared';
+import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@personal-hub/ui';
 import { CalendarDays, CalendarRange, Bell } from 'lucide-react';
 import { EventForm } from './EventForm';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@personal-hub-cf/ui/src/alert-dialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@personal-hub-cf/ui/src/dialog';
 import { useDeleteEventMutation, useUpdateEventMutation } from '@/lib/api/events';
 import { parseISO } from 'date-fns';
 
@@ -75,10 +73,9 @@ export default function EventCalendar({ onViewChange }: EventCalendarProps) {
   }, [date, view]);
 
   const { data: eventsData, isLoading } = useEvents({
-    filter: 'all',
     search: '',
-    page: 1,
     limit: 1000,
+    offset: 0,
     startDate: dateRange.start.toISOString(),
     endDate: dateRange.end.toISOString(),
   });
