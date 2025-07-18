@@ -80,7 +80,7 @@ export const activityItemSchema = z.object({
   title: z.string(),
   description: z.string().nullable(),
   timestamp: z.string(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.union([z.string(), z.number(), z.boolean(), z.array(z.string())])).optional(),
 });
 
 export type ActivityItem = z.infer<typeof activityItemSchema>;

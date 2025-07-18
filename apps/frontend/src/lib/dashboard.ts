@@ -8,7 +8,6 @@ import type {
 export const dashboardApi = {
   async getStats(query?: DashboardQuery): Promise<DashboardStats> {
     const params = new URLSearchParams();
-    if (query?.activityLimit) params.append('activityLimit', query.activityLimit.toString());
     if (query?.recentItemsLimit) params.append('recentItemsLimit', query.recentItemsLimit.toString());
     
     const response = await apiClient.get<DashboardStats>(`/dashboard/stats?${params}`);

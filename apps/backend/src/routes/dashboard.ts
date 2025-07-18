@@ -9,16 +9,8 @@ import {
   events, 
   notes, 
   moments, 
-  pomodoroSessions, 
-  pomodoroConfigs,
-  type Todo,
-  type Goal,
-  type Event,
-  type Note,
-  type Moment,
-  type PomodoroSession
+  pomodoroSessions
 } from '@personal-hub/shared';
-import { z } from 'zod';
 import { 
   dashboardQuerySchema, 
   type DashboardStats, 

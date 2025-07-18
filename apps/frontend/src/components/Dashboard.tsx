@@ -2,6 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import { dashboardApi } from '../lib/dashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@personal-hub/ui';
 import { formatDistanceToNow } from 'date-fns';
+import type { DashboardStats } from '@personal-hub/shared';
+
+type RecentItemType = 
+  | DashboardStats['todos']['recentItems'][0]
+  | DashboardStats['goals']['recentItems'][0]  
+  | DashboardStats['events']['recentItems'][0]
+  | DashboardStats['notes']['recentItems'][0]
+  | DashboardStats['moments']['recentItems'][0];
 
 function StatCard({ title, value, subtitle }: { title: string; value: number; subtitle?: string }) {
   return (
@@ -17,7 +25,7 @@ function StatCard({ title, value, subtitle }: { title: string; value: number; su
   );
 }
 
-function RecentItem({ item, type }: { item: any; type: string }) {
+function RecentItem({ item, type }: { item: RecentItemType; type: string }) {
   return (
     <div className="flex items-center justify-between py-2">
       <div className="flex-1 min-w-0">
@@ -52,7 +60,7 @@ export function Dashboard() {
     return (
       <div className="p-4">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {[...Array(8)].map((_, i) => (
+          {[...Array(7)].map((_, i) => (
             <Card key={i} className="animate-pulse">
               <CardHeader className="pb-2">
                 <div className="h-4 bg-secondary rounded w-24"></div>
