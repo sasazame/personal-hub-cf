@@ -6,6 +6,7 @@ import { RegisterForm } from './components/RegisterForm';
 import { TodoList } from './components/TodoList';
 import { GoalList } from './components/GoalList';
 import { EventList } from './components/EventList';
+import EventCalendar from './components/EventCalendar';
 import { NoteList } from './components/NoteList';
 import { MomentList } from './components/MomentList';
 import { PomodoroTimer } from './components/PomodoroTimer';
@@ -25,6 +26,7 @@ const queryClient = new QueryClient({
 function AuthenticatedApp() {
   const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'todos' | 'goals' | 'events' | 'notes' | 'moments' | 'pomodoro'>('dashboard');
+  const [eventsViewMode, setEventsViewMode] = useState<'list' | 'calendar'>('list');
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -35,7 +37,9 @@ function AuthenticatedApp() {
       case 'goals':
         return <GoalList />;
       case 'events':
-        return <EventList />;
+        return eventsViewMode === 'calendar' ? 
+          <EventCalendar onViewChange={() => setEventsViewMode('list')} /> : 
+          <EventList onViewChange={() => setEventsViewMode('calendar')} />;
       case 'notes':
         return <NoteList />;
       case 'moments':

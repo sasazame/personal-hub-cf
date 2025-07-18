@@ -23,7 +23,11 @@ import {
   SelectValue,
 } from './ui/select';
 
-export function EventList() {
+interface EventListProps {
+  onViewChange?: () => void;
+}
+
+export function EventList({ onViewChange }: EventListProps) {
   const [showEventForm, setShowEventForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
@@ -87,10 +91,21 @@ export function EventList() {
           <Calendar className="h-6 w-6" />
           Events
         </h2>
-        <Button onClick={() => setShowEventForm(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Event
-        </Button>
+        <div className="flex gap-2">
+          {onViewChange && (
+            <Button 
+              variant="outline" 
+              onClick={onViewChange}
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Calendar View
+            </Button>
+          )}
+          <Button onClick={() => setShowEventForm(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Event
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-4">

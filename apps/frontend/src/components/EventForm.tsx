@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createEventSchema } from '@personal-hub/shared';
+import { createEventSchema, type EventResponse, type UpdateEventRequest } from '@personal-hub/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { eventsApi } from '../lib/api/events';
 import { Button } from './ui/button';
@@ -21,7 +21,14 @@ type EventFormData = {
   color: string | null;
 };
 
-export function EventForm({ onClose }: { onClose: () => void }) {
+interface EventFormProps {
+  event?: EventResponse | null;
+  defaultValues?: Partial<EventFormData>;
+  onClose: () => void;
+  onDelete?: () => void;
+}
+
+export function EventForm({ event, defaultValues, onClose, onDelete }: EventFormProps) {
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -33,8 +40,18 @@ export function EventForm({ onClose }: { onClose: () => void }) {
     formState: { errors },
   } = useForm<EventFormData>({
     resolver: zodResolver(createEventSchema),
-    defaultValues: {
+    defaultValues: event ? {
+      title: event.title,
+      description: event.description || '',
+      startDateTime: event.startDateTime.slice(0, 16),
+      endDateTime: event.endDateTime.slice(0, 16),
+      location: event.location || '',
+      allDay: event.allDay,
+      reminderMinutes: event.reminderMinutes || null,
+      color: event.color || null,
+    } : {
       allDay: false,
+      ...defaultValues,
     },
   });
 
@@ -42,6 +59,14 @@ export function EventForm({ onClose }: { onClose: () => void }) {
 
   const createEventMutation = useMutation({
     mutationFn: eventsApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      onClose();
+    },
+  });
+
+  const updateEventMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateEventRequest }) => eventsApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
       onClose();
@@ -64,7 +89,11 @@ export function EventForm({ onClose }: { onClose: () => void }) {
         data.endDateTime = new Date(data.endDateTime).toISOString();
       }
       
-      await createEventMutation.mutateAsync(data);
+      if (event) {
+        await updateEventMutation.mutateAsync({ id: event.id, data });
+      } else {
+        await createEventMutation.mutateAsync(data);
+      }
     } catch (error) {
       console.error('Failed to create event:', error);
     } finally {
@@ -168,8 +197,13 @@ export function EventForm({ onClose }: { onClose: () => void }) {
 
       <div className="flex gap-2 pt-4">
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Creating...' : 'Create Event'}
+          {isSubmitting ? (event ? 'Updating...' : 'Creating...') : (event ? 'Update Event' : 'Create Event')}
         </Button>
+        {event && onDelete && (
+          <Button type="button" variant="destructive" onClick={onDelete}>
+            Delete
+          </Button>
+        )}
         <Button type="button" variant="outline" onClick={onClose}>
           Cancel
         </Button>
