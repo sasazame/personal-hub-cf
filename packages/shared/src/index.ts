@@ -129,5 +129,20 @@ export {
   type EntityType
 } from './api/search';
 
+// Export export types
+export {
+  exportFormats,
+  baseExportQuerySchema,
+  todoExportQuerySchema,
+  goalExportQuerySchema,
+  eventExportQuerySchema,
+  noteExportQuerySchema,
+  momentExportQuerySchema,
+  pomodoroExportQuerySchema,
+  type ExportFormat,
+  type ExportMetadata,
+  type JsonExportResponse
+} from './schemas/export';
+
 // Export database schema - but rename conflicting types
 export * from './db/schema';

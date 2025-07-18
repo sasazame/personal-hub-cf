@@ -9,6 +9,7 @@ import { momentsRouter } from './routes/moments';
 import pomodoroRouter from './routes/pomodoro';
 import { dashboard } from './routes/dashboard';
 import searchRouter from './routes/search';
+import { exportRouter } from './routes/export';
 import type { D1Database } from '@cloudflare/workers-types';
 
 type Env = {
@@ -58,5 +59,8 @@ app.route('/api/dashboard', dashboard);
 
 // Mount search routes
 app.route('/api/search', searchRouter);
+
+// Mount export routes
+app.route('/api/export', exportRouter);
 
 export default app;
