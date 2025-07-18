@@ -54,5 +54,20 @@ export {
   requestToNewEvent
 } from './api/events';
 
+// Export note types
+export {
+  noteSchema,
+  createNoteSchema,
+  updateNoteSchema,
+  listNotesQuerySchema,
+  type CreateNoteRequest,
+  type UpdateNoteRequest,
+  type ListNotesQuery,
+  type NoteResponse,
+  type NotesListResponse,
+  noteToResponse,
+  requestToNewNote
+} from './api/notes';
+
 // Export database schema - but rename conflicting types
 export * from './db/schema';

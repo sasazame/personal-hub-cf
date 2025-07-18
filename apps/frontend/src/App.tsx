@@ -6,6 +6,7 @@ import { RegisterForm } from './components/RegisterForm';
 import { TodoList } from './components/TodoList';
 import { GoalList } from './components/GoalList';
 import { EventList } from './components/EventList';
+import { NoteList } from './components/NoteList';
 import { Button } from '@personal-hub/ui';
 import './App.css';
 
@@ -19,7 +20,7 @@ const queryClient = new QueryClient({
 
 function AuthenticatedApp() {
   const { logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'todos' | 'goals' | 'events'>('todos');
+  const [activeTab, setActiveTab] = useState<'todos' | 'goals' | 'events' | 'notes'>('todos');
 
   return (
     <div className="min-h-screen bg-background">
@@ -62,9 +63,19 @@ function AuthenticatedApp() {
             >
               Events
             </button>
+            <button
+              onClick={() => setActiveTab('notes')}
+              className={`pb-2 px-1 font-medium transition-colors ${
+                activeTab === 'notes'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Notes
+            </button>
           </nav>
         </div>
-        {activeTab === 'todos' ? <TodoList /> : activeTab === 'goals' ? <GoalList /> : <EventList />}
+        {activeTab === 'todos' ? <TodoList /> : activeTab === 'goals' ? <GoalList /> : activeTab === 'events' ? <EventList /> : <NoteList />}
       </main>
     </div>
   );
