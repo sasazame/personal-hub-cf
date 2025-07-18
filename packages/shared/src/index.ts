@@ -69,5 +69,17 @@ export {
   requestToNewNote
 } from './api/notes';
 
+// Export moment types
+export {
+  createMomentSchema,
+  updateMomentSchema,
+  momentQuerySchema,
+  momentResponseSchema,
+  type CreateMomentInput,
+  type UpdateMomentInput,
+  type MomentQuery,
+  type MomentResponse
+} from './api/moments';
+
 // Export database schema - but rename conflicting types
 export * from './db/schema';

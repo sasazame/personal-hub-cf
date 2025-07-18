@@ -7,6 +7,7 @@ import { TodoList } from './components/TodoList';
 import { GoalList } from './components/GoalList';
 import { EventList } from './components/EventList';
 import { NoteList } from './components/NoteList';
+import { MomentList } from './components/MomentList';
 import { Button } from '@personal-hub/ui';
 import './App.css';
 
@@ -20,7 +21,7 @@ const queryClient = new QueryClient({
 
 function AuthenticatedApp() {
   const { logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'todos' | 'goals' | 'events' | 'notes'>('todos');
+  const [activeTab, setActiveTab] = useState<'todos' | 'goals' | 'events' | 'notes' | 'moments'>('todos');
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -32,6 +33,8 @@ function AuthenticatedApp() {
         return <EventList />;
       case 'notes':
         return <NoteList />;
+      case 'moments':
+        return <MomentList />;
       default:
         return <TodoList />;
     }
@@ -87,6 +90,16 @@ function AuthenticatedApp() {
               }`}
             >
               Notes
+            </button>
+            <button
+              onClick={() => setActiveTab('moments')}
+              className={`pb-2 px-1 font-medium transition-colors ${
+                activeTab === 'moments'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Moments
             </button>
           </nav>
         </div>
