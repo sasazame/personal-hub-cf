@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type CSSProperties } from 'react';
+import React, { useCallback, useMemo, useState, type CSSProperties } from 'react';
 import {
   Calendar,
   dateFnsLocalizer,
@@ -32,7 +32,7 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-const DragAndDropCalendar = withDragAndDrop(Calendar) as React.ComponentType<any>;
+const DragAndDropCalendar = withDragAndDrop(Calendar);
 
 type CalendarEvent = RBCEvent & {
   id: string;

@@ -14,7 +14,7 @@ export function PomodoroTimer() {
   const [isRunning, setIsRunning] = useState(false);
   const [sessionType, setSessionType] = useState<SessionType>('WORK');
   const [sessionCount, setSessionCount] = useState(0);
-  const intervalRef = useRef<number | null>(null);
+  const intervalRef = useRef<ReturnType<typeof window.setInterval> | null>(null);
   // eslint-disable-next-line no-undef
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -34,8 +34,9 @@ export function PomodoroTimer() {
       try {
         const response = await pomodoroApi.getActiveSession();
         return response.data;
-      } catch (error: any) {
-        if (error.response?.status === 404) {
+      } catch (error: unknown) {
+        const isAxiosError = error && typeof error === 'object' && 'response' in error;
+        if (isAxiosError && (error as any).response?.status === 404) {
           return null;
         }
         throw error;
