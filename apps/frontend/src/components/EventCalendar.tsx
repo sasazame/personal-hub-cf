@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useMemo, useState, type CSSProperties } from 'react';
 import {
   Calendar,
   dateFnsLocalizer,
@@ -7,7 +7,7 @@ import {
   type SlotInfo,
   type EventProps,
 } from 'react-big-calendar';
-import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
+import withDragAndDrop, { type EventInteractionArgs } from 'react-big-calendar/lib/addons/dragAndDrop';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -24,6 +24,11 @@ const locales = {
   'en-US': enUS,
 };
 
+type CalendarEvent = RBCEvent & {
+  id: string;
+  resource: EventResponse;
+};
+
 const localizer = dateFnsLocalizer({
   format,
   parse,
@@ -32,12 +37,7 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-const DragAndDropCalendar = withDragAndDrop(Calendar);
-
-type CalendarEvent = RBCEvent & {
-  id: string;
-  resource: EventResponse;
-};
+const DragAndDropCalendar = withDragAndDrop<CalendarEvent>(Calendar);
 
 interface EventCalendarProps {
   onViewChange?: () => void;
@@ -109,11 +109,11 @@ export default function EventCalendar({ onViewChange }: EventCalendarProps) {
   }, []);
 
   const handleEventDrop = useCallback(
-    ({ event, start, end }: { event: CalendarEvent; start: Date; end: Date }) => {
+    ({ event, start, end }: EventInteractionArgs<CalendarEvent>) => {
       const updatedEvent = {
         ...event.resource,
-        startDateTime: start.toISOString(),
-        endDateTime: end.toISOString(),
+        startDateTime: new Date(start).toISOString(),
+        endDateTime: new Date(end).toISOString(),
       };
       
       updateEventMutation.mutate({

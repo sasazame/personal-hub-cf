@@ -1,23 +1,30 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
-import { TodoList } from './components/TodoList';
-import { GoalList } from './components/GoalList';
-import { EventList } from './components/EventList';
-import EventCalendar from './components/EventCalendar';
-import { NoteList } from './components/NoteList';
-import { MomentList } from './components/MomentList';
-import { PomodoroTimer } from './components/PomodoroTimer';
-import { PomodoroStats } from './components/PomodoroStats';
-import { Dashboard } from './components/Dashboard';
-import { SearchPage } from './components/SearchPage';
 import { ExportDialog } from './components/ExportDialog';
 import { Toaster } from './components/ui/toast';
 import { Button } from '@personal-hub/ui';
 import { Search } from 'lucide-react';
 import './App.css';
+
+// Lazy load all tab components
+const Dashboard = lazy(() => import('./components/Dashboard').then(module => ({ default: module.Dashboard })));
+const TodoList = lazy(() => import('./components/TodoList').then(module => ({ default: module.TodoList })));
+const GoalList = lazy(() => import('./components/GoalList').then(module => ({ default: module.GoalList })));
+const EventList = lazy(() => import('./components/EventList').then(module => ({ default: module.EventList })));
+const EventCalendar = lazy(() => import('./components/EventCalendar'));
+const NoteList = lazy(() => import('./components/NoteList').then(module => ({ default: module.NoteList })));
+const MomentList = lazy(() => import('./components/MomentList').then(module => ({ default: module.MomentList })));
+const PomodoroTimer = lazy(() => import('./components/PomodoroTimer').then(module => ({ default: module.PomodoroTimer })));
+const PomodoroStats = lazy(() => import('./components/PomodoroStats').then(module => ({ default: module.PomodoroStats })));
+const SearchPage = lazy(() => import('./components/SearchPage').then(module => ({ default: module.SearchPage })));
+
+// Preload dashboard since it's the default view
+if (typeof window !== 'undefined') {
+  import('./components/Dashboard');
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,39 +34,56 @@ const queryClient = new QueryClient({
   },
 });
 
+// Loading component for lazy-loaded modules
+function TabLoader() {
+  return (
+    <div className="flex items-center justify-center p-8">
+      <div className="text-muted-foreground">Loading...</div>
+    </div>
+  );
+}
+
 function AuthenticatedApp() {
   const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'todos' | 'goals' | 'events' | 'notes' | 'moments' | 'pomodoro' | 'search'>('dashboard');
   const [eventsViewMode, setEventsViewMode] = useState<'list' | 'calendar'>('list');
 
   const renderTabContent = () => {
-    switch (activeTab) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'todos':
-        return <TodoList />;
-      case 'goals':
-        return <GoalList />;
-      case 'events':
-        return eventsViewMode === 'calendar' ? 
-          <EventCalendar onViewChange={() => setEventsViewMode('list')} /> : 
-          <EventList onViewChange={() => setEventsViewMode('calendar')} />;
-      case 'notes':
-        return <NoteList />;
-      case 'moments':
-        return <MomentList />;
-      case 'pomodoro':
-        return (
-          <div className="space-y-6">
-            <PomodoroTimer />
-            <PomodoroStats />
-          </div>
-        );
-      case 'search':
-        return <SearchPage />;
-      default:
-        return <Dashboard />;
-    }
+    const content = (() => {
+      switch (activeTab) {
+        case 'dashboard':
+          return <Dashboard />;
+        case 'todos':
+          return <TodoList />;
+        case 'goals':
+          return <GoalList />;
+        case 'events':
+          return eventsViewMode === 'calendar' ? 
+            <EventCalendar onViewChange={() => setEventsViewMode('list')} /> : 
+            <EventList onViewChange={() => setEventsViewMode('calendar')} />;
+        case 'notes':
+          return <NoteList />;
+        case 'moments':
+          return <MomentList />;
+        case 'pomodoro':
+          return (
+            <div className="space-y-6">
+              <PomodoroTimer />
+              <PomodoroStats />
+            </div>
+          );
+        case 'search':
+          return <SearchPage />;
+        default:
+          return <Dashboard />;
+      }
+    })();
+
+    return (
+      <Suspense fallback={<TabLoader />}>
+        {content}
+      </Suspense>
+    );
   };
 
   return (

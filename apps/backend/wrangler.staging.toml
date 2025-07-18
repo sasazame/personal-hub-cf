@@ -1,0 +1,13 @@
+name = "personal-hub-backend-staging"
+main = "src/index.ts"
+compatibility_date = "2025-01-19"
+
+# Staging environment configuration
+[env.staging]
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "personal-hub-staging"
+database_id = "YOUR_STAGING_DATABASE_ID"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
