@@ -140,6 +140,10 @@ export default function EventCalendar({ onViewChange }: EventCalendarProps) {
           setEventToDelete(null);
           setShowEventForm(false);
         },
+        onError: (error) => {
+          console.error('Failed to delete event:', error);
+          // TODO: Add toast notification for user feedback
+        },
       });
     }
   }, [eventToDelete, deleteEventMutation]);
@@ -161,7 +165,7 @@ export default function EventCalendar({ onViewChange }: EventCalendarProps) {
       <div className="flex items-center gap-1">
         <span className="truncate">{event.title}</span>
         {event.resource.reminderMinutes && (
-          <Bell className="h-3 w-3" aria-label="Reminder set" />
+          <Bell className="h-3 w-3" aria-label={`Reminder set for ${event.resource.reminderMinutes} minutes before`} />
         )}
       </div>
     );
@@ -206,7 +210,11 @@ export default function EventCalendar({ onViewChange }: EventCalendarProps) {
         </div>
         
         <h2 className="text-xl font-semibold">
-          {format(props.date, 'MMMM yyyy')}
+          {props.view === 'month' 
+            ? format(props.date, 'MMMM yyyy')
+            : props.view === 'week'
+            ? `Week of ${format(props.date, 'MMM d, yyyy')}`
+            : format(props.date, 'MMM d, yyyy')}
         </h2>
         
         <div className="flex items-center gap-2">
@@ -289,8 +297,8 @@ export default function EventCalendar({ onViewChange }: EventCalendarProps) {
             defaultValues={
               newEventSlot
                 ? {
-                    startDateTime: newEventSlot.start.toISOString().slice(0, 16),
-                    endDateTime: newEventSlot.end.toISOString().slice(0, 16),
+                    startDateTime: format(newEventSlot.start, "yyyy-MM-dd'T'HH:mm"),
+                    endDateTime: format(newEventSlot.end, "yyyy-MM-dd'T'HH:mm"),
                     allDay: newEventSlot.action === 'select',
                   }
                 : undefined
