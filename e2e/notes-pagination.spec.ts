@@ -20,7 +20,8 @@ test.describe('Notes Pagination', () => {
       }
       
       await page.getByRole('button', { name: 'Create' }).click();
-      await page.waitForTimeout(200); // Brief wait between creations
+      // Wait for the note to appear in the list before creating the next one
+      await page.waitForSelector(`.text-lg.font-semibold:has-text("Note ${i.toString().padStart(2, '0')}")`, { timeout: 5000 });
     }
   });
 
@@ -36,7 +37,7 @@ test.describe('Notes Pagination', () => {
     
     // Navigate to second page
     await page.getByRole('button', { name: 'Next' }).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     
     // Second page should show 5 notes
     const notesOnSecondPage = await page.locator('.text-lg.font-semibold').count();
@@ -49,7 +50,7 @@ test.describe('Notes Pagination', () => {
     
     // Navigate back to first page
     await page.getByRole('button', { name: 'Previous' }).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     
     // Should be back on first page
     await expect(page.getByText('Page 1 of 2')).toBeVisible();
@@ -60,12 +61,12 @@ test.describe('Notes Pagination', () => {
   test('should reset pagination when filtering', async ({ page }) => {
     // Go to second page
     await page.getByRole('button', { name: 'Next' }).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     await expect(page.getByText('Page 2 of 2')).toBeVisible();
     
     // Apply search filter
     await page.getByPlaceholder('Search notes...').fill('Note 1');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     
     // Should reset to page 1
     await expect(page.getByText('Page 1 of')).toBeVisible();
@@ -94,7 +95,7 @@ test.describe('Notes Pagination', () => {
     await page.getByRole('option', { name: 'Title' }).click();
     await page.getByRole('combobox').nth(1).click();
     await page.getByRole('option', { name: 'Oldest' }).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     
     // First page should start with Note 01
     const firstNoteFirstPage = await page.locator('.text-lg.font-semibold').first().textContent();
@@ -102,7 +103,7 @@ test.describe('Notes Pagination', () => {
     
     // Go to second page
     await page.getByRole('button', { name: 'Next' }).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     
     // Second page should continue the sequence
     const firstNoteSecondPage = await page.locator('.text-lg.font-semibold').first().textContent();

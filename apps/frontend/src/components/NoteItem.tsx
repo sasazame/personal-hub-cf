@@ -32,6 +32,10 @@ export function NoteItem({ note, onEdit }: NoteItemProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
     },
+    onError: (error) => {
+      console.error('Failed to delete note:', error);
+      // TODO: Add toast notification when available
+    },
   });
 
   const handleDelete = () => {

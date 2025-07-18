@@ -44,14 +44,14 @@ test.describe('Notes Filtering and Search', () => {
       }
       
       await page.getByRole('button', { name: 'Create' }).click();
-      await page.waitForTimeout(500); // Brief wait between creations
+      await page.waitForLoadState('networkidle'); // Wait for creation to complete
     }
   });
 
   test('should search notes by title', async ({ page }) => {
     // Search for JavaScript
     await page.getByPlaceholder('Search notes...').fill('JavaScript');
-    await page.waitForTimeout(500); // Debounce delay
+    await page.waitForLoadState('networkidle'); // Debounce delay
     
     // Should show JavaScript Tutorial
     await expect(page.getByText('JavaScript Tutorial')).toBeVisible();
@@ -65,7 +65,7 @@ test.describe('Notes Filtering and Search', () => {
   test('should search notes by content', async ({ page }) => {
     // Search for programming
     await page.getByPlaceholder('Search notes...').fill('programming');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     
     // Should show programming-related notes
     await expect(page.getByText('Python Guide')).toBeVisible();
@@ -105,7 +105,7 @@ test.describe('Notes Filtering and Search', () => {
     
     // Then search for Python
     await page.getByPlaceholder('Search notes...').fill('Python');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     
     // Should only show Python Guide (has programming tag AND matches search)
     await expect(page.getByText('Python Guide')).toBeVisible();
@@ -125,7 +125,7 @@ test.describe('Notes Filtering and Search', () => {
     await page.getByRole('option', { name: 'Title' }).click();
     
     // Wait for sort to apply
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     
     // JavaScript Tutorial should now be first (alphabetically)
     const sortedFirstTitle = await page.locator('.text-lg.font-semibold').first().textContent();
@@ -135,7 +135,7 @@ test.describe('Notes Filtering and Search', () => {
     await page.getByRole('combobox').nth(1).click();
     await page.getByRole('option', { name: 'Oldest' }).click();
     
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     
     // Recipe Collection should be last now
     const lastNoteTitle = await page.locator('.text-lg.font-semibold').last().textContent();
@@ -145,14 +145,14 @@ test.describe('Notes Filtering and Search', () => {
   test('should show no results message', async ({ page }) => {
     // Search for non-existent content
     await page.getByPlaceholder('Search notes...').fill('nonexistentcontent12345');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     
     // Should show no results message
     await expect(page.getByText('No notes found matching your criteria')).toBeVisible();
     
     // Clear search
     await page.getByPlaceholder('Search notes...').clear();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     
     // Filter by non-selected tag combination
     await page.getByRole('button', { name: 'programming' }).first().click();
@@ -166,7 +166,7 @@ test.describe('Notes Filtering and Search', () => {
     // Apply multiple filters
     await page.getByRole('button', { name: 'programming' }).first().click();
     await page.getByPlaceholder('Search notes...').fill('JavaScript');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     
     // Should show filtered results
     await expect(page.getByText('JavaScript Tutorial')).toBeVisible();
@@ -174,7 +174,7 @@ test.describe('Notes Filtering and Search', () => {
     
     // Clear search
     await page.getByPlaceholder('Search notes...').clear();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     
     // Should still be filtered by tag
     await expect(page.getByText('JavaScript Tutorial')).toBeVisible();

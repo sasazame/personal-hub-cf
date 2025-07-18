@@ -45,6 +45,10 @@ export function NoteForm({ note, onClose }: NoteFormProps) {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       onClose();
     },
+    onError: (error) => {
+      console.error('Failed to create note:', error);
+      // TODO: Add toast notification when available
+    },
   });
 
   const updateMutation = useMutation({
@@ -53,6 +57,10 @@ export function NoteForm({ note, onClose }: NoteFormProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       onClose();
+    },
+    onError: (error) => {
+      console.error('Failed to update note:', error);
+      // TODO: Add toast notification when available
     },
   });
 

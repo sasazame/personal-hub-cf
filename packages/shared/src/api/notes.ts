@@ -20,8 +20,18 @@ export type UpdateNoteRequest = z.infer<typeof updateNoteSchema>;
 export const listNotesQuerySchema = z.object({
   search: z.string().optional(),
   tags: z.array(z.string()).optional(),
-  limit: z.string().transform(Number).default('50'),
-  offset: z.string().transform(Number).default('0'),
+  limit: z.string()
+    .transform(Number)
+    .refine(n => Number.isInteger(n) && n >= 1 && n <= 100, {
+      message: 'limit must be an integer between 1 and 100',
+    })
+    .default('50'),
+  offset: z.string()
+    .transform(Number)
+    .refine(n => Number.isInteger(n) && n >= 0, {
+      message: 'offset must be a non-negative integer',
+    })
+    .default('0'),
   sortBy: z.enum(['createdAt', 'updatedAt', 'title']).default('updatedAt'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });
@@ -43,7 +53,14 @@ export interface NotesListResponse {
 export function noteToResponse(note: Note): NoteResponse {
   return {
     ...note,
-    tags: note.tags ? JSON.parse(note.tags) : null,
+    tags: note.tags ? (() => {
+      try {
+        const parsed = JSON.parse(note.tags);
+        return Array.isArray(parsed) ? parsed : null;
+      } catch {
+        return null;
+      }
+    })() : null,
   };
 }
 

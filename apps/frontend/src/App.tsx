@@ -22,6 +22,21 @@ function AuthenticatedApp() {
   const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState<'todos' | 'goals' | 'events' | 'notes'>('todos');
 
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'todos':
+        return <TodoList />;
+      case 'goals':
+        return <GoalList />;
+      case 'events':
+        return <EventList />;
+      case 'notes':
+        return <NoteList />;
+      default:
+        return <TodoList />;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
@@ -75,7 +90,7 @@ function AuthenticatedApp() {
             </button>
           </nav>
         </div>
-        {activeTab === 'todos' ? <TodoList /> : activeTab === 'goals' ? <GoalList /> : activeTab === 'events' ? <EventList /> : <NoteList />}
+        {renderTabContent()}
       </main>
     </div>
   );
