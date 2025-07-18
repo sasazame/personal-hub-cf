@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import type { Env } from '../env';
+import type { AuthEnv as Env } from '../types';
 import { requireAuth } from '../middleware/auth';
 import { drizzle } from 'drizzle-orm/d1';
 import { and, eq, gte, lte, desc, sql } from 'drizzle-orm';
@@ -25,7 +25,8 @@ dashboard.use('*', requireAuth);
 
 // Get dashboard statistics
 dashboard.get('/stats', async (c) => {
-  const userId = c.get('userId')!;
+  const user = c.get('user')!;
+  const userId = user.id;
   const query = c.req.query();
   
   const result = dashboardQuerySchema.safeParse(query);
@@ -49,8 +50,8 @@ dashboard.get('/stats', async (c) => {
   const [todoStats, recentTodos] = await Promise.all([
     db.select({
       total: sql<number>`count(*)`,
-      completed: sql<number>`sum(case when completed = 1 then 1 else 0 end)`,
-      pending: sql<number>`sum(case when completed = 0 then 1 else 0 end)`
+      completed: sql<number>`sum(case when status = 'COMPLETED' then 1 else 0 end)`,
+      pending: sql<number>`sum(case when status = 'TODO' then 1 else 0 end)`
     })
     .from(todos)
     .where(eq(todos.userId, userId))
@@ -68,8 +69,8 @@ dashboard.get('/stats', async (c) => {
   const [goalStats, recentGoals] = await Promise.all([
     db.select({
       total: sql<number>`count(*)`,
-      inProgress: sql<number>`sum(case when status = 'in_progress' then 1 else 0 end)`,
-      completed: sql<number>`sum(case when status = 'completed' then 1 else 0 end)`
+      inProgress: sql<number>`sum(case when status = 'ACTIVE' then 1 else 0 end)`,
+      completed: sql<number>`sum(case when status = 'COMPLETED' then 1 else 0 end)`
     })
     .from(goals)
     .where(eq(goals.userId, userId))
@@ -97,10 +98,10 @@ dashboard.get('/stats', async (c) => {
     .where(
       and(
         eq(events.userId, userId),
-        gte(events.startDate, now.toISOString())
+        gte(events.startDateTime, now)
       )
     )
-    .orderBy(events.startDate)
+    .orderBy(events.startDateTime)
     .limit(recentItemsLimit)
     .all()
   ]);
@@ -111,7 +112,7 @@ dashboard.get('/stats', async (c) => {
     .where(
       and(
         eq(events.userId, userId),
-        gte(events.startDate, now.toISOString())
+        gte(events.startDateTime, now)
       )
     )
     .get();
@@ -121,8 +122,8 @@ dashboard.get('/stats', async (c) => {
     .where(
       and(
         eq(events.userId, userId),
-        gte(events.startDate, todayStart.toISOString()),
-        lte(events.startDate, todayEnd.toISOString())
+        gte(events.startDateTime, todayStart),
+        lte(events.startDateTime, todayEnd)
       )
     )
     .get();
@@ -167,8 +168,8 @@ dashboard.get('/stats', async (c) => {
     .where(
       and(
         eq(moments.userId, userId),
-        gte(moments.createdAt, todayStart.toISOString()),
-        lte(moments.createdAt, todayEnd.toISOString())
+        gte(moments.createdAt, todayStart),
+        lte(moments.createdAt, todayEnd)
       )
     )
     .get();
@@ -183,8 +184,8 @@ dashboard.get('/stats', async (c) => {
     .where(
       and(
         eq(pomodoroSessions.userId, userId),
-        gte(pomodoroSessions.startedAt, todayStart.toISOString()),
-        lte(pomodoroSessions.startedAt, todayEnd.toISOString()),
+        gte(pomodoroSessions.startTime, todayStart),
+        lte(pomodoroSessions.startTime, todayEnd),
         eq(pomodoroSessions.completed, true)
       )
     )
@@ -198,7 +199,7 @@ dashboard.get('/stats', async (c) => {
     .where(
       and(
         eq(pomodoroSessions.userId, userId),
-        gte(pomodoroSessions.startedAt, weekAgo.toISOString()),
+        gte(pomodoroSessions.startTime, weekAgo),
         eq(pomodoroSessions.completed, true)
       )
     )
@@ -214,20 +215,20 @@ dashboard.get('/stats', async (c) => {
         eq(pomodoroSessions.completed, false)
       )
     )
-    .orderBy(desc(pomodoroSessions.startedAt))
+    .orderBy(desc(pomodoroSessions.startTime))
     .limit(1)
     .get();
 
   let activePomodoroSession = null;
   if (activeSession) {
-    const startedAt = new Date(activeSession.startedAt);
+    const startedAt = activeSession.startTime;
     const elapsedSeconds = Math.floor((now.getTime() - startedAt.getTime()) / 1000);
     const remainingSeconds = Math.max(0, activeSession.duration * 60 - elapsedSeconds);
     
     if (remainingSeconds > 0) {
       activePomodoroSession = {
         id: activeSession.id,
-        type: activeSession.type,
+        type: activeSession.sessionType,
         remainingSeconds
       };
     } else {
@@ -246,8 +247,8 @@ dashboard.get('/stats', async (c) => {
       recentItems: recentTodos.map(todo => ({
         id: todo.id,
         title: todo.title,
-        completed: todo.completed,
-        createdAt: todo.createdAt
+        completed: todo.status === 'COMPLETED',
+        createdAt: todo.createdAt.toISOString()
       }))
     },
     goals: {
@@ -258,8 +259,8 @@ dashboard.get('/stats', async (c) => {
         id: goal.id,
         title: goal.title,
         status: goal.status,
-        progress: goal.progress,
-        createdAt: goal.createdAt
+        progress: goal.targetValue && goal.currentValue ? Math.round((goal.currentValue / goal.targetValue) * 100) : 0,
+        createdAt: goal.createdAt.toISOString()
       }))
     },
     events: {
@@ -269,8 +270,8 @@ dashboard.get('/stats', async (c) => {
       recentItems: recentEvents.map(event => ({
         id: event.id,
         title: event.title,
-        startDate: event.startDate,
-        endDate: event.endDate,
+        startDate: event.startDateTime.toISOString(),
+        endDate: event.endDateTime ? event.endDateTime.toISOString() : null,
         allDay: event.allDay
       }))
     },
@@ -280,8 +281,8 @@ dashboard.get('/stats', async (c) => {
         id: note.id,
         title: note.title,
         tags: note.tags ? note.tags.split(',').filter(t => t.trim()) : [],
-        createdAt: note.createdAt,
-        updatedAt: note.updatedAt
+        createdAt: note.createdAt.toISOString(),
+        updatedAt: note.updatedAt.toISOString()
       }))
     },
     moments: {
@@ -291,7 +292,7 @@ dashboard.get('/stats', async (c) => {
         id: moment.id,
         content: moment.content,
         tags: moment.tags ? moment.tags.split(',').filter(t => t.trim()) : [],
-        createdAt: moment.createdAt
+        createdAt: moment.createdAt.toISOString()
       }))
     },
     pomodoro: {
@@ -308,7 +309,8 @@ dashboard.get('/stats', async (c) => {
 
 // Get recent activity feed
 dashboard.get('/activity', async (c) => {
-  const userId = c.get('userId')!;
+  const user = c.get('user')!;
+  const userId = user.id;
   const query = c.req.query();
   
   const result = dashboardQuerySchema.safeParse(query);
@@ -339,11 +341,11 @@ dashboard.get('/activity', async (c) => {
     activities.push({
       id: `todo-${todo.id}`,
       type: 'todo',
-      action: todo.completed ? 'completed' : 'updated',
+      action: todo.status === 'COMPLETED' ? 'completed' : 'updated',
       title: todo.title,
       description: null,
-      timestamp: todo.updatedAt,
-      metadata: { completed: todo.completed }
+      timestamp: todo.updatedAt.toISOString(),
+      metadata: { completed: todo.status === 'COMPLETED' }
     });
   });
   
@@ -359,11 +361,11 @@ dashboard.get('/activity', async (c) => {
     activities.push({
       id: `goal-${goal.id}`,
       type: 'goal',
-      action: goal.status === 'completed' ? 'completed' : 'updated',
+      action: goal.status === 'COMPLETED' ? 'completed' : 'updated',
       title: goal.title,
       description: goal.description,
-      timestamp: goal.updatedAt,
-      metadata: { status: goal.status, progress: goal.progress }
+      timestamp: goal.updatedAt.toISOString(),
+      metadata: { status: goal.status, progress: goal.targetValue && goal.currentValue ? Math.round((goal.currentValue / goal.targetValue) * 100) : 0 }
     });
   });
   
@@ -382,7 +384,7 @@ dashboard.get('/activity', async (c) => {
       action: 'created',
       title: moment.content.substring(0, 50) + (moment.content.length > 50 ? '...' : ''),
       description: null,
-      timestamp: moment.createdAt,
+      timestamp: moment.createdAt.toISOString(),
       metadata: { tags: moment.tags ? moment.tags.split(',').filter(t => t.trim()) : [] }
     });
   });

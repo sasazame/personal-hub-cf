@@ -16,6 +16,11 @@ function hasContent(item: RecentItemType): item is DashboardStats['moments']['re
   return 'content' in item;
 }
 
+// Type guard to check if item has title property
+function hasTitle(item: RecentItemType): item is Exclude<RecentItemType, DashboardStats['moments']['recentItems'][0]> {
+  return 'title' in item;
+}
+
 // Type guard to check which date property exists
 function getItemDate(item: RecentItemType): string {
   if ('createdAt' in item && item.createdAt) return item.createdAt;
@@ -38,12 +43,12 @@ function StatCard({ title, value, subtitle }: { title: string; value: number; su
   );
 }
 
-function RecentItem({ item, type }: { item: RecentItemType; type: string }) {
+function RecentItem({ item }: { item: RecentItemType }) {
   return (
     <div className="flex items-center justify-between py-2">
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">
-          {hasContent(item) ? item.content : (item as any).title}
+          {hasContent(item) ? item.content : hasTitle(item) ? item.title : ''}
         </p>
         {'tags' in item && item.tags && item.tags.length > 0 && (
           <div className="flex gap-1 mt-1">
@@ -229,7 +234,7 @@ export function Dashboard() {
             <CardContent>
               <div className="space-y-2">
                 {stats.events.recentItems.map(event => (
-                  <RecentItem key={event.id} item={event} type="event" />
+                  <RecentItem key={event.id} item={event} />
                 ))}
               </div>
             </CardContent>
@@ -245,7 +250,7 @@ export function Dashboard() {
             <CardContent>
               <div className="space-y-2">
                 {stats.notes.recentItems.map(note => (
-                  <RecentItem key={note.id} item={note} type="note" />
+                  <RecentItem key={note.id} item={note} />
                 ))}
               </div>
             </CardContent>
@@ -261,7 +266,7 @@ export function Dashboard() {
             <CardContent>
               <div className="space-y-2">
                 {stats.moments.recentItems.map(moment => (
-                  <RecentItem key={moment.id} item={moment} type="moment" />
+                  <RecentItem key={moment.id} item={moment} />
                 ))}
               </div>
             </CardContent>
