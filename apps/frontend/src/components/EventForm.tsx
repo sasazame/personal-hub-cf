@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createEventSchema, type CreateEventRequest } from '@personal-hub/shared';
+import { createEventSchema } from '@personal-hub/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { eventsApi } from '../lib/api/events';
 import { Button } from './ui/button';
@@ -9,6 +9,17 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Checkbox } from './ui/checkbox';
+
+type EventFormData = {
+  title: string;
+  description: string | null;
+  startDateTime: string;
+  endDateTime: string;
+  location: string | null;
+  allDay: boolean;
+  reminderMinutes: number | null;
+  color: string | null;
+};
 
 export function EventForm({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient();
@@ -20,7 +31,7 @@ export function EventForm({ onClose }: { onClose: () => void }) {
     watch,
     setValue,
     formState: { errors },
-  } = useForm<CreateEventRequest>({
+  } = useForm<EventFormData>({
     resolver: zodResolver(createEventSchema),
     defaultValues: {
       allDay: false,
@@ -37,7 +48,7 @@ export function EventForm({ onClose }: { onClose: () => void }) {
     },
   });
 
-  const onSubmit = async (data: CreateEventRequest) => {
+  const onSubmit = async (data: EventFormData) => {
     setIsSubmitting(true);
     try {
       // Convert datetime-local or date input to ISO string

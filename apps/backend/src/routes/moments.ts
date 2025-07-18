@@ -8,14 +8,14 @@ import {
   type MomentResponse,
 } from '@personal-hub/shared';
 import { zValidator } from '@hono/zod-validator';
-import { verifyAuth } from '../lib/auth';
 import { eq, desc, and, like, sql } from 'drizzle-orm';
-import type { HonoEnv } from '../types';
+import type { AuthEnv } from '../types';
+import { requireAuth } from '../middleware/auth';
 
-const app = new Hono<HonoEnv>();
+const app = new Hono<AuthEnv>();
 
 // List moments
-app.get('/', zValidator('query', momentQuerySchema), verifyAuth, async (c) => {
+app.get('/', requireAuth, zValidator('query', momentQuerySchema), async (c) => {
   const user = c.get('user');
   const { limit, offset, tag, search } = c.req.valid('query');
 
@@ -55,8 +55,8 @@ app.get('/', zValidator('query', momentQuerySchema), verifyAuth, async (c) => {
     userId: moment.userId,
     content: moment.content,
     tags: moment.tags ? JSON.parse(moment.tags) : [],
-    createdAt: new Date(moment.createdAt),
-    updatedAt: new Date(moment.updatedAt),
+    createdAt: moment.createdAt.toISOString(),
+    updatedAt: moment.updatedAt.toISOString(),
   }));
 
   return c.json({
@@ -68,7 +68,7 @@ app.get('/', zValidator('query', momentQuerySchema), verifyAuth, async (c) => {
 });
 
 // Get single moment
-app.get('/:id', verifyAuth, async (c) => {
+app.get('/:id', requireAuth, async (c) => {
   const user = c.get('user');
   const id = c.req.param('id');
 
@@ -88,15 +88,15 @@ app.get('/:id', verifyAuth, async (c) => {
     userId: result[0].userId,
     content: result[0].content,
     tags: result[0].tags ? JSON.parse(result[0].tags) : [],
-    createdAt: new Date(result[0].createdAt),
-    updatedAt: new Date(result[0].updatedAt),
+    createdAt: result[0].createdAt.toISOString(),
+    updatedAt: result[0].updatedAt.toISOString(),
   };
 
   return c.json(moment);
 });
 
 // Create moment
-app.post('/', zValidator('json', createMomentSchema), verifyAuth, async (c) => {
+app.post('/', requireAuth, zValidator('json', createMomentSchema), async (c) => {
   const user = c.get('user');
   const data = c.req.valid('json');
 
@@ -117,15 +117,15 @@ app.post('/', zValidator('json', createMomentSchema), verifyAuth, async (c) => {
     userId: newMoment.userId,
     content: newMoment.content,
     tags: data.tags || [],
-    createdAt: newMoment.createdAt,
-    updatedAt: newMoment.updatedAt,
+    createdAt: newMoment.createdAt.toISOString(),
+    updatedAt: newMoment.updatedAt.toISOString(),
   };
 
   return c.json(response, 201);
 });
 
 // Update moment
-app.patch('/:id', zValidator('json', updateMomentSchema), verifyAuth, async (c) => {
+app.patch('/:id', requireAuth, zValidator('json', updateMomentSchema), async (c) => {
   const user = c.get('user');
   const id = c.req.param('id');
   const data = c.req.valid('json');
@@ -168,15 +168,15 @@ app.patch('/:id', zValidator('json', updateMomentSchema), verifyAuth, async (c) 
     userId: updatedMoment[0].userId,
     content: updatedMoment[0].content,
     tags: updatedMoment[0].tags ? JSON.parse(updatedMoment[0].tags) : [],
-    createdAt: new Date(updatedMoment[0].createdAt).toISOString(),
-    updatedAt: new Date(updatedMoment[0].updatedAt).toISOString(),
+    createdAt: updatedMoment[0].createdAt.toISOString(),
+    updatedAt: updatedMoment[0].updatedAt.toISOString(),
   };
 
   return c.json(response);
 });
 
 // Delete moment
-app.delete('/:id', verifyAuth, async (c) => {
+app.delete('/:id', requireAuth, async (c) => {
   const user = c.get('user');
   const id = c.req.param('id');
 
