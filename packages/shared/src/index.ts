@@ -105,5 +105,17 @@ export {
   requestToNewSession
 } from './api/pomodoro';
 
+// Export dashboard types
+export {
+  dashboardStatsSchema,
+  activityItemSchema,
+  dashboardActivitySchema,
+  dashboardQuerySchema,
+  type DashboardStats,
+  type ActivityItem,
+  type DashboardActivity,
+  type DashboardQuery
+} from './api/dashboard';
+
 // Export database schema - but rename conflicting types
 export * from './db/schema';

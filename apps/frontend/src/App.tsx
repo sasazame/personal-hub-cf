@@ -10,6 +10,7 @@ import { NoteList } from './components/NoteList';
 import { MomentList } from './components/MomentList';
 import { PomodoroTimer } from './components/PomodoroTimer';
 import { PomodoroStats } from './components/PomodoroStats';
+import { Dashboard } from './components/Dashboard';
 import { Button } from '@personal-hub/ui';
 import './App.css';
 
@@ -23,10 +24,12 @@ const queryClient = new QueryClient({
 
 function AuthenticatedApp() {
   const { logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'todos' | 'goals' | 'events' | 'notes' | 'moments' | 'pomodoro'>('todos');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'todos' | 'goals' | 'events' | 'notes' | 'moments' | 'pomodoro'>('dashboard');
 
   const renderTabContent = () => {
     switch (activeTab) {
+      case 'dashboard':
+        return <Dashboard />;
       case 'todos':
         return <TodoList />;
       case 'goals':
@@ -45,7 +48,7 @@ function AuthenticatedApp() {
           </div>
         );
       default:
-        return <TodoList />;
+        return <Dashboard />;
     }
   };
 
@@ -60,6 +63,16 @@ function AuthenticatedApp() {
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6 border-b">
           <nav className="flex gap-4">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`pb-2 px-1 font-medium transition-colors ${
+                activeTab === 'dashboard'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Dashboard
+            </button>
             <button
               onClick={() => setActiveTab('todos')}
               className={`pb-2 px-1 font-medium transition-colors ${
