@@ -5,6 +5,7 @@ import { todoRouter } from './routes/todos';
 import { goalRouter } from './routes/goals';
 import eventsRouter from './routes/events';
 import notesRouter from './routes/notes';
+import { momentsRouter } from './routes/moments';
 import type { D1Database } from '@cloudflare/workers-types';
 
 type Env = {
@@ -42,5 +43,8 @@ app.route('/api/events', eventsRouter);
 
 // Mount notes routes
 app.route('/api/notes', notesRouter);
+
+// Mount moments routes
+app.route('/api/moments', momentsRouter);
 
 export default app;
