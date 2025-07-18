@@ -13,12 +13,10 @@ import { enUS } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import { useEvents } from '@/lib/api/events';
-import { EventResponse } from '@personal-hub-cf/shared';
-import { Button } from '@personal-hub-cf/ui/src/button';
+import { EventResponse } from '@personal-hub/shared';
+import { Button } from '@personal-hub/ui';
 import { CalendarDays, CalendarRange, Bell } from 'lucide-react';
 import { EventForm } from './EventForm';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@personal-hub-cf/ui/src/alert-dialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@personal-hub-cf/ui/src/dialog';
 import { useDeleteEventMutation, useUpdateEventMutation } from '@/lib/api/events';
 import { parseISO } from 'date-fns';
 
