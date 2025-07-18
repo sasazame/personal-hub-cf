@@ -8,6 +8,8 @@ import { GoalList } from './components/GoalList';
 import { EventList } from './components/EventList';
 import { NoteList } from './components/NoteList';
 import { MomentList } from './components/MomentList';
+import { PomodoroTimer } from './components/PomodoroTimer';
+import { PomodoroStats } from './components/PomodoroStats';
 import { Button } from '@personal-hub/ui';
 import './App.css';
 
@@ -21,7 +23,7 @@ const queryClient = new QueryClient({
 
 function AuthenticatedApp() {
   const { logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'todos' | 'goals' | 'events' | 'notes' | 'moments'>('todos');
+  const [activeTab, setActiveTab] = useState<'todos' | 'goals' | 'events' | 'notes' | 'moments' | 'pomodoro'>('todos');
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -35,6 +37,13 @@ function AuthenticatedApp() {
         return <NoteList />;
       case 'moments':
         return <MomentList />;
+      case 'pomodoro':
+        return (
+          <div className="space-y-6">
+            <PomodoroTimer />
+            <PomodoroStats />
+          </div>
+        );
       default:
         return <TodoList />;
     }
@@ -100,6 +109,16 @@ function AuthenticatedApp() {
               }`}
             >
               Moments
+            </button>
+            <button
+              onClick={() => setActiveTab('pomodoro')}
+              className={`pb-2 px-1 font-medium transition-colors ${
+                activeTab === 'pomodoro'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Pomodoro
             </button>
           </nav>
         </div>

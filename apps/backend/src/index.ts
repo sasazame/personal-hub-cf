@@ -6,6 +6,7 @@ import { goalRouter } from './routes/goals';
 import eventsRouter from './routes/events';
 import notesRouter from './routes/notes';
 import { momentsRouter } from './routes/moments';
+import pomodoroRouter from './routes/pomodoro';
 import type { D1Database } from '@cloudflare/workers-types';
 
 type Env = {
@@ -46,5 +47,8 @@ app.route('/api/notes', notesRouter);
 
 // Mount moments routes
 app.route('/api/moments', momentsRouter);
+
+// Mount pomodoro routes
+app.route('/api/pomodoro', pomodoroRouter);
 
 export default app;

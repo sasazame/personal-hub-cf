@@ -14,7 +14,7 @@ export function MomentList() {
   const [searchInput, setSearchInput] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | undefined>();
 
-  const { data, isLoading, error, isError } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['moments', query],
     queryFn: () => momentsApi.list(query),
   });

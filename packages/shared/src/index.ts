@@ -81,5 +81,29 @@ export {
   type MomentResponse
 } from './api/moments';
 
+// Export pomodoro types
+export {
+  sessionTypeSchema,
+  createSessionSchema,
+  updateSessionSchema,
+  sessionResponseSchema,
+  listSessionsQuerySchema,
+  configResponseSchema,
+  updateConfigSchema,
+  sessionStatsResponseSchema,
+  type SessionType,
+  type CreateSessionRequest,
+  type UpdateSessionRequest,
+  type ListSessionsQuery,
+  type SessionResponse,
+  type ConfigResponse,
+  type UpdateConfigRequest,
+  type SessionStatsResponse,
+  type SessionsListResponse,
+  sessionToResponse,
+  configToResponse,
+  requestToNewSession
+} from './api/pomodoro';
+
 // Export database schema - but rename conflicting types
 export * from './db/schema';
