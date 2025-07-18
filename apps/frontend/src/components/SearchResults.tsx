@@ -1,8 +1,8 @@
-import React from 'react';
 import { Card, CardContent } from '@personal-hub/ui';
 import { Calendar, CheckCircle2, Target, FileText, Zap, Loader2 } from 'lucide-react';
 import type { SearchResultItem } from '@personal-hub/shared';
 import { formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 interface SearchResultsProps {
   results: SearchResultItem[];
@@ -20,6 +20,8 @@ const typeConfig = {
 };
 
 export function SearchResults({ results, isLoading, query, total }: SearchResultsProps) {
+  const navigate = useNavigate();
+  
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -35,6 +37,10 @@ export function SearchResults({ results, isLoading, query, total }: SearchResult
       </div>
     );
   }
+  
+  const handleResultClick = (result: SearchResultItem) => {
+    navigate(result.url);
+  };
   
   return (
     <div className="space-y-4">
@@ -52,6 +58,7 @@ export function SearchResults({ results, isLoading, query, total }: SearchResult
           <div 
             key={`${result.type}-${result.id}`} 
             className="block cursor-pointer"
+            onClick={() => handleResultClick(result)}
           >
             <Card className="transition-colors hover:bg-accent">
               <CardContent className="pt-6">

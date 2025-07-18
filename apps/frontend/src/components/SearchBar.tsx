@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import { Input } from '@personal-hub/ui';
 import { Button } from '@personal-hub/ui';

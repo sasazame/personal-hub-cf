@@ -1,15 +1,18 @@
 import { z } from 'zod';
 
+export const entityTypes = ['todos', 'goals', 'events', 'notes', 'moments'] as const;
+export type EntityType = typeof entityTypes[number];
+
 export const searchRequestSchema = z.object({
   query: z.string().min(1),
-  types: z.array(z.enum(['todos', 'goals', 'events', 'notes', 'moments'])).optional(),
+  types: z.array(z.enum(entityTypes)).optional(),
   limit: z.number().min(1).max(100).default(20),
   offset: z.number().min(0).default(0),
 });
 
 export const searchResultItemSchema = z.object({
   id: z.string(),
-  type: z.enum(['todos', 'goals', 'events', 'notes', 'moments']),
+  type: z.enum(entityTypes),
   title: z.string(),
   content: z.string().optional(),
   status: z.string().optional(),

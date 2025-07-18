@@ -14,7 +14,7 @@ export function PomodoroTimer() {
   const [isRunning, setIsRunning] = useState(false);
   const [sessionType, setSessionType] = useState<SessionType>('WORK');
   const [sessionCount, setSessionCount] = useState(0);
-  const intervalRef = useRef<ReturnType<typeof window.setInterval> | null>(null);
+  const intervalRef = useRef<number | null>(null);
   // eslint-disable-next-line no-undef
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -34,7 +34,7 @@ export function PomodoroTimer() {
       try {
         const response = await pomodoroApi.getActiveSession();
         return response.data;
-      } catch (error) {
+      } catch (error: any) {
         if (error.response?.status === 404) {
           return null;
         }
@@ -112,32 +112,6 @@ export function PomodoroTimer() {
     }
   }, [activeSession]);
 
-  // Timer countdown
-  useEffect(() => {
-    if (isRunning && timeLeft > 0) {
-      intervalRef.current = window.setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            handleTimerComplete();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (intervalRef.current) {
-        window.clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        window.clearInterval(intervalRef.current);
-      }
-    };
-  }, [isRunning, timeLeft, handleTimerComplete]);
-
   const handleTimerComplete = useCallback(async () => {
     setIsRunning(false);
     
@@ -172,22 +146,52 @@ export function PomodoroTimer() {
           nextType = 'SHORT_BREAK';
         }
         
+        // Create new session automatically if autoStartBreaks is enabled
         if (config.autoStartBreaks) {
           setSessionType(nextType);
           setTimeLeft(getDuration(nextType));
-          startNewSession(nextType);
+          await startNewSession(nextType);
         }
       } else {
+        // After break, go back to work
         nextType = 'WORK';
+        setSessionType(nextType);
+        setTimeLeft(getDuration(nextType));
         
         if (config.autoStartPomodoros) {
-          setSessionType(nextType);
-          setTimeLeft(getDuration(nextType));
-          startNewSession(nextType);
+          await startNewSession(nextType);
         }
       }
     }
-  }, [activeSession, config, sessionCount, sessionType, updateSession, getDuration, startNewSession]);
+
+    queryClient.invalidateQueries({ queryKey: ['pomodoro-stats'] });
+  }, [activeSession, config, updateSession, queryClient, sessionType, sessionCount, getDuration, startNewSession]);
+
+  // Timer countdown
+  useEffect(() => {
+    if (isRunning && timeLeft > 0) {
+      intervalRef.current = window.setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            handleTimerComplete();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current);
+      }
+    };
+  }, [isRunning, timeLeft, handleTimerComplete]);
 
   const handleStart = useCallback(async (type?: SessionType) => {
     const currentType = type || sessionType;

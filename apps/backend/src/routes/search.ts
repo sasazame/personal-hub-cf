@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { requireAuth } from '../middleware/auth';
-import { searchRequestSchema, type SearchResultItem, type SearchResponse } from '@personal-hub/shared';
+import { searchRequestSchema, entityTypes, type SearchResultItem, type SearchResponse } from '@personal-hub/shared';
 import { todos, goals, events, notes, moments } from '@personal-hub/shared';
 import { eq, and, or, like } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
@@ -16,14 +16,29 @@ app.get('/', requireAuth, zValidator('query', searchRequestSchema), async (c) =>
     const query = c.req.valid('query');
     const searchTerm = `%${query.query}%`;
     
-    const typesToSearch = query.types || ['todos', 'goals', 'events', 'notes', 'moments'];
+    const typesToSearch = query.types || [...entityTypes];
     const results: SearchResultItem[] = [];
     
-    const limit = query.limit;
-    const offset = query.offset;
+    // We'll need to get the total count separately
+    let totalCount = 0;
     
     // Search todos
     if (typesToSearch.includes('todos')) {
+      // Get total count
+      const todoCount = await db
+        .select({ count: todos.id })
+        .from(todos)
+        .where(
+          and(
+            eq(todos.userId, user.id),
+            or(
+              like(todos.title, searchTerm),
+              like(todos.description, searchTerm)
+            )
+          )
+        );
+      totalCount += todoCount.length;
+      
       const todoResults = await db
         .select()
         .from(todos)
@@ -35,9 +50,7 @@ app.get('/', requireAuth, zValidator('query', searchRequestSchema), async (c) =>
               like(todos.description, searchTerm)
             )
           )
-        )
-        .limit(limit)
-        .offset(offset);
+        );
       
       for (const todo of todoResults) {
         results.push({
@@ -57,6 +70,21 @@ app.get('/', requireAuth, zValidator('query', searchRequestSchema), async (c) =>
     
     // Search goals
     if (typesToSearch.includes('goals')) {
+      // Get total count
+      const goalCount = await db
+        .select({ count: goals.id })
+        .from(goals)
+        .where(
+          and(
+            eq(goals.userId, user.id),
+            or(
+              like(goals.title, searchTerm),
+              like(goals.description, searchTerm)
+            )
+          )
+        );
+      totalCount += goalCount.length;
+      
       const goalResults = await db
         .select()
         .from(goals)
@@ -68,9 +96,7 @@ app.get('/', requireAuth, zValidator('query', searchRequestSchema), async (c) =>
               like(goals.description, searchTerm)
             )
           )
-        )
-        .limit(limit)
-        .offset(offset);
+        );
       
       for (const goal of goalResults) {
         results.push({
@@ -88,6 +114,22 @@ app.get('/', requireAuth, zValidator('query', searchRequestSchema), async (c) =>
     
     // Search events
     if (typesToSearch.includes('events')) {
+      // Get total count
+      const eventCount = await db
+        .select({ count: events.id })
+        .from(events)
+        .where(
+          and(
+            eq(events.userId, user.id),
+            or(
+              like(events.title, searchTerm),
+              like(events.description, searchTerm),
+              like(events.location, searchTerm)
+            )
+          )
+        );
+      totalCount += eventCount.length;
+      
       const eventResults = await db
         .select()
         .from(events)
@@ -100,9 +142,7 @@ app.get('/', requireAuth, zValidator('query', searchRequestSchema), async (c) =>
               like(events.location, searchTerm)
             )
           )
-        )
-        .limit(limit)
-        .offset(offset);
+        );
       
       for (const event of eventResults) {
         results.push({
@@ -120,6 +160,21 @@ app.get('/', requireAuth, zValidator('query', searchRequestSchema), async (c) =>
     
     // Search notes
     if (typesToSearch.includes('notes')) {
+      // Get total count
+      const noteCount = await db
+        .select({ count: notes.id })
+        .from(notes)
+        .where(
+          and(
+            eq(notes.userId, user.id),
+            or(
+              like(notes.title, searchTerm),
+              like(notes.content, searchTerm)
+            )
+          )
+        );
+      totalCount += noteCount.length;
+      
       const noteResults = await db
         .select()
         .from(notes)
@@ -131,9 +186,7 @@ app.get('/', requireAuth, zValidator('query', searchRequestSchema), async (c) =>
               like(notes.content, searchTerm)
             )
           )
-        )
-        .limit(limit)
-        .offset(offset);
+        );
       
       for (const note of noteResults) {
         const noteTags = note.tags ? (typeof note.tags === 'string' ? JSON.parse(note.tags) : note.tags) : undefined;
@@ -152,6 +205,18 @@ app.get('/', requireAuth, zValidator('query', searchRequestSchema), async (c) =>
     
     // Search moments
     if (typesToSearch.includes('moments')) {
+      // Get total count
+      const momentCount = await db
+        .select({ count: moments.id })
+        .from(moments)
+        .where(
+          and(
+            eq(moments.userId, user.id),
+            like(moments.content, searchTerm)
+          )
+        );
+      totalCount += momentCount.length;
+      
       const momentResults = await db
         .select()
         .from(moments)
@@ -160,9 +225,7 @@ app.get('/', requireAuth, zValidator('query', searchRequestSchema), async (c) =>
             eq(moments.userId, user.id),
             like(moments.content, searchTerm)
           )
-        )
-        .limit(limit)
-        .offset(offset);
+        );
       
       for (const moment of momentResults) {
         const momentTags = moment.tags ? (typeof moment.tags === 'string' ? JSON.parse(moment.tags) : moment.tags) : undefined;
@@ -183,13 +246,13 @@ app.get('/', requireAuth, zValidator('query', searchRequestSchema), async (c) =>
     results.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     
     // Apply pagination to the combined results
-    const paginatedResults = results.slice(0, limit);
+    const paginatedResults = results.slice(query.offset, query.offset + query.limit);
     
     const response: SearchResponse = {
       results: paginatedResults,
-      total: results.length,
-      limit,
-      offset,
+      total: totalCount,
+      limit: query.limit,
+      offset: query.offset,
       query: query.query,
       types: typesToSearch,
     };

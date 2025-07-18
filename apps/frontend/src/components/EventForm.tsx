@@ -4,11 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createEventSchema, type EventResponse, type UpdateEventRequest } from '@personal-hub/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { eventsApi } from '../lib/api/events';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
-import { Checkbox } from './ui/checkbox';
+import { Button, Input, Label, Textarea, Checkbox } from '@personal-hub/ui';
 
 type EventFormData = {
   title: string;
@@ -16,7 +12,7 @@ type EventFormData = {
   startDateTime: string;
   endDateTime: string;
   location: string | null;
-  allDay: boolean;
+  allDay?: boolean;
   reminderMinutes: number | null;
   color: string | null;
 };
@@ -89,10 +85,15 @@ export function EventForm({ event, defaultValues, onClose, onDelete }: EventForm
         data.endDateTime = new Date(data.endDateTime).toISOString();
       }
       
+      const eventData = {
+        ...data,
+        allDay: data.allDay ?? false
+      };
+      
       if (event) {
-        await updateEventMutation.mutateAsync({ id: event.id, data });
+        await updateEventMutation.mutateAsync({ id: event.id, data: eventData });
       } else {
-        await createEventMutation.mutateAsync(data);
+        await createEventMutation.mutateAsync(eventData);
       }
     } catch (error) {
       console.error(event ? 'Failed to update event:' : 'Failed to create event:', error);

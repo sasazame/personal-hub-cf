@@ -122,9 +122,11 @@ export {
   searchRequestSchema,
   searchResultItemSchema,
   searchResponseSchema,
+  entityTypes,
   type SearchRequest,
   type SearchResultItem,
-  type SearchResponse
+  type SearchResponse,
+  type EntityType
 } from './api/search';
 
 // Export database schema - but rename conflicting types

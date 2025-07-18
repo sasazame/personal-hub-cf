@@ -70,7 +70,7 @@ function RecentItem({ item }: { item: RecentItemType }) {
 export function Dashboard() {
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ['dashboard', 'stats'],
-    queryFn: () => dashboardApi.getStats({ recentItemsLimit: 5 }),
+    queryFn: () => dashboardApi.getStats({ recentItemsLimit: 5, activityLimit: 10 }),
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
