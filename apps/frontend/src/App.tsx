@@ -13,6 +13,8 @@ import { PomodoroTimer } from './components/PomodoroTimer';
 import { PomodoroStats } from './components/PomodoroStats';
 import { Dashboard } from './components/Dashboard';
 import { SearchPage } from './components/SearchPage';
+import { ExportDialog } from './components/ExportDialog';
+import { Toaster } from './components/ui/toast';
 import { Button } from '@personal-hub/ui';
 import { Search } from 'lucide-react';
 import './App.css';
@@ -75,6 +77,7 @@ function AuthenticatedApp() {
             >
               <Search className="h-4 w-4" />
             </Button>
+            <ExportDialog />
             <Button onClick={logout} variant="outline">Logout</Button>
           </div>
         </div>
@@ -166,6 +169,7 @@ function AuthenticatedApp() {
         </div>
         {renderTabContent()}
       </main>
+      <Toaster />
     </div>
   );
 }
