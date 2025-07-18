@@ -232,7 +232,9 @@ app.get('/sessions/active', async (c) => {
     .from(pomodoroSessions)
     .where(and(
       eq(pomodoroSessions.userId, user.id),
-      eq(pomodoroSessions.completed, false)
+      eq(pomodoroSessions.completed, false),
+      // Only consider sessions started within the last 24 hours
+      gte(pomodoroSessions.startTime, new Date(Date.now() - 24 * 60 * 60 * 1000))
     ))
     .orderBy(desc(pomodoroSessions.startTime))
     .limit(1);

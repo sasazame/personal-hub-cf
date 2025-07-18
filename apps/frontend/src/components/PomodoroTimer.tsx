@@ -84,6 +84,16 @@ export function PomodoroTimer() {
     }
   }, [config, sessionType, activeSession, getDuration]);
 
+  // Helper function to start a new session
+  const startNewSession = useCallback(async (type: SessionType) => {
+    const duration = getDuration(type);
+    await createSession.mutate({
+      sessionType: type,
+      duration,
+    });
+    setIsRunning(true);
+  }, [getDuration, createSession]);
+
   // Handle active session
   useEffect(() => {
     if (activeSession) {
@@ -126,7 +136,7 @@ export function PomodoroTimer() {
         window.clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning, timeLeft]);
+  }, [isRunning, timeLeft, handleTimerComplete]);
 
   const handleTimerComplete = useCallback(async () => {
     setIsRunning(false);
@@ -165,7 +175,7 @@ export function PomodoroTimer() {
         if (config.autoStartBreaks) {
           setSessionType(nextType);
           setTimeLeft(getDuration(nextType));
-          handleStart(nextType);
+          startNewSession(nextType);
         }
       } else {
         nextType = 'WORK';
@@ -173,24 +183,16 @@ export function PomodoroTimer() {
         if (config.autoStartPomodoros) {
           setSessionType(nextType);
           setTimeLeft(getDuration(nextType));
-          handleStart(nextType);
+          startNewSession(nextType);
         }
       }
     }
-  }, [activeSession, config, sessionCount, sessionType, updateSession, getDuration]);
+  }, [activeSession, config, sessionCount, sessionType, updateSession, getDuration, startNewSession]);
 
   const handleStart = useCallback(async (type?: SessionType) => {
     const currentType = type || sessionType;
-    const duration = getDuration(currentType);
-    
-    // Create new session
-    await createSession.mutate({
-      sessionType: currentType,
-      duration,
-    });
-    
-    setIsRunning(true);
-  }, [sessionType, getDuration, createSession]);
+    await startNewSession(currentType);
+  }, [sessionType, startNewSession]);
 
   const handlePause = useCallback(async () => {
     setIsRunning(false);

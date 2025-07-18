@@ -10,6 +10,17 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Checkbox } from './ui/checkbox';
 
+type EventFormData = {
+  title: string;
+  description: string | null;
+  startDateTime: string;
+  endDateTime: string;
+  location: string | null;
+  allDay: boolean;
+  reminderMinutes: number | null;
+  color: string | null;
+};
+
 export function EventForm({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,7 +31,7 @@ export function EventForm({ onClose }: { onClose: () => void }) {
     watch,
     setValue,
     formState: { errors },
-  } = useForm({
+  } = useForm<EventFormData>({
     resolver: zodResolver(createEventSchema),
     defaultValues: {
       allDay: false,
@@ -37,34 +48,23 @@ export function EventForm({ onClose }: { onClose: () => void }) {
     },
   });
 
-  const onSubmit = async (data: unknown) => {
+  const onSubmit = async (data: EventFormData) => {
     setIsSubmitting(true);
     try {
-      const formData = data as {
-        title: string;
-        description: string | null;
-        startDateTime: string;
-        endDateTime: string;
-        location: string | null;
-        allDay: boolean;
-        reminderMinutes: number | null;
-        color: string | null;
-      };
-      
       // Convert datetime-local or date input to ISO string
-      if (formData.allDay) {
+      if (data.allDay) {
         // For all day events, set times to start and end of day
-        const startDate = new Date(formData.startDateTime + 'T00:00:00');
-        const endDate = new Date(formData.endDateTime + 'T23:59:59');
-        formData.startDateTime = startDate.toISOString();
-        formData.endDateTime = endDate.toISOString();
+        const startDate = new Date(data.startDateTime + 'T00:00:00');
+        const endDate = new Date(data.endDateTime + 'T23:59:59');
+        data.startDateTime = startDate.toISOString();
+        data.endDateTime = endDate.toISOString();
       } else {
         // For regular events, datetime-local gives us the right format
-        formData.startDateTime = new Date(formData.startDateTime).toISOString();
-        formData.endDateTime = new Date(formData.endDateTime).toISOString();
+        data.startDateTime = new Date(data.startDateTime).toISOString();
+        data.endDateTime = new Date(data.endDateTime).toISOString();
       }
       
-      await createEventMutation.mutateAsync(formData);
+      await createEventMutation.mutateAsync(data);
     } catch (error) {
       console.error('Failed to create event:', error);
     } finally {

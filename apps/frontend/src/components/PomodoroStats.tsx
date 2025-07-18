@@ -7,7 +7,7 @@ import type { SessionResponse, SessionType } from '@personal-hub/shared';
 
 export function PomodoroStats() {
   // Fetch stats
-  const { data: stats } = useQuery({
+  const { data: stats, isLoading: statsLoading, error: statsError } = useQuery({
     queryKey: ['pomodoro-stats'],
     queryFn: async () => {
       const response = await pomodoroApi.getStats(7);
@@ -16,7 +16,7 @@ export function PomodoroStats() {
   });
 
   // Fetch recent sessions
-  const { data: sessions } = useQuery({
+  const { data: sessions, isLoading: sessionsLoading, error: sessionsError } = useQuery({
     queryKey: ['pomodoro-sessions'],
     queryFn: async () => {
       const response = await pomodoroApi.getSessions({ limit: 10, offset: 0 });
@@ -55,6 +55,22 @@ export function PomodoroStats() {
         return 'text-purple-600';
     }
   };
+
+  if (statsLoading || sessionsLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <p className="text-muted-foreground">Loading statistics...</p>
+      </div>
+    );
+  }
+
+  if (statsError || sessionsError) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <p className="text-red-600">Failed to load statistics. Please try again.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

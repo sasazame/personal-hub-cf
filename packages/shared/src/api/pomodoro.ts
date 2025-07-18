@@ -91,6 +91,12 @@ export type SessionsListResponse = {
 };
 
 export function sessionToResponse(session: PomodoroSession): SessionResponse {
+  // Validate sessionType is a valid enum value
+  const parsedType = sessionTypeSchema.safeParse(session.sessionType);
+  if (!parsedType.success) {
+    throw new Error(`Invalid session type: ${session.sessionType}`);
+  }
+  
   return {
     id: session.id,
     userId: session.userId,
@@ -98,7 +104,7 @@ export function sessionToResponse(session: PomodoroSession): SessionResponse {
     startTime: session.startTime.toISOString(),
     endTime: session.endTime?.toISOString(),
     duration: session.duration,
-    sessionType: session.sessionType as SessionType,
+    sessionType: parsedType.data,
     completed: session.completed,
     createdAt: session.createdAt.toISOString(),
   };
