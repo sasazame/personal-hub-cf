@@ -95,7 +95,7 @@ export function EventForm({ event, defaultValues, onClose, onDelete }: EventForm
         await createEventMutation.mutateAsync(data);
       }
     } catch (error) {
-      console.error('Failed to create event:', error);
+      console.error(event ? 'Failed to update event:' : 'Failed to create event:', error);
     } finally {
       setIsSubmitting(false);
     }

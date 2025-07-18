@@ -15,7 +15,7 @@ import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import { useEvents } from '@/lib/api/events';
 import { EventResponse } from '@personal-hub-cf/shared';
 import { Button } from '@personal-hub-cf/ui/src/button';
-import { CalendarDays, CalendarRange } from 'lucide-react';
+import { CalendarDays, CalendarRange, Bell } from 'lucide-react';
 import { EventForm } from './EventForm';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@personal-hub-cf/ui/src/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@personal-hub-cf/ui/src/dialog';
@@ -54,11 +54,33 @@ export default function EventCalendar({ onViewChange }: EventCalendarProps) {
   const [showEventForm, setShowEventForm] = useState(false);
   const [newEventSlot, setNewEventSlot] = useState<SlotInfo | null>(null);
 
+  // Calculate date range based on current view
+  const dateRange = useMemo(() => {
+    const start = new Date(date);
+    const end = new Date(date);
+    
+    if (view === 'month') {
+      start.setDate(1);
+      end.setMonth(end.getMonth() + 1, 0);
+    } else if (view === 'week') {
+      const day = start.getDay();
+      start.setDate(start.getDate() - day);
+      end.setDate(end.getDate() + (6 - day));
+    }
+    // Add some buffer for events that span across boundaries
+    start.setDate(start.getDate() - 7);
+    end.setDate(end.getDate() + 7);
+    
+    return { start, end };
+  }, [date, view]);
+
   const { data: eventsData, isLoading } = useEvents({
     filter: 'all',
     search: '',
     page: 1,
-    limit: 1000, // Load all events for calendar view
+    limit: 1000,
+    startDate: dateRange.start.toISOString(),
+    endDate: dateRange.end.toISOString(),
   });
 
   const deleteEventMutation = useDeleteEventMutation();
@@ -100,6 +122,11 @@ export default function EventCalendar({ onViewChange }: EventCalendarProps) {
       updateEventMutation.mutate({
         id: event.id,
         data: updatedEvent,
+      }, {
+        onError: (error) => {
+          console.error('Failed to update event:', error);
+          // TODO: Add toast notification for user feedback
+        },
       });
     },
     [updateEventMutation]
@@ -134,7 +161,7 @@ export default function EventCalendar({ onViewChange }: EventCalendarProps) {
       <div className="flex items-center gap-1">
         <span className="truncate">{event.title}</span>
         {event.resource.reminderMinutes && (
-          <span className="text-xs">🔔</span>
+          <Bell className="h-3 w-3" aria-label="Reminder set" />
         )}
       </div>
     );
@@ -226,7 +253,7 @@ export default function EventCalendar({ onViewChange }: EventCalendarProps) {
         )}
       </div>
       
-      <div className="bg-white rounded-lg shadow p-4" style={{ height: 'calc(100vh - 200px)' }}>
+      <div className="bg-white rounded-lg shadow p-4 calendar-container">
         <DragAndDropCalendar
           localizer={localizer}
           events={events}

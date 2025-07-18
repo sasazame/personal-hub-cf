@@ -102,7 +102,7 @@ test.describe('Events Calendar View', () => {
     await authenticatedPage.click('button:has-text("New Event")');
     await authenticatedPage.fill('input[name="title"]', 'Edit Test Event');
     await authenticatedPage.click('button:has-text("Create Event")');
-    await authenticatedPage.waitForTimeout(1000);
+    await expect(authenticatedPage.locator('text="Create New Event"')).not.toBeVisible();
     
     // Go to calendar view
     await authenticatedPage.click('button:has-text("Calendar View")');
