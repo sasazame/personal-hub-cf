@@ -11,6 +11,19 @@ type RecentItemType =
   | DashboardStats['notes']['recentItems'][0]
   | DashboardStats['moments']['recentItems'][0];
 
+// Type guard to check if item has content property (moments)
+function hasContent(item: RecentItemType): item is DashboardStats['moments']['recentItems'][0] {
+  return 'content' in item;
+}
+
+// Type guard to check which date property exists
+function getItemDate(item: RecentItemType): string {
+  if ('createdAt' in item && item.createdAt) return item.createdAt;
+  if ('startDate' in item && item.startDate) return item.startDate;
+  if ('updatedAt' in item && item.updatedAt) return item.updatedAt;
+  return new Date().toISOString();
+}
+
 function StatCard({ title, value, subtitle }: { title: string; value: number; subtitle?: string }) {
   return (
     <Card>
@@ -30,9 +43,9 @@ function RecentItem({ item, type }: { item: RecentItemType; type: string }) {
     <div className="flex items-center justify-between py-2">
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">
-          {type === 'moment' ? item.content : item.title}
+          {hasContent(item) ? item.content : (item as any).title}
         </p>
-        {item.tags && item.tags.length > 0 && (
+        {'tags' in item && item.tags && item.tags.length > 0 && (
           <div className="flex gap-1 mt-1">
             {item.tags.slice(0, 3).map((tag: string, index: number) => (
               <span key={index} className="text-xs bg-secondary px-2 py-0.5 rounded">
@@ -43,7 +56,7 @@ function RecentItem({ item, type }: { item: RecentItemType; type: string }) {
         )}
       </div>
       <span className="text-xs text-muted-foreground ml-2">
-        {formatDistanceToNow(new Date(item.createdAt || item.startDate), { addSuffix: true })}
+        {formatDistanceToNow(new Date(getItemDate(item)), { addSuffix: true })}
       </span>
     </div>
   );
@@ -129,13 +142,20 @@ export function Dashboard() {
           value={stats.pomodoro.weekSessions} 
           subtitle={`${stats.pomodoro.weekMinutes} minutes`}
         />
-        {stats.pomodoro.activeSession && (
-          <StatCard 
-            title="Active Session" 
-            value={Math.floor(stats.pomodoro.activeSession.remainingSeconds / 60)} 
-            subtitle={`${stats.pomodoro.activeSession.type} - minutes left`}
-          />
-        )}
+        {stats.pomodoro.activeSession && (() => {
+          const remainingMinutes = Math.floor(stats.pomodoro.activeSession.remainingSeconds / 60);
+          const remainingSeconds = stats.pomodoro.activeSession.remainingSeconds % 60;
+          const displayValue = remainingMinutes > 0 ? remainingMinutes : remainingSeconds;
+          const displayUnit = remainingMinutes > 0 ? 'minutes' : 'seconds';
+          
+          return (
+            <StatCard 
+              title="Active Session" 
+              value={displayValue}
+              subtitle={`${stats.pomodoro.activeSession.type} - ${displayUnit} left`}
+            />
+          );
+        })()}
       </div>
 
       {/* Recent Items Grid */}

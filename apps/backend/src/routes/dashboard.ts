@@ -230,6 +230,11 @@ dashboard.get('/stats', async (c) => {
         type: activeSession.type,
         remainingSeconds
       };
+    } else {
+      // Mark expired session as completed
+      await db.update(pomodoroSessions)
+        .set({ completed: true })
+        .where(eq(pomodoroSessions.id, activeSession.id));
     }
   }
 
@@ -318,12 +323,16 @@ dashboard.get('/activity', async (c) => {
   // In a real implementation, you might want to have an activity log table
   const activities: ActivityItem[] = [];
   
+  // Calculate per-feature limit to ensure we meet the total activityLimit
+  const featureCount = 3; // todos, goals, moments
+  const perFeatureLimit = Math.ceil(activityLimit / featureCount);
+  
   // Get recent todos
   const recentTodos = await db.select()
     .from(todos)
     .where(eq(todos.userId, userId))
     .orderBy(desc(todos.updatedAt))
-    .limit(5)
+    .limit(perFeatureLimit)
     .all();
   
   recentTodos.forEach(todo => {
@@ -343,7 +352,7 @@ dashboard.get('/activity', async (c) => {
     .from(goals)
     .where(eq(goals.userId, userId))
     .orderBy(desc(goals.updatedAt))
-    .limit(5)
+    .limit(perFeatureLimit)
     .all();
   
   recentGoals.forEach(goal => {
@@ -363,7 +372,7 @@ dashboard.get('/activity', async (c) => {
     .from(moments)
     .where(eq(moments.userId, userId))
     .orderBy(desc(moments.createdAt))
-    .limit(5)
+    .limit(perFeatureLimit)
     .all();
   
   recentMoments.forEach(moment => {
