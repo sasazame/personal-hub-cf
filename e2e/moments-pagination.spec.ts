@@ -1,7 +1,8 @@
 import { test, expect } from './fixtures/base-test';
 
 test.describe('Moments Pagination', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, authenticatedPage }) => {
+    await authenticatedPage;
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     
@@ -16,6 +17,7 @@ test.describe('Moments Pagination', () => {
       await page.getByPlaceholder("What's on your mind?").fill(`Moment number ${i}`);
       await page.getByRole('button', { name: 'Capture Moment' }).click();
       await page.waitForLoadState('networkidle');
+      await expect(page.getByText(`Moment number ${i}`)).toBeVisible();
     }
 
     // Count initial visible moments
@@ -51,9 +53,9 @@ test.describe('Moments Pagination', () => {
     await page.getByRole('button', { name: 'Search' }).click();
     await page.waitForLoadState('networkidle');
 
-    // Should show only even moments (10 initially if limit is 20)
+    // Should show only even moments (12 total created)
     const evenMoments = await page.locator('text=/Even moment/').count();
-    expect(evenMoments).toBeLessThanOrEqual(12);
+    expect(evenMoments).toBe(12);
 
     // Load more if available
     const loadMoreButton = page.getByRole('button', { name: /Load More/ });

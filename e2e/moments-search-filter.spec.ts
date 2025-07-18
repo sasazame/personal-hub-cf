@@ -1,7 +1,8 @@
 import { test, expect } from './fixtures/base-test';
 
 test.describe('Moments Search and Filter', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, authenticatedPage }) => {
+    await authenticatedPage;
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     

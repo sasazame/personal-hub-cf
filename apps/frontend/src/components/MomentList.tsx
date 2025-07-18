@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -41,10 +41,12 @@ export function MomentList() {
   };
 
   // Extract all unique tags from moments
-  const allTags = data?.items.reduce((tags, moment) => {
-    moment.tags.forEach(tag => tags.add(tag));
-    return tags;
-  }, new Set<string>());
+  const allTags = useMemo(() => {
+    return data?.items.reduce((tags, moment) => {
+      moment.tags.forEach(tag => tags.add(tag));
+      return tags;
+    }, new Set<string>());
+  }, [data?.items]);
 
   return (
     <div className="space-y-6">
@@ -95,7 +97,7 @@ export function MomentList() {
       
       {isError && (
         <div className="text-center py-4 text-red-500">
-          Failed to load moments: {error?.message || 'Unknown error'}
+          Failed to load moments. Please try again later.
         </div>
       )}
 

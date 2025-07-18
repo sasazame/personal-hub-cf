@@ -1,7 +1,8 @@
 import { test, expect } from './fixtures/base-test';
 
 test.describe('Moments CRUD Operations', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, authenticatedPage }) => {
+    await authenticatedPage;
     await page.goto('/');
     await page.waitForLoadState('networkidle');
   });
@@ -43,6 +44,7 @@ test.describe('Moments CRUD Operations', () => {
 
     // Edit the moment
     await page.locator('button[aria-label="Edit"]').first().click();
+    await page.waitForSelector('textarea', { state: 'visible' });
     
     const updatedContent = 'Updated moment content with new thoughts';
     await page.getByRole('textbox').first().clear();
@@ -85,9 +87,6 @@ test.describe('Moments CRUD Operations', () => {
     // Navigate to Moments tab
     await page.getByRole('button', { name: 'Moments' }).click();
     await page.waitForLoadState('networkidle');
-
-    // Try to submit without content
-    await page.getByRole('button', { name: 'Capture Moment' }).click();
 
     // The button should be disabled when there's no content
     await expect(page.getByRole('button', { name: 'Capture Moment' })).toBeDisabled();

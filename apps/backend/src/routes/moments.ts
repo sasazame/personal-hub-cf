@@ -9,7 +9,7 @@ import {
 } from '@personal-hub/shared';
 import { zValidator } from '@hono/zod-validator';
 import { verifyAuth } from '../lib/auth';
-import { eq, desc, and, like, or, sql } from 'drizzle-orm';
+import { eq, desc, and, like, sql } from 'drizzle-orm';
 import type { HonoEnv } from '../types';
 
 const app = new Hono<HonoEnv>();
@@ -31,7 +31,9 @@ app.get('/', zValidator('query', momentQuerySchema), verifyAuth, async (c) => {
 
   // Add tag filter
   if (tag) {
-    conditions.push(like(moments.tags, `%"${tag}"%`));
+    // Escape special characters and ensure exact match
+    const escapedTag = tag.replace(/["%\\]/g, '\\$&');
+    conditions.push(like(moments.tags, `%"${escapedTag}"%`));
   }
 
   const [results, [{ count }]] = await Promise.all([
@@ -141,7 +143,7 @@ app.patch('/:id', zValidator('json', updateMomentSchema), verifyAuth, async (c) 
     return c.json({ error: 'Moment not found' }, 404);
   }
 
-  const updates: any = {
+  const updates: Partial<typeof moments.$inferInsert> = {
     updatedAt: new Date(),
   };
 
@@ -166,8 +168,8 @@ app.patch('/:id', zValidator('json', updateMomentSchema), verifyAuth, async (c) 
     userId: updatedMoment[0].userId,
     content: updatedMoment[0].content,
     tags: updatedMoment[0].tags ? JSON.parse(updatedMoment[0].tags) : [],
-    createdAt: new Date(updatedMoment[0].createdAt),
-    updatedAt: new Date(updatedMoment[0].updatedAt),
+    createdAt: new Date(updatedMoment[0].createdAt).toISOString(),
+    updatedAt: new Date(updatedMoment[0].updatedAt).toISOString(),
   };
 
   return c.json(response);

@@ -22,8 +22,8 @@ export const momentResponseSchema = z.object({
   userId: z.string(),
   content: z.string(),
   tags: z.array(z.string()),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
 });
 
 export type CreateMomentInput = z.infer<typeof createMomentSchema>;
