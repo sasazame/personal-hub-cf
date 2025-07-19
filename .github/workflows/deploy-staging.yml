@@ -35,14 +35,6 @@ jobs:
       - name: Build frontend
         run: pnpm build:frontend
 
-      - name: Debug - Check account ID length
-        run: |
-          echo "Account ID length: ${#CLOUDFLARE_ACCOUNT_ID}"
-          echo "First 4 chars of Account ID: ${CLOUDFLARE_ACCOUNT_ID:0:4}..."
-          echo "Expected length: 32"
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
       - name: Deploy Frontend Preview to Cloudflare Pages
         working-directory: apps/backend
         run: |
