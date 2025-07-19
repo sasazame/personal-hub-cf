@@ -44,7 +44,25 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Deploy Frontend Preview to Cloudflare Pages
-        run: npx wrangler pages deploy apps/frontend/dist --project-name=personal-hub-frontend
+        working-directory: apps/backend
+        run: |
+          set +e
+          for i in 1 2 3; do
+            echo "Deployment attempt $i"
+            pnpm exec wrangler pages deploy ../frontend/dist --project-name=personal-hub-frontend
+            if [ $? -eq 0 ]; then
+              echo "Deployment successful"
+              exit 0
+            else
+              if [ $i -lt 3 ]; then
+                echo "Deployment failed, retrying in 5 seconds..."
+                sleep 5
+              else
+                echo "All deployment attempts failed"
+                exit 1
+              fi
+            fi
+          done
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
