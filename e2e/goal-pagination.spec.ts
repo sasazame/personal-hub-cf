@@ -1,6 +1,13 @@
 import { test, expect } from './fixtures/base-test';
-import { GoalTypes } from '@personal-hub/shared';
 import { createGoals } from './helpers/goals';
+
+// Define the enum locally for E2E tests
+const GoalTypes = {
+  ANNUAL: 'ANNUAL',
+  MONTHLY: 'MONTHLY',
+  WEEKLY: 'WEEKLY',
+  DAILY: 'DAILY',
+} as const;
 
 test.describe('Goal Pagination', () => {
   test.beforeEach(async ({ authenticatedPage: page }) => {

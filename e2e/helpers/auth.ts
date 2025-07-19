@@ -50,3 +50,22 @@ export async function isAuthenticated(page: Page): Promise<boolean> {
   const logoutButton = await page.locator('button:has-text("Logout")').count();
   return logoutButton > 0;
 }
+
+export async function clearAllTodos(page: Page) {
+  // Navigate to todos tab
+  await page.click('button:has-text("Todos")');
+  
+  // Delete all todos
+  while (true) {
+    const deleteButtons = page.locator('[data-testid^="todo-delete-"]');
+    const count = await deleteButtons.count();
+    
+    if (count === 0) break;
+    
+    // Click the first delete button
+    await deleteButtons.first().click();
+    
+    // Wait for deletion to complete
+    await page.waitForTimeout(500);
+  }
+}

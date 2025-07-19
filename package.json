@@ -2,7 +2,6 @@
   "name": "personal-hub-cf",
   "version": "1.0.0",
   "description": "",
-  "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "pnpm --parallel --filter './apps/*' run dev",
@@ -28,6 +27,7 @@
     "@playwright/test": "^1.54.1",
     "@typescript-eslint/eslint-plugin": "^8.37.0",
     "@typescript-eslint/parser": "^8.37.0",
+    "date-fns": "^4.1.0",
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.5",
     "prettier": "^3.6.2",
