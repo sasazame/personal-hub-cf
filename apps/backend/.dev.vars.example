@@ -1,6 +1,8 @@
 # Authentication
 # Generate a secure random string for session encryption
 # You can use: openssl rand -base64 32
+# Note: Only values ending with _SECRET are actually secret
+# Client IDs are public-facing and safe to share
 SESSION_SECRET=your-session-secret-here
 
 # OAuth Providers (optional)
