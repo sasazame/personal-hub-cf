@@ -84,7 +84,7 @@ jobs:
         run: pnpm playwright install --with-deps chromium
 
       - name: Run E2E tests
-        run: pnpm test:e2e
+        run: pnpm playwright test --config=playwright.ci.config.ts
         env:
           CI: true
 

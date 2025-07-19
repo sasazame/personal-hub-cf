@@ -55,17 +55,42 @@ export async function clearAllTodos(page: Page) {
   // Navigate to todos tab
   await page.click('button:has-text("Todos")');
   
+  // Wait for todos tab to be active
+  await page.waitForSelector('[data-testid^="todo-delete-"]', { 
+    timeout: 5000, 
+    state: 'attached' 
+  }).catch(() => {
+    // No todos present, nothing to clear
+    return;
+  });
+  
   // Delete all todos
-  while (true) {
+  const maxAttempts = 50; // Prevent infinite loops
+  let attempts = 0;
+  
+  while (attempts < maxAttempts) {
     const deleteButtons = page.locator('[data-testid^="todo-delete-"]');
     const count = await deleteButtons.count();
     
     if (count === 0) break;
     
+    const initialCount = count;
     // Click the first delete button
     await deleteButtons.first().click();
     
-    // Wait for deletion to complete
-    await page.waitForTimeout(500);
+    // Wait for the todo to actually be removed from DOM
+    await page.waitForFunction(
+      (prevCount) => document.querySelectorAll('[data-testid^="todo-delete-"]').length < prevCount,
+      initialCount,
+      { timeout: 2000 }
+    ).catch(() => {
+      // If waitForFunction times out, continue anyway
+    });
+    
+    attempts++;
+  }
+  
+  if (attempts >= maxAttempts) {
+    throw new Error(`Failed to clear all todos after ${maxAttempts} attempts`);
   }
 }

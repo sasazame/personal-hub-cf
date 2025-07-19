@@ -1,19 +1,5 @@
 import { test, expect } from './fixtures/base-test';
-
-// Define the enums locally for E2E tests
-const GoalTypes = {
-  ANNUAL: 'ANNUAL',
-  MONTHLY: 'MONTHLY',
-  WEEKLY: 'WEEKLY',
-  DAILY: 'DAILY',
-} as const;
-
-const GoalStatuses = {
-  ACTIVE: 'ACTIVE',
-  PAUSED: 'PAUSED',
-  COMPLETED: 'COMPLETED',
-  ARCHIVED: 'ARCHIVED',
-} as const;
+import { GoalTypes, GoalStatuses } from './utils/enums';
 
 test.describe('Goal CRUD Operations', () => {
   test.beforeEach(async ({ authenticatedPage: page }) => {
