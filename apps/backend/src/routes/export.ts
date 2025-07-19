@@ -21,7 +21,7 @@ import {
 } from '@personal-hub/shared';
 import type { AuthEnv } from '../types';
 import { requireAuth } from '../middleware/auth';
-import { serializeTodos, type SerializedTodo } from '../helpers/todo-serializer';
+import { serializeTodos } from '../helpers/todo-serializer';
 import { serializeGoals } from '../helpers/goals-serializer';
 import { createExportMetadata, objectsToCSV, setDownloadHeaders } from '../helpers/export';
 

@@ -7,7 +7,12 @@ on:
   workflow_dispatch:
 
 jobs:
+  test:
+    name: Run Tests
+    uses: ./.github/workflows/ci.yml
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -28,22 +33,19 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
-      - name: Run tests
-        run: pnpm test
+      # Tests already run in CI workflow
 
       - name: Build frontend
         run: pnpm build:frontend
 
       - name: Deploy Frontend to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: personal-hub-frontend
-          directory: apps/frontend/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: apps/backend
+        run: pnpm exec wrangler pages deploy ../frontend/dist --project-name=personal-hub-frontend
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Deploy Backend to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3

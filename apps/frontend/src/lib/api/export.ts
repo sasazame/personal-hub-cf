@@ -17,6 +17,7 @@ interface ExportOptions {
   [key: string]: string | undefined;
 }
 
+// eslint-disable-next-line no-undef
 async function downloadFile(blob: Blob, filename: string) {
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');

@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures/base-test';
-import { GoalTypes } from '@personal-hub/shared';
 import { createGoals } from './helpers/goals';
+import { GoalTypes } from './utils/enums';
 
 test.describe('Goal Pagination', () => {
   test.beforeEach(async ({ authenticatedPage: page }) => {

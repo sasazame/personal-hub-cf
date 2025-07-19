@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/base-test';
-import { GoalTypes } from '@personal-hub/shared';
+import { GoalTypes } from './utils/enums';
 
 test.describe('Goal Progress Tracking', () => {
   test.beforeEach(async ({ authenticatedPage: page }) => {

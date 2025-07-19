@@ -15,7 +15,8 @@ export function PomodoroTimer() {
   const [isRunning, setIsRunning] = useState(false);
   const [sessionType, setSessionType] = useState<SessionType>('WORK');
   const [sessionCount, setSessionCount] = useState(0);
-  const intervalRef = useRef<ReturnType<typeof window.setInterval> | null>(null);
+  const intervalRef = useRef<number | null>(null);
+  // eslint-disable-next-line no-undef
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Query for config

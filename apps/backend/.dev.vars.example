@@ -1,0 +1,19 @@
+# Authentication
+# Generate a secure random string for session encryption
+# You can use: openssl rand -base64 32
+# Note: Only values ending with _SECRET are actually secret
+# Client IDs are public-facing and safe to share
+SESSION_SECRET=your-session-secret-here
+
+# OAuth Providers (optional)
+# GitHub OAuth
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Development Settings
+# Set to development for local development
+ENVIRONMENT=development
