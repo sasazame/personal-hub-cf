@@ -12,8 +12,9 @@ This guide explains how to deploy the Personal Hub application to Cloudflare.
 2. GitHub repository with secrets configured:
    - `CLOUDFLARE_API_TOKEN` - Required for both Actions workflows
    - `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
+   - `GITHUB_TOKEN` - Automatically provided by GitHub Actions (no setup needed)
    
-   **Important**: The deployment workflows will fail with "Input required and not supplied: apiToken" if these secrets are not configured in your repository settings.
+   **Important**: The deployment workflows will fail with "Input required and not supplied: apiToken" if these secrets are not configured in your repository settings under Settings → Secrets and variables → Actions.
 
 ## Environment Setup
 
@@ -73,7 +74,12 @@ wrangler secret put AUTH_SECRET --env staging
 # Deploy frontend
 cd apps/frontend
 pnpm build
-wrangler pages deploy dist --project-name personal-hub-frontend
+
+# Verify build directory exists
+test -d dist || { echo "Build directory not found. Run 'pnpm build' first."; exit 1; }
+
+# Deploy to Pages (specify branch for consistency)
+wrangler pages deploy dist --project-name personal-hub-frontend --branch main
 
 # Deploy backend
 cd apps/backend
