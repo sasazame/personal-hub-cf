@@ -6,6 +6,7 @@ import { Play, Pause, RotateCcw, Settings } from 'lucide-react';
 import { pomodoroApi } from '../lib/api/pomodoro';
 import type { SessionType } from '@personal-hub/shared';
 import { PomodoroSettings } from './PomodoroSettings';
+import axios from 'axios';
 
 export function PomodoroTimer() {
   const queryClient = useQueryClient();
@@ -34,8 +35,7 @@ export function PomodoroTimer() {
         const response = await pomodoroApi.getActiveSession();
         return response.data;
       } catch (error: unknown) {
-        const isAxiosError = error && typeof error === 'object' && 'response' in error;
-        if (isAxiosError && (error as { response?: { status?: number } }).response?.status === 404) {
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
           return null;
         }
         throw error;
@@ -170,7 +170,7 @@ export function PomodoroTimer() {
   // Timer countdown
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
-      intervalRef.current = setInterval(() => {
+      intervalRef.current = window.setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             handleTimerComplete();

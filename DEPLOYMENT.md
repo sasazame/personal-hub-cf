@@ -10,8 +10,10 @@ This guide explains how to deploy the Personal Hub application to Cloudflare.
    - API token with appropriate permissions
 
 2. GitHub repository with secrets configured:
-   - `CLOUDFLARE_API_TOKEN`
-   - `CLOUDFLARE_ACCOUNT_ID`
+   - `CLOUDFLARE_API_TOKEN` - Required for both Actions workflows
+   - `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
+   
+   **Important**: The deployment workflows will fail with "Input required and not supplied: apiToken" if these secrets are not configured in your repository settings.
 
 ## Environment Setup
 

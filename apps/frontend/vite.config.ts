@@ -45,6 +45,10 @@ export default defineConfig({
             }
           },
           {
+            urlPattern: /^\/api\/auth\/.*/i,
+            handler: 'NetworkOnly'
+          },
+          {
             urlPattern: /^\/api\/.*/i,
             handler: 'NetworkFirst',
             options: {

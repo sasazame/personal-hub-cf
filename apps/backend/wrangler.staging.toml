@@ -7,7 +7,7 @@ compatibility_date = "2025-01-19"
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "personal-hub-staging"
-database_id = "YOUR_STAGING_DATABASE_ID"
+database_id = "STAGING_DATABASE_ID_PLACEHOLDER" # Replace with actual ID before deployment
 
 [env.staging.vars]
 ENVIRONMENT = "staging"
