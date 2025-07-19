@@ -2,6 +2,7 @@
   "name": "personal-hub-cf",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "pnpm --parallel --filter './apps/*' run dev",
