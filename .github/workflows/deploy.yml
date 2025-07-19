@@ -7,7 +7,12 @@ on:
   workflow_dispatch:
 
 jobs:
+  test:
+    name: Run Tests
+    uses: ./.github/workflows/ci.yml
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -30,8 +35,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Run tests
-        run: pnpm test
+      # Tests already run in CI workflow
 
       - name: Build frontend
         run: pnpm build:frontend
