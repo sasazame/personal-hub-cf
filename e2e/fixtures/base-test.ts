@@ -16,11 +16,20 @@ export const test = base.extend<{
   authenticatedPage: async ({ page, context }, use) => {
     // Clear all storage to ensure clean state
     await context.clearCookies();
+    
+    // Navigate to the app first
     await page.goto('/');
-    await page.evaluate(() => {
-      localStorage.clear();
-      sessionStorage.clear();
-    });
+    
+    // Then clear storage if possible
+    try {
+      await page.evaluate(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+      });
+    } catch (error) {
+      // Storage might not be accessible yet
+      console.log('Could not clear storage:', error);
+    }
 
     // Navigate to login page
     await page.goto('/login');

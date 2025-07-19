@@ -9,6 +9,7 @@
     "typecheck": "pnpm --filter './apps/*' --filter './packages/*' run typecheck",
     "lint": "eslint . --fix",
     "format": "prettier --write .",
+    "test": "echo 'No unit tests configured yet'",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
