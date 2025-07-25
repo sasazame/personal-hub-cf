@@ -1,0 +1,75 @@
+name: Database Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run migrations on'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+      migration_file:
+        description: 'Migration file to run (leave empty to run all pending)'
+        required: false
+        type: string
+
+jobs:
+  migrate:
+    name: Run Database Migrations
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: |
+          cd apps/backend
+          pnpm install
+
+      - name: Generate new migrations (if schema changed)
+        run: |
+          cd apps/backend
+          npx drizzle-kit generate
+
+      - name: Check for pending migrations
+        id: check_migrations
+        run: |
+          cd apps/backend
+          if [ -z "$(ls -A migrations/*.sql 2>/dev/null)" ]; then
+            echo "No migration files found"
+            echo "has_migrations=false" >> $GITHUB_OUTPUT
+          else
+            echo "Migration files found:"
+            ls -la migrations/*.sql
+            echo "has_migrations=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run migrations
+        if: steps.check_migrations.outputs.has_migrations == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: apps/backend
+          command: |
+            d1 execute personal-hub-${{ github.event.inputs.environment == 'production' && 'prod' || 'staging' }} \
+            --file=${{ github.event.inputs.migration_file || 'migrations/0000_low_proemial_gods.sql' }} \
+            --env=${{ github.event.inputs.environment }} \
+            --remote
+
+      - name: Verify migration success
+        if: steps.check_migrations.outputs.has_migrations == 'true'
+        run: |
+          echo "Migration completed successfully on ${{ github.event.inputs.environment }} environment"
