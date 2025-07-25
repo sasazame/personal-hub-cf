@@ -1,0 +1,14 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "globals": {
+    "D1Database": "readonly",
+    "console": "readonly",
+    "crypto": "readonly",
+    "TextEncoder": "readonly",
+    "URL": "readonly"
+  }
+}

@@ -1,0 +1,245 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import authRoutes from '../../routes/auth';
+import { createTestContext, createMockDbChain } from '../helpers/test-context';
+import { hashPassword } from '../../utils/auth';
+
+describe('Auth Routes', () => {
+  let app: any;
+  let env: any;
+  let mockDb: any;
+
+  beforeEach(() => {
+    const testContext = createTestContext();
+    app = testContext.app;
+    env = testContext.env;
+    mockDb = testContext.mockDb;
+    
+    app.route('/auth', authRoutes);
+  });
+
+  describe('POST /auth/register', () => {
+    it('should return 400 for invalid input', async () => {
+      const res = await app.request('/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'invalid-email',
+          password: 'weak',
+          username: 'ab', // too short
+        }),
+      }, env);
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.code).toBe('VALIDATION_ERROR');
+      expect(body.details).toBeDefined();
+    });
+
+    it('should return 400 for missing fields', async () => {
+      const res = await app.request('/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      }, env);
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('should return 409 for existing user', async () => {
+      // Mock existing user
+      mockDb.select.mockReturnValue(
+        createMockDbChain({
+          id: 'existing-user-id',
+          email: 'existing@example.com',
+        })
+      );
+
+      const res = await app.request('/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'existing@example.com',
+          password: 'TestPass123!',
+          username: 'existinguser',
+        }),
+      }, env);
+
+      expect(res.status).toBe(409);
+      const body = await res.json();
+      expect(body.code).toBe('EMAIL_ALREADY_EXISTS');
+    });
+
+    it('should return 201 for successful registration', async () => {
+      // Mock no existing user
+      mockDb.select.mockReturnValue(createMockDbChain(null));
+      
+      // Mock successful insert
+      const newUser = {
+        id: 'new-user-id',
+        email: 'newuser@example.com',
+        username: 'newuser',
+        password: 'hashed-password',
+        weekStartDay: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      mockDb.insert.mockReturnValue({
+        values: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([newUser]),
+        }),
+      });
+
+      const res = await app.request('/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'newuser@example.com',
+          password: 'TestPass123!',
+          username: 'newuser',
+        }),
+      }, env);
+
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.accessToken).toBeDefined();
+      expect(body.refreshToken).toBeDefined();
+      expect(body.user).toBeDefined();
+      expect(body.user.email).toBe('newuser@example.com');
+    });
+  });
+
+  describe('POST /auth/login', () => {
+    it('should return 400 for missing credentials', async () => {
+      const res = await app.request('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      }, env);
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('should return 401 for non-existent user', async () => {
+      // Mock no user found
+      mockDb.select.mockReturnValue(createMockDbChain(null));
+
+      const res = await app.request('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'nonexistent@example.com',
+          password: 'TestPass123!',
+        }),
+      }, env);
+
+      expect(res.status).toBe(401);
+      const body = await res.json();
+      expect(body.code).toBe('AUTHENTICATION_FAILED');
+    });
+
+    it('should return 401 for wrong password', async () => {
+      const hashedPassword = await hashPassword('CorrectPass123!');
+      
+      // Mock user found
+      mockDb.select.mockReturnValue(
+        createMockDbChain({
+          id: 'user-id',
+          email: 'user@example.com',
+          username: 'testuser',
+          password: hashedPassword,
+          weekStartDay: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+      );
+
+      const res = await app.request('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'user@example.com',
+          password: 'WrongPass123!',
+        }),
+      }, env);
+
+      expect(res.status).toBe(401);
+      const body = await res.json();
+      expect(body.code).toBe('AUTHENTICATION_FAILED');
+    });
+
+    it('should return 200 for successful login', async () => {
+      const password = 'CorrectPass123!';
+      const hashedPassword = await hashPassword(password);
+      
+      // Mock user found
+      const user = {
+        id: 'user-id',
+        email: 'user@example.com',
+        username: 'testuser',
+        password: hashedPassword,
+        enabled: true,
+        weekStartDay: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      
+      mockDb.select.mockReturnValue(createMockDbChain({
+        ...user,
+        enabled: true
+      }));
+      
+      // Mock successful refresh token insert
+      mockDb.insert.mockReturnValue({
+        values: vi.fn().mockReturnThis(),
+      });
+
+      const res = await app.request('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'user@example.com',
+          password: password,
+        }),
+      }, env);
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.accessToken).toBeDefined();
+      expect(body.refreshToken).toBeDefined();
+      expect(body.user).toBeDefined();
+      expect(body.user.email).toBe('user@example.com');
+    });
+  });
+
+  describe('POST /auth/refresh', () => {
+    it('should return 400 for missing token', async () => {
+      const res = await app.request('/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      }, env);
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('should return 401 for invalid token format', async () => {
+      const res = await app.request('/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          refreshToken: 'invalid.jwt.token',
+        }),
+      }, env);
+
+      expect(res.status).toBe(401);
+      const body = await res.json();
+      expect(body.code).toBe('INVALID_TOKEN');
+    });
+  });
+});

@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Wrangler
+.wrangler/
+.dev.vars
+
+# Build outputs
+dist/
+.mf/
+
+# Test coverage
+coverage/
+
+# Environment files
+.env
+.env.*
+
+# Migrations metadata
+migrations/meta/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

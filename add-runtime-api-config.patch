@@ -1,0 +1,16 @@
+--- a/src/lib/api-client.ts
++++ b/src/lib/api-client.ts
+@@ -1,7 +1,12 @@
+ import axios, { AxiosInstance, AxiosError } from 'axios';
+ import { isTokenExpired, debugToken } from '@/utils/jwt';
+ 
+-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
++// Support runtime API URL configuration for testing
++const getApiBaseUrl = () => {
++  const runtimeUrl = typeof window !== 'undefined' ? localStorage.getItem('RUNTIME_API_URL') : null;
++  return runtimeUrl || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
++};
++const API_BASE_URL = getApiBaseUrl();
+ 
+ // Token refresh management
+ let isRefreshing = false;

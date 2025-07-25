@@ -1,0 +1,26 @@
+{
+  "name": "@personal-hub/api-compat-test",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:compare": "tsx src/compare.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "clean": "rm -rf dist node_modules"
+  },
+  "dependencies": {
+    "@personal-hub/shared": "workspace:*",
+    "@types/uuid": "^10.0.0",
+    "axios": "^1.7.6",
+    "uuid": "^11.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "tsx": "^4.20.3",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "@personal-hub/frontend",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist node_modules"
+  },
+  "dependencies": {
+    "@personal-hub/shared": "workspace:*",
+    "@personal-hub/ui": "workspace:*",
+    "@personal-hub/api-client": "workspace:*",
+    "@tanstack/react-query": "^5.83.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.56.0",
+    "react-router-dom": "^7.2.0",
+    "zod": "^3.23.8",
+    "@hookform/resolvers": "^5.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.6",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.2",
+    "tailwindcss": "^4.1.11",
+    "vite": "^6.0.7"
+  }
+}
