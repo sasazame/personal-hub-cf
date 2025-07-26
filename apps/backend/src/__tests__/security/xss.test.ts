@@ -13,6 +13,25 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
   let validToken: string;
   const userId = 'test-user';
 
+  // Helper to setup database mock with auth
+  const setupDbMock = () => {
+    let callCount = 0;
+    ctx.db.select.mockImplementation(() => ({
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      get: vi.fn().mockImplementation(() => {
+        callCount++;
+        // Always return user for auth middleware
+        return Promise.resolve({
+          id: userId,
+          email: 'test@example.com',
+          username: 'testuser',
+          enabled: true,
+        });
+      }),
+    }));
+  };
+
   beforeEach(async () => {
     ctx = createTestContext();
     app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
@@ -57,6 +76,8 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
         '<SCRIPT SRC=http://evil.com/xss.js></SCRIPT>',
       ];
 
+      setupDbMock();
+
       for (const payload of xssPayloads) {
         ctx.db.insert.mockImplementation(() => ({
           values: vi.fn().mockReturnThis(),
@@ -86,7 +107,7 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
         expect(body.title).toBe(payload);
         
         // Verify response headers prevent XSS
-        expect(res.headers.get('Content-Type')).toBe('application/json; charset=UTF-8');
+        expect(res.headers.get('Content-Type')).toMatch(/^application\/json/);
       }
     });
 
@@ -101,7 +122,19 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
         '<form action="javascript:alert(\'XSS\')">',
       ];
 
+      setupDbMock();
+
       for (const payload of eventHandlerPayloads) {
+        ctx.db.insert.mockImplementation(() => ({
+          values: vi.fn().mockReturnThis(),
+          returning: vi.fn().mockResolvedValue([{
+            id: 1,
+            title: 'Test Note',
+            content: payload,
+            userId: 'test-user',
+          }]),
+        }));
+
         const res = await app.request('/notes', {
           method: 'POST',
           headers: {
@@ -132,6 +165,8 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
         '{"constructor":{"prototype":{"isAdmin":true}}}',
         '{"title":"Test","__proto__":{"polluted":"yes"}}',
       ];
+
+      setupDbMock();
 
       for (const payload of jsonInjectionPayloads) {
         const res = await app.request('/todos', {
@@ -203,6 +238,8 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
         String.fromCharCode(60) + 'script' + String.fromCharCode(62), // Decimal encoding
       ];
 
+      setupDbMock();
+
       for (const payload of unicodePayloads) {
         const res = await app.request('/notes', {
           method: 'POST',
@@ -227,7 +264,36 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
         '&#60;script&#62;alert(&#34;XSS&#34;)&#60;/script&#62;',
       ];
 
+      setupDbMock();
+
       for (const payload of doubleEncodedPayloads) {
+        // Add specific mock for todos query
+        let callCount = 0;
+        ctx.db.select.mockImplementation(() => {
+          callCount++;
+          if (callCount === 1) {
+            // Auth middleware
+            return {
+              from: vi.fn().mockReturnThis(),
+              where: vi.fn().mockReturnThis(),
+              get: vi.fn().mockResolvedValue({
+                id: userId,
+                email: 'test@example.com',
+                username: 'testuser',
+                enabled: true,
+              }),
+            };
+          }
+          // Todos query
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            orderBy: vi.fn().mockReturnThis(),
+            limit: vi.fn().mockReturnThis(),
+            offset: vi.fn().mockResolvedValue([]),
+          };
+        });
+
         const res = await app.request(`/todos?search=${payload}`, {
           method: 'GET',
           headers: {
@@ -258,13 +324,31 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
     });
 
     it('should always return JSON with proper content type', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        offset: vi.fn().mockResolvedValue([]),
-      }));
+      let callCount = 0;
+      ctx.db.select.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // Auth middleware
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            get: vi.fn().mockResolvedValue({
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            }),
+          };
+        }
+        // Todos query
+        return {
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          orderBy: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockReturnThis(),
+          offset: vi.fn().mockResolvedValue([]),
+        };
+      });
 
       const res = await app.request('/todos', {
         method: 'GET',

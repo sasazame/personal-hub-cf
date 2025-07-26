@@ -17,10 +17,23 @@ vi.mock('../../utils/auth', () => ({
 describe('Authentication Security Tests', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
   let ctx: any;
+  let validToken: string;
+  const userId = 'test-user';
 
-  beforeEach(() => {
+  beforeEach(async () => {
     ctx = createTestContext();
     app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
+    
+    // Generate valid token using jwt directly
+    validToken = await jwt.sign(
+      {
+        sub: userId,
+        type: 'access',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      },
+      ctx.env.JWT_SECRET
+    );
+    ctx.validToken = validToken;
     
     // Add database middleware
     app.use('*', async (c, next) => {
@@ -31,6 +44,18 @@ describe('Authentication Security Tests', () => {
     app.route('/auth', authRoutes);
     app.route('/todos', todosRoutes);
     vi.clearAllMocks();
+    
+    // Default mock for auth middleware user lookup
+    ctx.db.select.mockImplementation(() => ({
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      get: vi.fn().mockResolvedValue({
+        id: userId,
+        email: 'test@example.com',
+        username: 'testuser',
+        enabled: true,
+      }),
+    }));
   });
 
   describe('CSRF Protection', () => {
@@ -377,24 +402,42 @@ describe('Authentication Security Tests', () => {
       // But each should be tracked separately
       
       const token1 = await jwt.sign(
-        { sub: 'user-123', type: 'access', exp: Math.floor(Date.now() / 1000) + 3600 },
+        { sub: userId, type: 'access', exp: Math.floor(Date.now() / 1000) + 3600 },
         ctx.env.JWT_SECRET
       );
       
       const token2 = await jwt.sign(
-        { sub: 'user-123', type: 'access', exp: Math.floor(Date.now() / 1000) + 3600 },
+        { sub: userId, type: 'access', exp: Math.floor(Date.now() / 1000) + 3600 },
         ctx.env.JWT_SECRET
       );
 
       // Both tokens should work
       for (const token of [token1, token2]) {
-        ctx.db.select.mockImplementation(() => ({
-          from: vi.fn().mockReturnThis(),
-          where: vi.fn().mockReturnThis(),
-          orderBy: vi.fn().mockReturnThis(),
-          limit: vi.fn().mockReturnThis(),
-          offset: vi.fn().mockResolvedValue([]),
-        }));
+        let callCount = 0;
+        ctx.db.select.mockImplementation(() => {
+          callCount++;
+          if (callCount === 1) {
+            // Auth middleware user lookup
+            return {
+              from: vi.fn().mockReturnThis(),
+              where: vi.fn().mockReturnThis(),
+              get: vi.fn().mockResolvedValue({
+                id: userId,
+                email: 'test@example.com',
+                username: 'testuser',
+                enabled: true,
+              }),
+            };
+          }
+          // Todos query
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            orderBy: vi.fn().mockReturnThis(),
+            limit: vi.fn().mockReturnThis(),
+            offset: vi.fn().mockResolvedValue([]),
+          };
+        });
 
         const res = await app.request('/todos', {
           method: 'GET',

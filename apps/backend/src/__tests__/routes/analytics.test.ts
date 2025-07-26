@@ -30,6 +30,25 @@ describe('Analytics Routes', () => {
     });
   };
 
+  // Helper for complex query mocks (with joins, groupBy, etc)
+  const setupComplexDbMock = (mockChain: any) => {
+    let callCount = 0;
+    ctx.db.select.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        // Auth middleware user lookup
+        return createMockDbChain({
+          id: userId,
+          email: 'test@example.com',
+          username: 'testuser',
+          enabled: true,
+        });
+      }
+      // Return custom mock chain for complex queries
+      return mockChain;
+    });
+  };
+
   beforeEach(async () => {
     ctx = createTestContext();
     app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
@@ -189,7 +208,7 @@ describe('Analytics Routes', () => {
 
   describe('GET /analytics/productivity', () => {
     it('should return productivity data for date range', async () => {
-      ctx.db.select.mockImplementation(() => ({
+      setupComplexDbMock({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         innerJoin: vi.fn().mockReturnThis(),
@@ -197,7 +216,7 @@ describe('Analytics Routes', () => {
           { date: '2025-01-20', count: 5 },
           { date: '2025-01-21', count: 3 },
         ]),
-      }));
+      });
 
       const res = await app.request('/analytics/productivity?fromDate=2025-01-20&toDate=2025-01-27', {
         method: 'GET',
@@ -229,12 +248,12 @@ describe('Analytics Routes', () => {
     });
 
     it('should return empty arrays for no data', async () => {
-      ctx.db.select.mockImplementation(() => ({
+      setupComplexDbMock({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         innerJoin: vi.fn().mockReturnThis(),
         groupBy: vi.fn().mockResolvedValue([]),
-      }));
+      });
 
       const res = await app.request('/analytics/productivity?fromDate=2025-01-20&toDate=2025-01-27', {
         method: 'GET',
@@ -254,7 +273,7 @@ describe('Analytics Routes', () => {
 
   describe('GET /analytics/habits', () => {
     it('should return habit analytics with default 30 days', async () => {
-      ctx.db.select.mockImplementation(() => ({
+      setupComplexDbMock({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         groupBy: vi.fn().mockReturnThis(),
@@ -265,7 +284,7 @@ describe('Analytics Routes', () => {
           { date: '2025-01-21', hasActivity: 1 },
           { date: '2025-01-23', hasActivity: 1 },
         ]),
-      }));
+      });
 
       const res = await app.request('/analytics/habits', {
         method: 'GET',
@@ -286,14 +305,14 @@ describe('Analytics Routes', () => {
     });
 
     it('should accept custom days parameter', async () => {
-      ctx.db.select.mockImplementation(() => ({
+      setupComplexDbMock({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         groupBy: vi.fn().mockReturnThis(),
         orderBy: vi.fn().mockReturnThis(),
         limit: vi.fn().mockReturnThis(),
         union: vi.fn().mockResolvedValue([]),
-      }));
+      });
 
       const res = await app.request('/analytics/habits?days=7', {
         method: 'GET',
@@ -312,7 +331,7 @@ describe('Analytics Routes', () => {
       const today = new Date().toISOString().split('T')[0];
       const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
       
-      ctx.db.select.mockImplementation(() => ({
+      setupComplexDbMock({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         groupBy: vi.fn().mockReturnThis(),
@@ -322,7 +341,7 @@ describe('Analytics Routes', () => {
           { date: today, hasActivity: 1 },
           { date: yesterday, hasActivity: 1 },
         ]),
-      }));
+      });
 
       const res = await app.request('/analytics/habits?days=7', {
         method: 'GET',
@@ -343,7 +362,7 @@ describe('Analytics Routes', () => {
       const startDate = new Date('2025-01-01').toISOString();
       const endDate = new Date('2025-12-31').toISOString();
       
-      ctx.db.select.mockImplementation(() => ({
+      setupComplexDbMock({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockResolvedValue([
           {
@@ -354,7 +373,7 @@ describe('Analytics Routes', () => {
             achievementCount: 10,
           },
         ]),
-      }));
+      });
 
       const res = await app.request('/analytics/goals-progress', {
         method: 'GET',
@@ -375,7 +394,7 @@ describe('Analytics Routes', () => {
     });
 
     it('should handle goals with no achievements', async () => {
-      ctx.db.select.mockImplementation(() => ({
+      setupComplexDbMock({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockResolvedValue([
           {
@@ -386,7 +405,7 @@ describe('Analytics Routes', () => {
             achievementCount: 0,
           },
         ]),
-      }));
+      });
 
       const res = await app.request('/analytics/goals-progress', {
         method: 'GET',
@@ -405,14 +424,14 @@ describe('Analytics Routes', () => {
 
   describe('GET /analytics/tags', () => {
     it('should return tag analytics', async () => {
-      ctx.db.select.mockImplementation(() => ({
+      setupComplexDbMock({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockResolvedValue([
           { tags: 'work,important' },
           { tags: 'personal,work' },
           { tags: 'urgent' },
         ]),
-      }));
+      });
 
       const res = await app.request('/analytics/tags', {
         method: 'GET',
@@ -434,14 +453,14 @@ describe('Analytics Routes', () => {
     });
 
     it('should handle empty tags gracefully', async () => {
-      ctx.db.select.mockImplementation(() => ({
+      setupComplexDbMock({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockResolvedValue([
           { tags: null },
           { tags: '' },
           { tags: '  ,  , ' },
         ]),
-      }));
+      });
 
       const res = await app.request('/analytics/tags', {
         method: 'GET',
@@ -461,7 +480,7 @@ describe('Analytics Routes', () => {
 
   describe('GET /analytics/time-distribution', () => {
     it('should return time distribution data', async () => {
-      ctx.db.select.mockImplementation(() => ({
+      setupComplexDbMock({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         groupBy: vi.fn().mockResolvedValue([
@@ -469,7 +488,7 @@ describe('Analytics Routes', () => {
           { hour: 14, todos: 8 },
           { hour: 20, todos: 3 },
         ]),
-      }));
+      });
 
       const res = await app.request('/analytics/time-distribution', {
         method: 'GET',
@@ -494,11 +513,11 @@ describe('Analytics Routes', () => {
     });
 
     it('should accept custom days parameter', async () => {
-      ctx.db.select.mockImplementation(() => ({
+      setupComplexDbMock({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         groupBy: vi.fn().mockResolvedValue([]),
-      }));
+      });
 
       const res = await app.request('/analytics/time-distribution?days=30', {
         method: 'GET',
@@ -534,7 +553,7 @@ describe('Analytics Routes', () => {
     });
 
     it('should handle query timeout errors', async () => {
-      ctx.db.select.mockImplementation(() => ({
+      setupComplexDbMock({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockImplementation(() => {
@@ -542,7 +561,7 @@ describe('Analytics Routes', () => {
             setTimeout(() => reject(new Error('Query timeout')), 100);
           });
         }),
-      }));
+      });
 
       const res = await app.request('/analytics/overview', {
         method: 'GET',
