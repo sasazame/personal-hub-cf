@@ -99,7 +99,7 @@ app.get('/', zValidator('query', querySchema, springBootValidator), async (c) =>
         .orderBy(order(orderBy))
         .limit(limit)
         .offset(offset),
-      db.select({ count: todos.id })
+      db.select({ count: sql<number>`count(*)` })
         .from(todos)
         .where(and(...conditions))
     ]);

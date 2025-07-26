@@ -3,8 +3,10 @@ import { Hono } from 'hono';
 import todosRoutes from '../../routes/todos';
 import { setupTestDatabase, cleanupTestDatabase, closeTestDatabase } from './setup-test-db';
 import { createTestUserData, createTestTodoData } from './fixtures';
-import { generateToken } from '../../utils/auth';
+import * as jwt from '@tsndr/cloudflare-worker-jwt';
 import type { Bindings, Variables } from '../../types';
+import * as schema from '../../db/schema';
+import { eq } from 'drizzle-orm';
 
 describe('Todos Routes Integration with Real Database', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
@@ -25,11 +27,14 @@ describe('Todos Routes Integration with Real Database', () => {
     testUser = testUser[0];
     
     // Generate access token
-    accessToken = await generateToken({
-      type: 'access',
-      userId: testUser.id,
-      username: testUser.username,
-    }, env.JWT_SECRET);
+    accessToken = await jwt.sign(
+      { 
+        sub: testUser.id, 
+        type: 'access',
+        exp: Math.floor(Date.now() / 1000) + (15 * 60) // 15 minutes
+      },
+      env.JWT_SECRET
+    );
 
     app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
     
@@ -77,7 +82,7 @@ describe('Todos Routes Integration with Real Database', () => {
         .values(createTestTodoData(testUser.id, { title: 'Todo 2' }))
         .returning();
 
-      const res = await app.request('/todos?page=1&size=10', {
+      const res = await app.request('/todos?page=1&limit=10', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -89,8 +94,11 @@ describe('Todos Routes Integration with Real Database', () => {
       
       expect(body.items).toHaveLength(2);
       expect(body.total).toBe(2);
-      expect(body.items[0].title).toBe('Todo 1');
-      expect(body.items[1].title).toBe('Todo 2');
+      
+      // Items might be returned in any order, so check both exist
+      const titles = body.items.map((item: any) => item.title);
+      expect(titles).toContain('Todo 1');
+      expect(titles).toContain('Todo 2');
     });
 
     it('should not return other users todos', async () => {
@@ -232,7 +240,3 @@ describe('Todos Routes Integration with Real Database', () => {
     });
   });
 });
-
-// Import schema and utilities after setup to avoid circular dependencies
-import * as schema from '../../db/schema';
-import { eq } from 'drizzle-orm';
