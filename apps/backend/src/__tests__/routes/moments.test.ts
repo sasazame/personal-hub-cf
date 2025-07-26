@@ -11,6 +11,84 @@ describe('Moments Routes', () => {
   let validToken: string;
   const userId = 'test-user';
 
+  // Helper to setup database mock with auth
+  const setupDbMock = (dataReturns: any) => {
+    let callCount = 0;
+    ctx.db.select.mockImplementation(() => {
+      callCount++;
+      
+      const mockChain = {
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        get: vi.fn().mockImplementation(() => {
+          if (callCount === 1) {
+            // Auth middleware user lookup
+            return Promise.resolve({
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            });
+          }
+          // Subsequent calls for test data
+          return Promise.resolve(dataReturns);
+        }),
+        orderBy: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        offset: vi.fn().mockResolvedValue(dataReturns),
+      };
+      
+      // For queries that are awaited directly (return arrays)
+      if (callCount > 1 && Array.isArray(dataReturns)) {
+        // Keep the chain intact - where() returns the chain, orderBy() returns the result
+        mockChain.orderBy = vi.fn().mockResolvedValue(dataReturns);
+        // Also create a thenable chain for when where() is the final method
+        Object.assign(mockChain, {
+          then: (resolve: any) => Promise.resolve(dataReturns).then(resolve),
+        });
+      }
+      
+      return mockChain;
+    });
+  };
+
+  // Helper for paginated queries (used by GET /moments)
+  const setupPaginatedDbMock = (items: any[], total: number = items.length) => {
+    let callCount = 0;
+    ctx.db.select.mockImplementation(() => {
+      callCount++;
+      
+      if (callCount === 1) {
+        // Auth middleware user lookup
+        return {
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          get: vi.fn().mockResolvedValue({
+            id: userId,
+            email: 'test@example.com',
+            username: 'testuser',
+            enabled: true,
+          }),
+        };
+      } else if (callCount === 2) {
+        // First query in Promise.all - get items
+        return {
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          orderBy: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockReturnThis(),
+          offset: vi.fn().mockResolvedValue(items),
+        };
+      } else {
+        // Second query in Promise.all - count
+        return {
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockResolvedValue([{ count: total }]),
+        };
+      }
+    });
+  };
+
   beforeEach(async () => {
     ctx = createTestContext();
     app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
@@ -76,13 +154,7 @@ describe('Moments Routes', () => {
         { id: 2, content: 'Moment 2', tags: 'gratitude', userId: 'test-user', createdAt: '2025-01-26T09:00:00Z' },
       ];
 
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        offset: vi.fn().mockResolvedValue(mockMoments),
-      }));
+      setupPaginatedDbMock(mockMoments);
 
       const res = await app.request('/moments', {
         method: 'GET',
@@ -103,13 +175,7 @@ describe('Moments Routes', () => {
     });
 
     it('should filter moments by search query', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        offset: vi.fn().mockResolvedValue([]),
-      }));
+      setupPaginatedDbMock([]);
 
       const res = await app.request('/moments?search=gratitude', {
         method: 'GET',
@@ -128,13 +194,7 @@ describe('Moments Routes', () => {
         { id: 1, content: 'Grateful moment', tags: 'gratitude,reflection', userId: 'test-user' },
       ];
 
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        offset: vi.fn().mockResolvedValue(mockMoments),
-      }));
+      setupPaginatedDbMock(mockMoments);
 
       const res = await app.request('/moments?tags=gratitude,learning', {
         method: 'GET',
@@ -149,13 +209,7 @@ describe('Moments Routes', () => {
     });
 
     it('should filter moments by date range', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        offset: vi.fn().mockResolvedValue([]),
-      }));
+      setupPaginatedDbMock([]);
 
       const res = await app.request('/moments?fromDate=2025-01-01&toDate=2025-01-31', {
         method: 'GET',
@@ -168,15 +222,7 @@ describe('Moments Routes', () => {
     });
 
     it('should handle pagination parameters', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        limit: vi.fn((limitValue) => {
-          expect(limitValue).toBe(5);
-          return { offset: vi.fn().mockResolvedValue([]) };
-        }),
-      }));
+      setupPaginatedDbMock([]);
 
       const res = await app.request('/moments?page=2&limit=5', {
         method: 'GET',
@@ -197,11 +243,7 @@ describe('Moments Routes', () => {
         { id: 2, content: 'Evening gratitude', createdAt: today.toISOString() },
       ];
 
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockResolvedValue(mockMoments),
-      }));
+      setupDbMock(mockMoments);
 
       const res = await app.request('/moments/today', {
         method: 'GET',
@@ -217,11 +259,7 @@ describe('Moments Routes', () => {
     });
 
     it('should return empty array when no moments today', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockResolvedValue([]),
-      }));
+      setupDbMock([]);
 
       const res = await app.request('/moments/today', {
         method: 'GET',
@@ -238,14 +276,11 @@ describe('Moments Routes', () => {
 
   describe('GET /moments/tags', () => {
     it('should return tag counts', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue([
-          { tags: 'gratitude,reflection' },
-          { tags: 'gratitude,learning' },
-          { tags: 'reflection' },
-        ]),
-      }));
+      setupDbMock([
+        { tags: 'gratitude,reflection' },
+        { tags: 'gratitude,learning' },
+        { tags: 'reflection' },
+      ]);
 
       const res = await app.request('/moments/tags', {
         method: 'GET',
@@ -265,14 +300,11 @@ describe('Moments Routes', () => {
     });
 
     it('should handle empty tags gracefully', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue([
-          { tags: null },
-          { tags: '' },
-          { tags: '  ,  , ' },
-        ]),
-      }));
+      setupDbMock([
+        { tags: null },
+        { tags: '' },
+        { tags: '  ,  , ' },
+      ]);
 
       const res = await app.request('/moments/tags', {
         method: 'GET',
@@ -289,14 +321,11 @@ describe('Moments Routes', () => {
 
   describe('GET /moments/tags/default', () => {
     it('should return default tags with counts', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue([
-          { tags: 'gratitude,custom1' },
-          { tags: 'gratitude,achievement' },
-          { tags: 'custom1,custom2' },
-        ]),
-      }));
+      setupDbMock([
+        { tags: 'gratitude,custom1' },
+        { tags: 'gratitude,achievement' },
+        { tags: 'custom1,custom2' },
+      ]);
 
       const res = await app.request('/moments/tags/default', {
         method: 'GET',
@@ -333,10 +362,7 @@ describe('Moments Routes', () => {
         createdAt: date + 'T10:00:00Z',
       }));
 
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue(mockMoments),
-      }));
+      setupDbMock(mockMoments);
 
       const res = await app.request('/moments/stats', {
         method: 'GET',
@@ -357,10 +383,7 @@ describe('Moments Routes', () => {
     });
 
     it('should accept custom days parameter', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue([]),
-      }));
+      setupDbMock([]);
 
       const res = await app.request('/moments/stats?days=7', {
         method: 'GET',
@@ -386,11 +409,7 @@ describe('Moments Routes', () => {
         userId: 'test-user',
       };
 
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(mockMoment),
-      }));
+      setupDbMock(mockMoment);
 
       const res = await app.request('/moments/1', {
         method: 'GET',
@@ -405,11 +424,7 @@ describe('Moments Routes', () => {
     });
 
     it('should return 404 for non-existent moment', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(null),
-      }));
+      setupDbMock(null);
 
       const res = await app.request('/moments/999', {
         method: 'GET',
@@ -516,11 +531,7 @@ describe('Moments Routes', () => {
         tags: 'updated,modified',
       };
 
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(existingMoment),
-      }));
+      setupDbMock(existingMoment);
 
       ctx.db.update.mockImplementation(() => ({
         set: vi.fn().mockReturnThis(),
@@ -549,11 +560,7 @@ describe('Moments Routes', () => {
     });
 
     it('should return 404 for non-existent moment', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(null),
-      }));
+      setupDbMock(null);
 
       const res = await app.request('/moments/999', {
         method: 'PUT',
@@ -570,11 +577,7 @@ describe('Moments Routes', () => {
 
   describe('DELETE /moments/:id', () => {
     it('should delete existing moment', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue({ id: 1 }),
-      }));
+      setupDbMock({ id: 1 });
 
       ctx.db.delete.mockImplementation(() => ({
         where: vi.fn().mockResolvedValue(undefined),
@@ -591,11 +594,7 @@ describe('Moments Routes', () => {
     });
 
     it('should return 404 for non-existent moment', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(null),
-      }));
+      setupDbMock(null);
 
       const res = await app.request('/moments/999', {
         method: 'DELETE',
@@ -610,7 +609,23 @@ describe('Moments Routes', () => {
 
   describe('Error Handling', () => {
     it('should handle database errors gracefully', async () => {
+      let callCount = 0;
       ctx.db.select.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // Auth middleware user lookup - let it pass
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            get: vi.fn().mockResolvedValue({
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            }),
+          };
+        }
+        // After auth, throw error
         throw new Error('Database connection failed');
       });
 

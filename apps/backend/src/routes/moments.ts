@@ -377,7 +377,7 @@ app.delete('/:id', async (c) => {
     await db.delete(moments)
       .where(and(eq(moments.id, id), eq(moments.userId, userId)));
     
-    return c.text('', 204);
+    return new Response(null, { status: 204 });
   } catch (error) {
     console.error('Delete moment error:', error);
     return c.json(

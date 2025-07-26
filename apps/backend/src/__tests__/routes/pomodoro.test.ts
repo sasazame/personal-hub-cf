@@ -15,6 +15,32 @@ describe('Pomodoro Routes', () => {
   let validToken: string;
   const userId = 'test-user';
 
+  // Helper to setup database mock with auth
+  const setupDbMock = (customReturns?: any) => {
+    let callCount = 0;
+    ctx.db.select.mockImplementation(() => ({
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      get: vi.fn().mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // Auth middleware user lookup
+          return Promise.resolve({
+            id: userId,
+            email: 'test@example.com',
+            username: 'testuser',
+            enabled: true,
+          });
+        }
+        // Subsequent calls for test data
+        return Promise.resolve(customReturns);
+      }),
+      orderBy: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      offset: vi.fn().mockResolvedValue(customReturns || []),
+    }));
+  };
+
   beforeEach(async () => {
     ctx = createTestContext();
     app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
@@ -37,17 +63,8 @@ describe('Pomodoro Routes', () => {
     
     app.route('/pomodoro', pomodoroRoutes);
     
-    // Default mock for auth middleware user lookup
-    ctx.db.select.mockImplementation(() => ({
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      get: vi.fn().mockResolvedValue({
-        id: userId,
-        email: 'test@example.com',
-        username: 'testuser',
-        enabled: true,
-      }),
-    }));
+    // Setup default database mock for auth
+    setupDbMock();
   });
 
   describe('Authentication', () => {
@@ -96,13 +113,7 @@ describe('Pomodoro Routes', () => {
         },
       ];
 
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        offset: vi.fn().mockResolvedValue(mockSessions),
-      }));
+      setupDbMock(mockSessions);
 
       const res = await app.request('/pomodoro/sessions', {
         method: 'GET',
@@ -119,9 +130,22 @@ describe('Pomodoro Routes', () => {
     });
 
     it('should handle pagination parameters', async () => {
+      let callCount = 0;
       ctx.db.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
+        get: vi.fn().mockImplementation(() => {
+          callCount++;
+          if (callCount === 1) {
+            // Auth middleware user lookup
+            return Promise.resolve({
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            });
+          }
+        }),
         orderBy: vi.fn().mockReturnThis(),
         limit: vi.fn((limit) => {
           expect(limit).toBe(10);
@@ -159,10 +183,23 @@ describe('Pomodoro Routes', () => {
         { id: 'task-2', sessionId: 'active-session', description: 'Task 2', completed: true },
       ];
 
+      let callCount = 0;
       ctx.db.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(mockSession),
+        get: vi.fn().mockImplementation(() => {
+          callCount++;
+          if (callCount === 1) {
+            // Auth middleware user lookup
+            return Promise.resolve({
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            });
+          }
+          return Promise.resolve(mockSession);
+        }),
         orderBy: vi.fn().mockResolvedValue(mockTasks),
       }));
 
@@ -181,11 +218,7 @@ describe('Pomodoro Routes', () => {
     });
 
     it('should return 404 when no active session', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(null),
-      }));
+      setupDbMock(null);
 
       const res = await app.request('/pomodoro/sessions/active', {
         method: 'GET',
@@ -212,10 +245,23 @@ describe('Pomodoro Routes', () => {
         { id: 'task-1', sessionId: 'session-123', description: 'Task 1' },
       ];
 
+      let callCount = 0;
       ctx.db.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(mockSession),
+        get: vi.fn().mockImplementation(() => {
+          callCount++;
+          if (callCount === 1) {
+            // Auth middleware user lookup
+            return Promise.resolve({
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            });
+          }
+          return Promise.resolve(mockSession);
+        }),
         orderBy: vi.fn().mockResolvedValue(mockTasks),
       }));
 
@@ -234,11 +280,7 @@ describe('Pomodoro Routes', () => {
     });
 
     it('should return 404 for non-existent session', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(null),
-      }));
+      setupDbMock(null);
 
       const res = await app.request('/pomodoro/sessions/non-existent', {
         method: 'GET',
@@ -264,12 +306,7 @@ describe('Pomodoro Routes', () => {
       };
 
       // No active session
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(null),
-        orderBy: vi.fn().mockResolvedValue(sessionData.tasks),
-      }));
+      setupDbMock(null);
 
       ctx.db.insert.mockImplementation(() => ({
         values: vi.fn().mockResolvedValue(undefined),
@@ -295,11 +332,7 @@ describe('Pomodoro Routes', () => {
     });
 
     it('should return 409 if active session exists', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue({ id: 'existing-session' }),
-      }));
+      setupDbMock({ id: 'existing-session' });
 
       const res = await app.request('/pomodoro/sessions', {
         method: 'POST',
@@ -342,11 +375,7 @@ describe('Pomodoro Routes', () => {
         completedCycles: 2,
       };
 
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(existingSession),
-      }));
+      setupDbMock(existingSession);
 
       ctx.db.update.mockImplementation(() => ({
         set: vi.fn().mockReturnThis(),
@@ -378,11 +407,7 @@ describe('Pomodoro Routes', () => {
     });
 
     it('should return 404 for non-existent session', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(null),
-      }));
+      setupDbMock(null);
 
       const res = await app.request('/pomodoro/sessions/non-existent', {
         method: 'PUT',
@@ -400,11 +425,7 @@ describe('Pomodoro Routes', () => {
   describe('PUT /pomodoro/sessions/:sessionId/tasks/:taskId', () => {
     it('should update task completion status', async () => {
       // Mock session exists
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue({ id: 'session-123' }),
-      }));
+      setupDbMock({ id: 'session-123' });
 
       ctx.db.update.mockImplementation(() => ({
         set: vi.fn().mockReturnThis(),
@@ -430,11 +451,7 @@ describe('Pomodoro Routes', () => {
     });
 
     it('should return 404 if session not found', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(null),
-      }));
+      setupDbMock(null);
 
       const res = await app.request('/pomodoro/sessions/non-existent/tasks/task-123', {
         method: 'PUT',
@@ -450,11 +467,7 @@ describe('Pomodoro Routes', () => {
 
     it('should return 404 if task not found', async () => {
       // Session exists
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue({ id: 'session-123' }),
-      }));
+      setupDbMock({ id: 'session-123' });
 
       // But task update returns empty
       ctx.db.update.mockImplementation(() => ({
@@ -489,11 +502,7 @@ describe('Pomodoro Routes', () => {
         autoStartWork: true,
       };
 
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(mockConfig),
-      }));
+      setupDbMock(mockConfig);
 
       const res = await app.request('/pomodoro/config', {
         method: 'GET',
@@ -508,11 +517,7 @@ describe('Pomodoro Routes', () => {
     });
 
     it('should return default config if user has none', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(null),
-      }));
+      setupDbMock(null);
 
       const res = await app.request('/pomodoro/config', {
         method: 'GET',
@@ -538,11 +543,7 @@ describe('Pomodoro Routes', () => {
 
   describe('PUT /pomodoro/config', () => {
     it('should update existing config', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue({ id: 'existing-config' }),
-      }));
+      setupDbMock({ id: 'existing-config' });
 
       const updateData = {
         workDuration: 30,
@@ -570,11 +571,7 @@ describe('Pomodoro Routes', () => {
     });
 
     it('should create new config if none exists', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(null),
-      }));
+      setupDbMock(null);
 
       const configData = {
         workDuration: 20,
@@ -632,10 +629,28 @@ describe('Pomodoro Routes', () => {
         { completedCycles: 3, workDuration: 30 },
       ];
 
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue(mockSessions),
-      }));
+      let callCount = 0;
+      ctx.db.select.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // Auth middleware user lookup
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            get: vi.fn().mockResolvedValue({
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            }),
+          };
+        }
+        // Stats query
+        return {
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockResolvedValue(mockSessions),
+        };
+      });
 
       const res = await app.request('/pomodoro/stats', {
         method: 'GET',
@@ -654,10 +669,28 @@ describe('Pomodoro Routes', () => {
     });
 
     it('should handle no completed sessions', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue([]),
-      }));
+      let callCount = 0;
+      ctx.db.select.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // Auth middleware user lookup
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            get: vi.fn().mockResolvedValue({
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            }),
+          };
+        }
+        // Stats query
+        return {
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockResolvedValue([]),
+        };
+      });
 
       const res = await app.request('/pomodoro/stats', {
         method: 'GET',
@@ -678,7 +711,23 @@ describe('Pomodoro Routes', () => {
 
   describe('Error Handling', () => {
     it('should handle database errors gracefully', async () => {
+      let callCount = 0;
       ctx.db.select.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // Auth middleware user lookup - let it pass
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            get: vi.fn().mockResolvedValue({
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            }),
+          };
+        }
+        // After auth, throw error
         throw new Error('Database connection failed');
       });
 
