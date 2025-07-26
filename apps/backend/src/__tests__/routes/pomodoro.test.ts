@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import pomodoroRoutes from '../../routes/pomodoro';
 import type { Bindings, Variables } from '../../types';
 import { createTestContext, createMockDbChain } from '../helpers/test-context';
-import { generateTokens } from '../../utils/auth';
+import * as jwt from '@tsndr/cloudflare-worker-jwt';
 
 vi.mock('../../utils/nanoid', () => ({
   nanoid: () => 'test-id-123',
@@ -19,9 +19,15 @@ describe('Pomodoro Routes', () => {
     ctx = createTestContext();
     app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
     
-    // Generate valid token
-    const tokens = await generateTokens(userId, ctx.env.JWT_SECRET);
-    validToken = tokens.accessToken;
+    // Generate valid token using jwt directly
+    validToken = await jwt.sign(
+      {
+        sub: userId,
+        type: 'access',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      },
+      ctx.env.JWT_SECRET
+    );
     
     // Add database middleware
     app.use('*', async (c, next) => {

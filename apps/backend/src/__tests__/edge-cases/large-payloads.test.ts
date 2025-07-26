@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Hono } from 'hono';
 import type { Bindings, Variables } from '../../types';
 import { createTestContext, createMockDbChain } from '../helpers/test-context';
-import { generateTokens } from '../../utils/auth';
+import * as jwt from '@tsndr/cloudflare-worker-jwt';
 import todosRoutes from '../../routes/todos';
 import notesRoutes from '../../routes/notes';
 import momentsRoutes from '../../routes/moments';
@@ -13,13 +13,71 @@ describe('Large Payload Edge Cases', () => {
   let validToken: string;
   const userId = 'test-user';
 
+  // Helper to setup database mock with auth
+  const setupDbMock = () => {
+    let callCount = 0;
+    ctx.db.select.mockImplementation(() => ({
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      get: vi.fn().mockImplementation(() => {
+        callCount++;
+        // Always return user for auth middleware
+        return Promise.resolve({
+          id: userId,
+          email: 'test@example.com',
+          username: 'testuser',
+          enabled: true,
+        });
+      }),
+    }));
+  };
+
+  // Helper to setup auth and custom db behavior
+  const setupDbWithAuth = (customMocks: any) => {
+    let selectCallCount = 0;
+    
+    // Handle select with auth
+    if (customMocks.select) {
+      ctx.db.select.mockImplementation(() => {
+        selectCallCount++;
+        if (selectCallCount === 1) {
+          // Auth middleware
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            get: vi.fn().mockResolvedValue({
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            }),
+          };
+        }
+        return customMocks.select();
+      });
+    } else {
+      setupDbMock();
+    }
+    
+    // Apply other custom mocks
+    if (customMocks.insert) ctx.db.insert.mockImplementation(customMocks.insert);
+    if (customMocks.update) ctx.db.update.mockImplementation(customMocks.update);
+    if (customMocks.delete) ctx.db.delete.mockImplementation(customMocks.delete);
+  };
+
   beforeEach(async () => {
     ctx = createTestContext();
     app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
     
-    // Generate valid token
-    const tokens = await generateTokens(userId, ctx.env.JWT_SECRET);
-    validToken = tokens.accessToken;
+    // Generate valid token using jwt directly
+    validToken = await jwt.sign(
+      {
+        sub: userId,
+        type: 'access',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      },
+      ctx.env.JWT_SECRET
+    );
     
     // Add database middleware
     app.use('*', async (c, next) => {
@@ -31,17 +89,8 @@ describe('Large Payload Edge Cases', () => {
     app.route('/notes', notesRoutes);
     app.route('/moments', momentsRoutes);
     
-    // Default mock for auth middleware user lookup
-    ctx.db.select.mockImplementation(() => ({
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      get: vi.fn().mockResolvedValue({
-        id: userId,
-        email: 'test@example.com',
-        username: 'testuser',
-        enabled: true,
-      }),
-    }));
+    // Setup default database mock for auth
+    setupDbMock();
   });
 
   describe('Request Size Limits', () => {
