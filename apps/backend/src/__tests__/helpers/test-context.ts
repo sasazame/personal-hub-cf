@@ -29,7 +29,11 @@ export function createTestContext() {
     await next();
   });
 
-  return { app, env, mockDb };
+  // Create a valid test token (pre-signed with test-jwt-secret)
+  // This is a valid JWT token signed with 'test-jwt-secret' that expires in 2030
+  const validToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxODkzNDU2MDAwfQ.v6Q_9cAGQPR9nJmF4BFHQT6zLJMSNQaWEGS7FhR2vNg';
+
+  return { app, env, db: mockDb, validToken };
 }
 
 // Helper to create mock database chain

@@ -1,0 +1,645 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { Hono } from 'hono';
+import usersRoutes from '../../routes/users';
+import type { Bindings, Variables } from '../../types';
+import { createTestContext, createMockDbChain } from '../helpers/test-context';
+import { generateTokens } from '../../utils/auth';
+import * as authUtils from '../../utils/auth';
+
+vi.mock('../../utils/auth', () => ({
+  verifyPassword: vi.fn(),
+  hashPassword: vi.fn(),
+  generateTokens: vi.fn(),
+  verifyToken: vi.fn(),
+}));
+
+describe('Users Routes', () => {
+  let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
+  let ctx: any;
+  let validToken: string;
+  const userId = 'test-user';
+
+  beforeEach(async () => {
+    ctx = createTestContext();
+    app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
+    
+    // Generate valid token
+    const tokens = await generateTokens(userId, ctx.env.JWT_SECRET);
+    validToken = tokens.accessToken;
+    
+    // Add database middleware
+    app.use('*', async (c, next) => {
+      c.set('db', ctx.db);
+      await next();
+    });
+    
+    app.route('/users', usersRoutes);
+    vi.clearAllMocks();
+    
+    // Default mock for auth middleware user lookup
+    ctx.db.select.mockImplementation(() => ({
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      get: vi.fn().mockResolvedValue({
+        id: userId,
+        email: 'test@example.com',
+        username: 'testuser',
+        enabled: true,
+      }),
+    }));
+  });
+
+  describe('Authentication', () => {
+    it('should return 401 for missing token', async () => {
+      const res = await app.request('/users/profile', {
+        method: 'GET',
+      }, ctx.env);
+
+      expect(res.status).toBe(401);
+      const body = await res.json();
+      expect(body.code).toBe('UNAUTHORIZED');
+    });
+
+    it('should return 401 for invalid token', async () => {
+      const res = await app.request('/users/profile', {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer invalid-token',
+        },
+      }, ctx.env);
+
+      expect(res.status).toBe(401);
+    });
+  });
+
+  describe('GET /users/profile', () => {
+    it('should return user profile', async () => {
+      const mockUser = {
+        id: 'test-user',
+        email: 'test@example.com',
+        username: 'testuser',
+        emailVerified: true,
+        profilePictureUrl: 'https://example.com/avatar.jpg',
+        givenName: 'Test',
+        familyName: 'User',
+        locale: 'en-US',
+        weekStartDay: 1,
+        enabled: true,
+        createdAt: '2025-01-01T00:00:00Z',
+        updatedAt: '2025-01-01T00:00:00Z',
+      };
+
+      ctx.db.select.mockImplementation(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        get: vi.fn().mockResolvedValue(mockUser),
+      }));
+
+      const res = await app.request('/users/profile', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${validToken}`,
+        },
+      }, ctx.env);
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body).toEqual(mockUser);
+    });
+
+    it('should return 404 if user not found', async () => {
+      ctx.db.select.mockImplementation(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        get: vi.fn().mockResolvedValue(null),
+      }));
+
+      const res = await app.request('/users/profile', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${validToken}`,
+        },
+      }, ctx.env);
+
+      expect(res.status).toBe(404);
+      const body = await res.json();
+      expect(body.code).toBe('NOT_FOUND');
+    });
+  });
+
+  describe('PUT /users/profile', () => {
+    it('should update user profile', async () => {
+      const updateData = {
+        username: 'newusername',
+        givenName: 'Updated',
+        familyName: 'Name',
+      };
+
+      // Username not taken
+      ctx.db.select.mockImplementation(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        get: vi.fn().mockResolvedValue(null),
+      }));
+
+      ctx.db.update.mockImplementation(() => ({
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        returning: vi.fn().mockResolvedValue([{
+          id: 'test-user',
+          email: 'test@example.com',
+          ...updateData,
+        }]),
+      }));
+
+      const res = await app.request('/users/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${validToken}`,
+        },
+        body: JSON.stringify(updateData),
+      }, ctx.env);
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.username).toBe('newusername');
+      expect(body.givenName).toBe('Updated');
+    });
+
+    it('should return 409 if username is taken', async () => {
+      ctx.db.select.mockImplementation(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        get: vi.fn().mockResolvedValue({ id: 'other-user', username: 'taken' }),
+      }));
+
+      const res = await app.request('/users/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${validToken}`,
+        },
+        body: JSON.stringify({ username: 'taken' }),
+      }, ctx.env);
+
+      expect(res.status).toBe(409);
+      const body = await res.json();
+      expect(body.details.username).toBe('Username already taken');
+    });
+
+    it('should validate profile update fields', async () => {
+      const res = await app.request('/users/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${validToken}`,
+        },
+        body: JSON.stringify({
+          username: 'ab', // Too short
+          weekStartDay: 7, // Invalid
+        }),
+      }, ctx.env);
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.code).toBe('VALIDATION_ERROR');
+    });
+  });
+
+  describe('PUT /users/password', () => {
+    it('should change password successfully', async () => {
+      const mockUser = {
+        id: 'test-user',
+        password: 'hashed-old-password',
+      };
+
+      ctx.db.select.mockImplementation(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        get: vi.fn().mockResolvedValue(mockUser),
+      }));
+
+      vi.mocked(authUtils.verifyPassword).mockResolvedValue(true);
+      vi.mocked(authUtils.hashPassword).mockResolvedValue('hashed-new-password');
+
+      ctx.db.update.mockImplementation(() => ({
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue(undefined),
+      }));
+
+      const res = await app.request('/users/password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${validToken}`,
+        },
+        body: JSON.stringify({
+          currentPassword: 'oldpass123',
+          newPassword: 'newpass123',
+        }),
+      }, ctx.env);
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(vi.mocked(authUtils.verifyPassword)).toHaveBeenCalledWith('oldpass123', 'hashed-old-password');
+      expect(vi.mocked(authUtils.hashPassword)).toHaveBeenCalledWith('newpass123');
+    });
+
+    it('should reject incorrect current password', async () => {
+      ctx.db.select.mockImplementation(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        get: vi.fn().mockResolvedValue({ id: 'test-user', password: 'hash' }),
+      }));
+
+      vi.mocked(authUtils.verifyPassword).mockResolvedValue(false);
+
+      const res = await app.request('/users/password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${validToken}`,
+        },
+        body: JSON.stringify({
+          currentPassword: 'wrongpass',
+          newPassword: 'newpass123',
+        }),
+      }, ctx.env);
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.details.currentPassword).toBe('Current password is incorrect');
+    });
+
+    it('should validate password requirements', async () => {
+      const res = await app.request('/users/password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${validToken}`,
+        },
+        body: JSON.stringify({
+          currentPassword: 'oldpass',
+          newPassword: 'short', // Too short
+        }),
+      }, ctx.env);
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.code).toBe('VALIDATION_ERROR');
+    });
+  });
+
+  describe('PUT /users/email', () => {
+    it('should update email successfully', async () => {
+      const mockUser = {
+        id: 'test-user',
+        email: 'old@example.com',
+        password: 'hashed-password',
+      };
+
+      ctx.db.select.mockImplementation(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn((condition) => {
+          // Return user for first call, null for email check
+          if (ctx.db.select.mock.calls.length === 1) {
+            return { get: vi.fn().mockResolvedValue(mockUser) };
+          }
+          return { get: vi.fn().mockResolvedValue(null) };
+        }),
+      }));
+
+      vi.mocked(authUtils.verifyPassword).mockResolvedValue(true);
+
+      ctx.db.update.mockImplementation(() => ({
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue(undefined),
+      }));
+
+      const res = await app.request('/users/email', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${validToken}`,
+        },
+        body: JSON.stringify({
+          email: 'new@example.com',
+          password: 'password123',
+        }),
+      }, ctx.env);
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
+
+    it('should reject if email already exists', async () => {
+      ctx.db.select.mockImplementation(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        get: vi.fn().mockResolvedValue({ id: 'other-user' }),
+      }));
+
+      vi.mocked(authUtils.verifyPassword).mockResolvedValue(true);
+
+      const res = await app.request('/users/email', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${validToken}`,
+        },
+        body: JSON.stringify({
+          email: 'taken@example.com',
+          password: 'password123',
+        }),
+      }, ctx.env);
+
+      expect(res.status).toBe(409);
+      const body = await res.json();
+      expect(body.code).toBe('CONFLICT');
+    });
+
+    it('should validate email format', async () => {
+      const res = await app.request('/users/email', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${validToken}`,
+        },
+        body: JSON.stringify({
+          email: 'not-an-email',
+          password: 'password123',
+        }),
+      }, ctx.env);
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.code).toBe('VALIDATION_ERROR');
+    });
+  });
+
+  describe('PUT /users/preferences', () => {
+    it('should update user preferences', async () => {
+      const updateData = {
+        weekStartDay: 0,
+        locale: 'ja-JP',
+      };
+
+      ctx.db.update.mockImplementation(() => ({
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        returning: vi.fn().mockResolvedValue([updateData]),
+      }));
+
+      const res = await app.request('/users/preferences', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${validToken}`,
+        },
+        body: JSON.stringify(updateData),
+      }, ctx.env);
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body).toEqual(updateData);
+    });
+
+    it('should validate weekStartDay range', async () => {
+      const res = await app.request('/users/preferences', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${validToken}`,
+        },
+        body: JSON.stringify({ weekStartDay: 7 }),
+      }, ctx.env);
+
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('GET /users/social-accounts', () => {
+    it('should return user social accounts', async () => {
+      const mockAccounts = [
+        {
+          id: '1',
+          provider: 'google',
+          email: 'user@gmail.com',
+          name: 'Test User',
+          picture: 'https://example.com/pic.jpg',
+          createdAt: '2025-01-01T00:00:00Z',
+        },
+        {
+          id: '2',
+          provider: 'github',
+          email: 'user@github.com',
+          name: 'testuser',
+          picture: null,
+          createdAt: '2025-01-01T00:00:00Z',
+        },
+      ];
+
+      ctx.db.select.mockImplementation(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue(mockAccounts),
+      }));
+
+      const res = await app.request('/users/social-accounts', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${validToken}`,
+        },
+      }, ctx.env);
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body).toEqual(mockAccounts);
+    });
+  });
+
+  describe('DELETE /users/social-accounts/:provider', () => {
+    it('should delete social account', async () => {
+      const mockUser = { id: 'test-user', password: 'hash' };
+      const mockAccounts = [
+        { provider: 'google' },
+        { provider: 'github' },
+      ];
+
+      let selectCallCount = 0;
+      ctx.db.select.mockImplementation(() => ({
+        from: vi.fn((table) => {
+          selectCallCount++;
+          if (selectCallCount === 1) {
+            return { where: vi.fn().mockReturnThis(), get: vi.fn().mockResolvedValue(mockUser) };
+          }
+          return { where: vi.fn().mockResolvedValue(mockAccounts) };
+        }),
+      }));
+
+      ctx.db.delete.mockImplementation(() => ({
+        where: vi.fn().mockReturnThis(),
+        returning: vi.fn().mockResolvedValue([{ id: '1' }]),
+      }));
+
+      const res = await app.request('/users/social-accounts/google', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${validToken}`,
+        },
+      }, ctx.env);
+
+      expect(res.status).toBe(204);
+    });
+
+    it('should prevent deleting last auth method', async () => {
+      const mockUser = { id: 'test-user', password: null }; // No password
+      const mockAccounts = [{ provider: 'google' }]; // Only one social account
+
+      let selectCallCount = 0;
+      ctx.db.select.mockImplementation(() => ({
+        from: vi.fn((table) => {
+          selectCallCount++;
+          if (selectCallCount === 1) {
+            return { where: vi.fn().mockReturnThis(), get: vi.fn().mockResolvedValue(mockUser) };
+          }
+          return { where: vi.fn().mockResolvedValue(mockAccounts) };
+        }),
+      }));
+
+      const res = await app.request('/users/social-accounts/google', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${validToken}`,
+        },
+      }, ctx.env);
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.message).toContain('Cannot remove the last authentication method');
+    });
+
+    it('should return 404 if social account not found', async () => {
+      ctx.db.select.mockImplementation(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        get: vi.fn().mockResolvedValue({ id: 'test-user', password: 'hash' }),
+      }));
+
+      ctx.db.delete.mockImplementation(() => ({
+        where: vi.fn().mockReturnThis(),
+        returning: vi.fn().mockResolvedValue([]),
+      }));
+
+      const res = await app.request('/users/social-accounts/unknown', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${validToken}`,
+        },
+      }, ctx.env);
+
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('DELETE /users/account', () => {
+    it('should disable account with correct password', async () => {
+      const mockUser = {
+        id: 'test-user',
+        password: 'hashed-password',
+      };
+
+      ctx.db.select.mockImplementation(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        get: vi.fn().mockResolvedValue(mockUser),
+      }));
+
+      vi.mocked(authUtils.verifyPassword).mockResolvedValue(true);
+
+      ctx.db.update.mockImplementation(() => ({
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue(undefined),
+      }));
+
+      const res = await app.request('/users/account', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${validToken}`,
+        },
+        body: JSON.stringify({ password: 'password123' }),
+      }, ctx.env);
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
+
+    it('should reject with incorrect password', async () => {
+      ctx.db.select.mockImplementation(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        get: vi.fn().mockResolvedValue({ id: 'test-user', password: 'hash' }),
+      }));
+
+      vi.mocked(authUtils.verifyPassword).mockResolvedValue(false);
+
+      const res = await app.request('/users/account', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${validToken}`,
+        },
+        body: JSON.stringify({ password: 'wrongpass' }),
+      }, ctx.env);
+
+      expect(res.status).toBe(401);
+      const body = await res.json();
+      expect(body.error).toBe('Password is incorrect');
+    });
+  });
+
+  describe('POST /users/verify-email', () => {
+    it('should verify email successfully', async () => {
+      ctx.db.update.mockImplementation(() => ({
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue(undefined),
+      }));
+
+      const res = await app.request('/users/verify-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${validToken}`,
+        },
+        body: JSON.stringify({ token: 'verification-token' }),
+      }, ctx.env);
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle database errors gracefully', async () => {
+      ctx.db.select.mockImplementation(() => {
+        throw new Error('Database connection failed');
+      });
+
+      const res = await app.request('/users/profile', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${validToken}`,
+        },
+      }, ctx.env);
+
+      expect(res.status).toBe(500);
+      const body = await res.json();
+      expect(body.code).toBe('INTERNAL_ERROR');
+    });
+  });
+});
