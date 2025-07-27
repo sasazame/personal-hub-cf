@@ -12,9 +12,6 @@ import notesRoutes from './routes/notes';
 import momentsRoutes from './routes/moments';
 import usersRoutes from './routes/users';
 import analyticsRoutes from './routes/analytics';
-import debugRoutes from './routes/debug';
-import testRegisterRoutes from './routes/test-register';
-import testLoginRoutes from './routes/test-login';
 import { createValidationError, StatusCodes } from './utils/spring-boot-compat';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
@@ -47,9 +44,6 @@ app.route('/api/v1/notes', notesRoutes);
 app.route('/api/v1/moments', momentsRoutes);
 app.route('/api/v1/users', usersRoutes);
 app.route('/api/v1/analytics', analyticsRoutes);
-app.route('/api/v1/debug', debugRoutes);
-app.route('/api/v1/test', testRegisterRoutes);
-app.route('/api/v1/test-login', testLoginRoutes);
 
 // 404 handler
 app.notFound((c) => {

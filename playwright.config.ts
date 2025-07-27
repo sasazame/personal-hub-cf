@@ -50,7 +50,7 @@ export default defineConfig({
     },
   ],
 
-  webServer: [
+  webServer: process.env.SKIP_WEBSERVER ? undefined : [
     // Cloudflare Workers backend
     {
       command: 'cd apps/backend && pnpm dev',

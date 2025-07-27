@@ -72,7 +72,7 @@ export async function login(page: Page, email: string, password: string) {
       // Only check backend in non-CI environments
       try {
         const response = await page.evaluate(async ([email, password]) => {
-          const response = await fetch('http://localhost:8080/api/v1/auth/login', {
+          const response = await fetch('http://localhost:8787/api/v1/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
@@ -85,7 +85,7 @@ export async function login(page: Page, email: string, password: string) {
         }
       } catch (backendError) {
         console.log('Backend direct check failed:', backendError);
-        throw new Error('Make sure the backend is running at localhost:8080');
+        throw new Error('Make sure the backend is running at localhost:8787');
       }
       
       throw new Error('Login did not redirect from login page');
