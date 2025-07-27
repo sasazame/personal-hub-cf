@@ -1,0 +1,78 @@
+{
+  "containerClasses": "geist_e531dabc-module__QGiZLq__variable geist_mono_68a01160-module__YLcDdW__variable antialiased",
+  "formClasses": "space-y-6",
+  "heading": {
+    "text": "Create account",
+    "tagName": "H1",
+    "classes": "text-3xl font-bold text-white mb-2"
+  },
+  "inputs": [
+    {
+      "type": "text",
+      "placeholder": "Please enter your username",
+      "name": "username",
+      "classes": "w-full px-3 py-3 text-base bg-white/10 backdrop-blur-md border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 placeholder:text-white/40 text-white pl-10",
+      "parentClasses": "relative"
+    },
+    {
+      "type": "email",
+      "placeholder": "Please enter your email address",
+      "name": "email",
+      "classes": "w-full px-3 py-3 text-base bg-white/10 backdrop-blur-md border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 placeholder:text-white/40 text-white pl-10",
+      "parentClasses": "relative"
+    },
+    {
+      "type": "password",
+      "placeholder": "Please enter your password",
+      "name": "password",
+      "classes": "w-full px-3 py-3 text-base bg-white/10 backdrop-blur-md border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 placeholder:text-white/40 text-white pl-10 pr-10",
+      "parentClasses": "relative"
+    },
+    {
+      "type": "password",
+      "placeholder": "Please enter your password",
+      "name": "confirmPassword",
+      "classes": "w-full px-3 py-3 text-base bg-white/10 backdrop-blur-md border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 placeholder:text-white/40 text-white pl-10 pr-10",
+      "parentClasses": "relative"
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "type": "submit",
+      "classes": "flex items-center justify-center w-8 h-8 rounded-full transition-colors hover:bg-gray-100"
+    },
+    {
+      "text": "",
+      "type": "button",
+      "classes": "text-white/70 hover:text-white transition-colors"
+    },
+    {
+      "text": "",
+      "type": "button",
+      "classes": "text-white/70 hover:text-white transition-colors"
+    },
+    {
+      "text": "Create account",
+      "type": "submit",
+      "classes": "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] focus:ring-blue-500 h-12 px-6 text-base w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 border-0 text-white font-semibold py-3 transition-all duration-300 transform hover:scale-[1.02]"
+    }
+  ],
+  "links": [
+    {
+      "text": "Terms of Service",
+      "href": "/terms",
+      "classes": "text-blue-300 hover:text-blue-200"
+    },
+    {
+      "text": "Privacy Policy",
+      "href": "/privacy",
+      "classes": "text-blue-300 hover:text-blue-200"
+    },
+    {
+      "text": "Login",
+      "href": "/login",
+      "classes": "text-blue-300 hover:text-blue-200 transition-colors font-medium"
+    }
+  ]
+}

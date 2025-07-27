@@ -5,6 +5,8 @@ import { AuthProvider } from './contexts/AuthContext'
 import { Login } from './pages/Login'
 import { Register } from './pages/Register'
 import { Dashboard } from './pages/Dashboard'
+import { Terms } from './pages/Terms'
+import { Privacy } from './pages/Privacy'
 import { ProtectedRoute } from './components/ProtectedRoute'
 
 const queryClient = new QueryClient({
@@ -24,6 +26,8 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
             <Route
               path="/dashboard"
               element={
