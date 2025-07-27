@@ -58,7 +58,7 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
     },
-    // Frontend (original Next.js)
+    // Frontend (Vite + React)
     {
       command: 'cd apps/frontend && pnpm dev',
       url: 'http://localhost:3000',

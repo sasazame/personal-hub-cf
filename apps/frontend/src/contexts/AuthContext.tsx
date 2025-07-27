@@ -1,15 +1,19 @@
-'use client';
+import { createContext, useContext, useReducer, useEffect, ReactNode, useCallback } from 'react'
+import toast from 'react-hot-toast'
+import { apiClient } from '@/lib/api-client'
 
-import { createContext, useContext, useReducer, useEffect, ReactNode, useCallback } from 'react';
-import { User } from '@/types/auth';
-import { showSuccess, showError } from '@/components/ui/toast';
-import { getErrorMessage } from '@/utils/errorMessages';
+interface User {
+  id: string
+  username: string
+  email: string
+  roles: string[]
+}
 
 interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
+  user: User | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  error: string | null
 }
 
 type AuthAction =
@@ -17,14 +21,14 @@ type AuthAction =
   | { type: 'AUTH_SUCCESS'; payload: User }
   | { type: 'AUTH_ERROR'; payload: string }
   | { type: 'AUTH_LOGOUT' }
-  | { type: 'CLEAR_ERROR' };
+  | { type: 'CLEAR_ERROR' }
 
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
   isLoading: true,
   error: null,
-};
+}
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
@@ -33,7 +37,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         ...state,
         isLoading: true,
         error: null,
-      };
+      }
     case 'AUTH_SUCCESS':
       return {
         ...state,
@@ -41,7 +45,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         isAuthenticated: true,
         isLoading: false,
         error: null,
-      };
+      }
     case 'AUTH_ERROR':
       return {
         ...state,
@@ -49,7 +53,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         isAuthenticated: false,
         isLoading: false,
         error: action.payload,
-      };
+      }
     case 'AUTH_LOGOUT':
       return {
         ...state,
@@ -57,241 +61,138 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         isAuthenticated: false,
         isLoading: false,
         error: null,
-      };
+      }
     case 'CLEAR_ERROR':
       return {
         ...state,
         error: null,
-      };
+      }
     default:
-      return state;
+      return state
   }
 }
 
 interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<void>;
-  loginWithOIDC: (provider: 'google' | 'github') => Promise<void>;
-  handleOAuthCallback: (code: string, state: string, errorParam?: string, errorDescription?: string) => Promise<{ success: boolean; error?: string }>;
-  register: (username: string, email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  clearError: () => void;
-  checkAuth: () => Promise<void>;
+  login: (email: string, password: string) => Promise<void>
+  register: (username: string, email: string, password: string) => Promise<void>
+  logout: () => Promise<void>
+  clearError: () => void
+  checkAuth: () => Promise<void>
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 interface AuthProviderProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [state, dispatch] = useReducer(authReducer, initialState);
+  const [state, dispatch] = useReducer(authReducer, initialState)
 
-  const login = async (email: string, password: string): Promise<void> => {
-    dispatch({ type: 'AUTH_LOADING' });
+  const login = useCallback(async (email: string, password: string): Promise<void> => {
+    dispatch({ type: 'AUTH_LOADING' })
     
     try {
-      const { OIDCAuthService } = await import('@/services/oidc-auth');
-      const data = await OIDCAuthService.login(email, password);
+      const response = await apiClient.post('/api/v1/auth/login', { email, password })
+      const { user, token } = response.data
       
-      dispatch({ type: 'AUTH_SUCCESS', payload: data.user });
-      showSuccess(`Welcome back, ${data.user.username}!`);
-    } catch (error) {
-      const message = getErrorMessage(error);
-      dispatch({ type: 'AUTH_ERROR', payload: message });
-      showError(message);
-      throw error;
+      // Store token
+      localStorage.setItem('accessToken', token)
+      
+      dispatch({ type: 'AUTH_SUCCESS', payload: user })
+      toast.success(`Welcome back, ${user.username}!`)
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Login failed'
+      dispatch({ type: 'AUTH_ERROR', payload: message })
+      toast.error(message)
+      throw error
     }
-  };
+  }, [])
 
-  const loginWithOIDC = useCallback(async (provider: 'google' | 'github') => {
-    try {
-      dispatch({ type: 'AUTH_LOADING' });
-      
-      // Import the OIDC service dynamically to avoid SSR issues
-      const { OIDCAuthService } = await import('@/services/oidc-auth');
-      
-      // Initiate OAuth flow
-      const { authorizationUrl, state } = await OIDCAuthService.initiateOAuth(provider);
-      
-      // Store state and provider in session storage for callback verification
-      sessionStorage.setItem('oauth_state', state);
-      sessionStorage.setItem('oauth_provider', provider);
-      
-      // Redirect to authorization URL
-      window.location.href = authorizationUrl;
-    } catch (error) {
-      const message = getErrorMessage(error);
-      dispatch({ type: 'AUTH_ERROR', payload: message });
-      showError(message);
-      throw error;
-    }
-  }, []);
-
-  const handleOAuthCallback = useCallback(async (
-    code: string,
-    state: string,
-    errorParam?: string,
-    errorDescription?: string
-  ): Promise<{ success: boolean; error?: string }> => {
-    try {
-      const { handleOAuthCallback: handleCallback } = await import('@/lib/oauth-callback-handler');
-      const result = await handleCallback(code, state, errorParam, errorDescription);
-      
-      if (result.success && result.user) {
-        dispatch({ type: 'AUTH_SUCCESS', payload: result.user });
-        showSuccess(`Welcome back, ${result.user.username}!`);
-        return { success: true };
-      } else {
-        dispatch({ type: 'AUTH_ERROR', payload: result.error || 'Authentication failed' });
-        return { success: false, error: result.error };
-      }
-    } catch (error) {
-      const message = getErrorMessage(error);
-      dispatch({ type: 'AUTH_ERROR', payload: message });
-      return { success: false, error: message };
-    }
-  }, []);
-
-  const register = async (username: string, email: string, password: string): Promise<void> => {
-    dispatch({ type: 'AUTH_LOADING' });
+  const register = useCallback(async (username: string, email: string, password: string): Promise<void> => {
+    dispatch({ type: 'AUTH_LOADING' })
     
     try {
-      const { OIDCAuthService } = await import('@/services/oidc-auth');
-      const data = await OIDCAuthService.register(email, password, username);
+      const response = await apiClient.post('/api/v1/auth/register', { 
+        username, 
+        email, 
+        password 
+      })
+      const { user, token } = response.data
       
-      dispatch({ type: 'AUTH_SUCCESS', payload: data.user });
-      showSuccess(`Welcome, ${data.user.username}! Account created successfully.`);
-    } catch (error) {
-      const message = getErrorMessage(error);
-      dispatch({ type: 'AUTH_ERROR', payload: message });
-      showError(message);
-      throw error;
+      // Store token
+      localStorage.setItem('accessToken', token)
+      
+      dispatch({ type: 'AUTH_SUCCESS', payload: user })
+      toast.success(`Welcome, ${user.username}! Account created successfully.`)
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Registration failed'
+      dispatch({ type: 'AUTH_ERROR', payload: message })
+      toast.error(message)
+      throw error
     }
-  };
+  }, [])
 
-  const logout = async (): Promise<void> => {
+  const logout = useCallback(async (): Promise<void> => {
     try {
-      const { OIDCAuthService } = await import('@/services/oidc-auth');
-      await OIDCAuthService.logout();
+      await apiClient.post('/api/v1/auth/logout')
     } catch (error) {
-      // Ignore logout errors - we'll clear local storage anyway
-      console.warn('Logout request failed:', error);
+      console.warn('Logout request failed:', error)
     } finally {
-      // Always clear local storage and update state
-      const { clearAuthTokens } = await import('@/lib/api-client');
-      clearAuthTokens();
-      dispatch({ type: 'AUTH_LOGOUT' });
-      showSuccess('You have been logged out successfully.');
+      localStorage.removeItem('accessToken')
+      dispatch({ type: 'AUTH_LOGOUT' })
+      toast.success('You have been logged out successfully.')
     }
-  };
+  }, [])
 
-  const clearError = (): void => {
-    dispatch({ type: 'CLEAR_ERROR' });
-  };
+  const clearError = useCallback((): void => {
+    dispatch({ type: 'CLEAR_ERROR' })
+  }, [])
 
-  const checkAuth = async (): Promise<void> => {
+  const checkAuth = useCallback(async (): Promise<void> => {
+    const token = localStorage.getItem('accessToken')
+    
+    if (!token) {
+      dispatch({ type: 'AUTH_LOGOUT' })
+      return
+    }
+
     try {
-      // Clean up expired tokens first
-      const { cleanupExpiredTokens } = await import('@/lib/api-client');
-      cleanupExpiredTokens();
-      
-      const { OIDCAuthService } = await import('@/services/oidc-auth');
-      
-      if (!OIDCAuthService.isAuthenticated()) {
-        dispatch({ type: 'AUTH_LOGOUT' });
-        return;
-      }
-
-      dispatch({ type: 'AUTH_LOADING' });
-      const user = await OIDCAuthService.getUserInfo();
-      dispatch({ type: 'AUTH_SUCCESS', payload: user });
+      dispatch({ type: 'AUTH_LOADING' })
+      const response = await apiClient.get('/api/v1/auth/me')
+      dispatch({ type: 'AUTH_SUCCESS', payload: response.data })
     } catch (error) {
-      // Clear tokens and logout on auth check failure
-      const { clearAuthTokens } = await import('@/lib/api-client');
-      clearAuthTokens();
-      dispatch({ type: 'AUTH_LOGOUT' });
-      
-      // Log error for debugging, don't show to user during silent auth check
-      console.warn('Auth check failed:', error);
+      localStorage.removeItem('accessToken')
+      dispatch({ type: 'AUTH_LOGOUT' })
+      console.warn('Auth check failed:', error)
     }
-  };
+  }, [])
 
   // Check authentication on mount
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  // Set up automatic token refresh timer
-  useEffect(() => {
-    if (!state.isAuthenticated || !state.user) {
-      return;
-    }
-
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      return;
-    }
-
-    try {
-      // Decode JWT to get expiration time
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const expiresAt = payload.exp * 1000; // Convert to milliseconds
-      const now = Date.now();
-      const expiresIn = expiresAt - now;
-      
-      // If token expires within next hour, set up refresh timer
-      if (expiresIn > 0 && expiresIn <= 60 * 60 * 1000) { // 1 hour
-        // Schedule refresh 1 minute before expiration
-        const refreshTime = Math.max(expiresIn - 60 * 1000, 0);
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`Token refresh scheduled in ${Math.round(refreshTime / 1000)} seconds`);
-        }
-        
-        const timeoutId = setTimeout(async () => {
-          try {
-            const { OIDCAuthService } = await import('@/services/oidc-auth');
-            await OIDCAuthService.refreshToken();
-            
-            if (process.env.NODE_ENV === 'development') {
-              console.log('Proactive token refresh completed successfully');
-            }
-          } catch (error) {
-            console.warn('Proactive token refresh failed:', error);
-            // Don't logout here - let the response interceptor handle it
-          }
-        }, refreshTime);
-
-        return () => clearTimeout(timeoutId);
-      }
-    } catch (error) {
-      console.warn('Failed to schedule token refresh:', error);
-    }
-  }, [state.isAuthenticated, state.user]);
+    checkAuth()
+  }, [checkAuth])
 
   const value: AuthContextType = {
     ...state,
     login,
-    loginWithOIDC,
-    handleOAuthCallback,
     register,
     logout,
     clearError,
     checkAuth,
-  };
+  }
 
   return (
     <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
-  );
+  )
 }
 
 export function useAuth(): AuthContextType {
-  const context = useContext(AuthContext);
+  const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider')
   }
-  return context;
+  return context
 }
