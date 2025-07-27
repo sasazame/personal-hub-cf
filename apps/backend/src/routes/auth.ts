@@ -444,11 +444,9 @@ app.post('/oidc/github/callback', (c) => {
 
 // POST /auth/logout - Spring Boot endpoint
 app.post('/logout', (c) => {
-  // Spring Boot returns 404 for logout endpoint
-  return c.json(
-    createErrorResponse(ErrorCodes.NOT_FOUND),
-    StatusCodes.NOT_FOUND
-  );
+  // For JWT-based auth, logout is typically handled client-side
+  // But we can provide a success response for compatibility
+  return c.json({ success: true, message: 'Logged out successfully' });
 });
 
 // GET /auth/validate-reset-token

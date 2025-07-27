@@ -15,8 +15,8 @@ app.use('*', authMiddleware);
 
 // Validation schema
 const dateRangeSchema = z.object({
-  fromDate: z.string(),
-  toDate: z.string(),
+  fromDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
+  toDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
 });
 
 // GET /analytics/overview

@@ -40,7 +40,7 @@ export async function setupTestDatabase() {
   
   await d1.exec('CREATE TABLE IF NOT EXISTS moments (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, content TEXT NOT NULL, tags TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE)');
   
-  await d1.exec('CREATE TABLE IF NOT EXISTS goal_achievement_history (id INTEGER PRIMARY KEY AUTOINCREMENT, goal_id INTEGER NOT NULL, achieved_date TEXT NOT NULL, notes TEXT, FOREIGN KEY (goal_id) REFERENCES goals(id) ON DELETE CASCADE)');
+  await d1.exec('CREATE TABLE IF NOT EXISTS goal_achievement_history (id INTEGER PRIMARY KEY AUTOINCREMENT, goal_id INTEGER NOT NULL, achieved_date TEXT NOT NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL, FOREIGN KEY (goal_id) REFERENCES goals(id) ON DELETE CASCADE)');
   
   await d1.exec('CREATE TABLE IF NOT EXISTS pomodoro_sessions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, start_time TEXT NOT NULL, end_time TEXT, work_duration INTEGER NOT NULL, break_duration INTEGER NOT NULL, status TEXT DEFAULT "ACTIVE", session_type TEXT, completed_cycles INTEGER DEFAULT 0, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE)');
   

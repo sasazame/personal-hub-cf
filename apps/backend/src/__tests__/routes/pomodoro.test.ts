@@ -79,10 +79,16 @@ describe('Pomodoro Routes', () => {
     });
 
     it('should return 401 for invalid token', async () => {
+      // Create a token with invalid signature
+      const invalidToken = await jwt.sign(
+        { sub: 'user-123', type: 'access', exp: Math.floor(Date.now() / 1000) + 3600 },
+        'wrong-secret'
+      );
+      
       const res = await app.request('/pomodoro/sessions', {
         method: 'GET',
         headers: {
-          'Authorization': 'Bearer invalid-token',
+          'Authorization': `Bearer ${invalidToken}`,
         },
       }, ctx.env);
 
@@ -311,6 +317,60 @@ describe('Pomodoro Routes', () => {
       ctx.db.insert.mockImplementation(() => ({
         values: vi.fn().mockResolvedValue(undefined),
       }));
+      
+      // Mock the tasks query after insert
+      let selectCallCount = 0;
+      ctx.db.select.mockImplementation(() => {
+        selectCallCount++;
+        if (selectCallCount === 1) {
+          // Auth middleware
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            get: vi.fn().mockResolvedValue({
+              id: 'test-user',
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            }),
+          };
+        } else if (selectCallCount === 2) {
+          // Check for active session
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            get: vi.fn().mockResolvedValue(null),
+          };
+        } else {
+          // Tasks query
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            orderBy: vi.fn().mockResolvedValue([
+              { 
+                id: 'task-1',
+                sessionId: 'test-id-123',
+                description: 'Complete feature',
+                orderIndex: 0,
+                completed: false,
+                todoId: null,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+              { 
+                id: 'task-2',
+                sessionId: 'test-id-123',
+                todoId: 123,
+                description: 'Review PR',
+                orderIndex: 1,
+                completed: false,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+            ]),
+          };
+        }
+      });
 
       const res = await app.request('/pomodoro/sessions', {
         method: 'POST',
@@ -328,7 +388,21 @@ describe('Pomodoro Routes', () => {
       expect(body.workDuration).toBe(25);
       expect(body.breakDuration).toBe(5);
       expect(body.status).toBe('ACTIVE');
-      expect(body.tasks).toEqual(sessionData.tasks);
+      
+      // Verify tasks were created with the correct data
+      expect(body.tasks).toHaveLength(2);
+      expect(body.tasks[0]).toMatchObject({
+        description: 'Complete feature',
+        orderIndex: 0,
+        completed: false,
+        todoId: null,
+      });
+      expect(body.tasks[1]).toMatchObject({
+        description: 'Review PR',
+        orderIndex: 1,
+        completed: false,
+        todoId: 123,
+      });
     });
 
     it('should return 409 if active session exists', async () => {

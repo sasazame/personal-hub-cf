@@ -11,7 +11,22 @@ vi.mock('../../utils/auth', () => ({
   hashPassword: vi.fn(),
   verifyPassword: vi.fn(),
   generateTokens: vi.fn(),
-  verifyToken: vi.fn(),
+  verifyToken: vi.fn().mockImplementation(async (token, secret) => {
+    // Parse the actual JWT to get the payload
+    const parts = token.split('.');
+    if (parts.length !== 3) throw new Error('Invalid token');
+    
+    try {
+      const payload = JSON.parse(atob(parts[1]));
+      // Check if token is expired
+      if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+        throw new Error('Token expired');
+      }
+      return payload;
+    } catch (e) {
+      throw new Error('Invalid token');
+    }
+  }),
 }));
 
 describe('Authentication Security Tests', () => {
@@ -60,10 +75,31 @@ describe('Authentication Security Tests', () => {
 
   describe('CSRF Protection', () => {
     it('should not accept tokens from different origins', async () => {
+      // Setup verifyToken to work with our valid token
+      vi.mocked(authUtils.verifyToken).mockImplementation(async (token) => {
+        if (token === ctx.validToken) {
+          return {
+            sub: userId,
+            type: 'access',
+            exp: Math.floor(Date.now() / 1000) + 3600,
+          };
+        }
+        throw new Error('Invalid token');
+      });
       // Note: In production, CSRF protection would be handled by:
       // 1. SameSite cookies
       // 2. Origin/Referer checking
       // 3. CSRF tokens for state-changing operations
+      
+      // Setup insert mock for successful creation
+      ctx.db.insert.mockImplementation(() => ({
+        values: vi.fn().mockReturnThis(),
+        returning: vi.fn().mockResolvedValue([{
+          id: 1,
+          title: 'Test',
+          userId: userId,
+        }]),
+      }));
       
       const res = await app.request('/todos', {
         method: 'POST',
@@ -297,17 +333,30 @@ describe('Authentication Security Tests', () => {
       }));
 
       vi.mocked(authUtils.hashPassword).mockResolvedValue('hashed-password-with-salt');
+      vi.mocked(authUtils.generateTokens).mockResolvedValue({
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token',
+      });
+      
+      // Also mock the refresh token insert
+      let insertCount = 0;
+      ctx.db.insert.mockImplementation((table) => {
+        insertCount++;
+        return {
+          values: vi.fn((values) => {
+            if (insertCount === 1) {
+              // First insert is for user
+              expect(values.password).not.toBe('MySecurePassword123!');
+              expect(values.password).toBe('hashed-password-with-salt');
+            }
+            return {
+              returning: vi.fn().mockResolvedValue([{ id: 'user-123' }]),
+            };
+          }),
+        };
+      });
 
-      ctx.db.insert.mockImplementation(() => ({
-        values: vi.fn((values) => {
-          // Verify password is hashed
-          expect(values.password).not.toBe('MySecurePassword123!');
-          expect(values.password).toBe('hashed-password-with-salt');
-          return {
-            returning: vi.fn().mockResolvedValue([{ id: 'user-123' }]),
-          };
-        }),
-      }));
+      // Remove duplicate mock since we set it above
 
       const res = await app.request('/auth/register', {
         method: 'POST',
@@ -337,13 +386,43 @@ describe('Authentication Security Tests', () => {
         ctx.env.JWT_SECRET
       );
 
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(null), // Todo doesn't belong to attacker
-      }));
+      // Setup verifyToken for attacker token
+      vi.mocked(authUtils.verifyToken).mockImplementation(async (token) => {
+        if (token === attackerToken) {
+          return {
+            sub: 'attacker-id',
+            type: 'access',
+            exp: Math.floor(Date.now() / 1000) + 3600,
+          };
+        }
+        throw new Error('Invalid token');
+      });
+      
+      let callCount = 0;
+      ctx.db.select.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // Auth middleware - attacker user exists
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            get: vi.fn().mockResolvedValue({
+              id: 'attacker-id',
+              email: 'attacker@example.com',
+              username: 'attacker',
+              enabled: true,
+            }),
+          };
+        }
+        // Todo lookup - doesn't belong to attacker
+        return {
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          get: vi.fn().mockResolvedValue(null),
+        };
+      });
 
-      const res = await app.request('/todos/victim-todo-id', {
+      const res = await app.request('/todos/123', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${attackerToken}`,
@@ -391,7 +470,7 @@ describe('Authentication Security Tests', () => {
         },
       }, ctx.env);
 
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(200); // Logout successful
       
       // In production, would add token to blacklist
       // Subsequent requests with same token should fail
@@ -411,6 +490,18 @@ describe('Authentication Security Tests', () => {
         ctx.env.JWT_SECRET
       );
 
+      // Setup verifyToken for both tokens
+      vi.mocked(authUtils.verifyToken).mockImplementation(async (token) => {
+        if (token === token1 || token === token2) {
+          return {
+            sub: userId,
+            type: 'access',
+            exp: Math.floor(Date.now() / 1000) + 3600,
+          };
+        }
+        throw new Error('Invalid token');
+      });
+      
       // Both tokens should work
       for (const token of [token1, token2]) {
         let callCount = 0;
@@ -428,15 +519,22 @@ describe('Authentication Security Tests', () => {
                 enabled: true,
               }),
             };
+          } else if (callCount === 2) {
+            // Todos query
+            return {
+              from: vi.fn().mockReturnThis(),
+              where: vi.fn().mockReturnThis(),
+              orderBy: vi.fn().mockReturnThis(),
+              limit: vi.fn().mockReturnThis(),
+              offset: vi.fn().mockResolvedValue([]),
+            };
+          } else {
+            // Count query
+            return {
+              from: vi.fn().mockReturnThis(),
+              where: vi.fn().mockResolvedValue([{ count: 0 }]),
+            };
           }
-          // Todos query
-          return {
-            from: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            orderBy: vi.fn().mockReturnThis(),
-            limit: vi.fn().mockReturnThis(),
-            offset: vi.fn().mockResolvedValue([]),
-          };
         });
 
         const res = await app.request('/todos', {

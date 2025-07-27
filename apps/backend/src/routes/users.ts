@@ -337,7 +337,7 @@ app.delete('/social-accounts/:provider', async (c) => {
       );
     }
     
-    return c.text('', 204);
+    return new Response(null, { status: 204 });
   } catch (error) {
     console.error('Delete social account error:', error);
     return c.json(

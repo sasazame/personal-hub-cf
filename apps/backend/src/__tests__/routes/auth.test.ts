@@ -12,7 +12,7 @@ describe('Auth Routes', () => {
     const testContext = createTestContext();
     app = testContext.app;
     env = testContext.env;
-    mockDb = testContext.mockDb;
+    mockDb = testContext.db;
     
     app.route('/auth', authRoutes);
   });

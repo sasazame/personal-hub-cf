@@ -10,7 +10,18 @@ vi.mock('../../utils/auth', () => ({
   verifyPassword: vi.fn(),
   hashPassword: vi.fn(),
   generateTokens: vi.fn(),
-  verifyToken: vi.fn(),
+  verifyToken: vi.fn().mockImplementation(async (token, secret) => {
+    // Check if it's an invalid token
+    if (token === 'invalid-token') {
+      throw new Error('Invalid token');
+    }
+    // Return a properly structured decoded token for valid tests
+    return {
+      sub: 'test-user',
+      type: 'access',
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    };
+  }),
 }));
 
 describe('Users Routes', () => {
@@ -118,11 +129,7 @@ describe('Users Routes', () => {
         updatedAt: '2025-01-01T00:00:00Z',
       };
 
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(mockUser),
-      }));
+      setupDbMock(mockUser);
 
       const res = await app.request('/users/profile', {
         method: 'GET',
@@ -137,11 +144,7 @@ describe('Users Routes', () => {
     });
 
     it('should return 404 if user not found', async () => {
-      ctx.db.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(null),
-      }));
+      setupDbMock(null);
 
       const res = await app.request('/users/profile', {
         method: 'GET',
@@ -165,10 +168,24 @@ describe('Users Routes', () => {
       };
 
       // Username not taken
+      let callCount = 0;
       ctx.db.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue(null),
+        get: vi.fn().mockImplementation(() => {
+          callCount++;
+          if (callCount === 1) {
+            // Auth middleware user lookup
+            return Promise.resolve({
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            });
+          }
+          // Username check - not taken
+          return Promise.resolve(null);
+        }),
       }));
 
       ctx.db.update.mockImplementation(() => ({
@@ -197,10 +214,24 @@ describe('Users Routes', () => {
     });
 
     it('should return 409 if username is taken', async () => {
+      let callCount = 0;
       ctx.db.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockResolvedValue({ id: 'other-user', username: 'taken' }),
+        get: vi.fn().mockImplementation(() => {
+          callCount++;
+          if (callCount === 1) {
+            // Auth middleware user lookup
+            return Promise.resolve({
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            });
+          }
+          // Username check - taken by another user
+          return Promise.resolve({ id: 'other-user', username: 'taken' });
+        }),
       }));
 
       const res = await app.request('/users/profile', {
@@ -370,7 +401,33 @@ describe('Users Routes', () => {
     });
 
     it('should reject if email already exists', async () => {
-      setupDbMock({ id: 'other-user' });
+      let callCount = 0;
+      ctx.db.select.mockImplementation(() => ({
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        get: vi.fn().mockImplementation(() => {
+          callCount++;
+          if (callCount === 1) {
+            // Auth middleware lookup
+            return Promise.resolve({
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            });
+          } else if (callCount === 2) {
+            // User lookup for password check
+            return Promise.resolve({
+              id: userId,
+              email: 'test@example.com',
+              password: 'hashed-password',
+            });
+          } else {
+            // Email availability check - email taken
+            return Promise.resolve({ id: 'other-user' });
+          }
+        }),
+      }));
 
       vi.mocked(authUtils.verifyPassword).mockResolvedValue(true);
 
@@ -530,14 +587,14 @@ describe('Users Routes', () => {
             }),
           };
         } else if (callCount === 2) {
-          // User check for password
+          // First query in Promise.all - user check
           return {
             from: vi.fn().mockReturnThis(),
             where: vi.fn().mockReturnThis(),
             get: vi.fn().mockResolvedValue(mockUser),
           };
         } else {
-          // Social accounts query
+          // Second query in Promise.all - social accounts
           return {
             from: vi.fn().mockReturnThis(),
             where: vi.fn().mockResolvedValue(mockAccounts),
