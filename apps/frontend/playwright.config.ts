@@ -11,19 +11,13 @@ export default defineConfig({
   reporter: 'html',
   globalSetup: require.resolve('./playwright/global-setup.ts'),
   use: {
-    // Point to frontend URL for E2E tests
-    baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
+    baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
     locale: 'en-US',
     // アクションタイムアウトも大幅延長（20秒→60秒）
     actionTimeout: 60000,
     // ナビゲーションタイムアウトも大幅延長（40秒→90秒）
     navigationTimeout: 90000,
-    // Extra HTTP headers for API calls
-    extraHTTPHeaders: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
   },
 
   projects: [
@@ -50,20 +44,22 @@ export default defineConfig({
     },
   ],
 
-  webServer: [
-    // Cloudflare Workers backend
-    {
-      command: 'cd apps/backend && pnpm dev',
-      url: 'http://localhost:8787',
-      reuseExistingServer: !process.env.CI,
-      timeout: 120 * 1000,
+  webServer: process.env.CI ? {
+    // CI環境: MSWを有効化して開発サーバーを起動
+    command: 'npm run dev',
+    url: 'http://localhost:3000',
+    reuseExistingServer: false,
+    timeout: 120 * 1000,
+    env: {
+      CI: 'true',
+      NEXT_PUBLIC_CI: 'true',
+      NEXT_PUBLIC_USE_MSW: 'true',
     },
-    // Frontend (original Next.js)
-    {
-      command: 'cd apps/frontend && pnpm dev',
-      url: 'http://localhost:3000',
-      reuseExistingServer: !process.env.CI,
-      timeout: 120 * 1000,
-    },
-  ],
+  } : {
+    // ローカル環境: 開発サーバーを使用
+    command: 'NEXT_PUBLIC_USE_MSW=true npm run dev',
+    url: 'http://localhost:3000',
+    reuseExistingServer: true,
+    timeout: 60 * 1000, // 1分
+  },
 });
