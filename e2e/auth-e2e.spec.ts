@@ -44,7 +44,7 @@ test.describe('Auth E2E Tests', () => {
       await login(page, TEST_USER.email, TEST_USER.password);
       
       // Should be redirected to home page
-      await expect(page).toHaveURL('/');
+      await expect(page).toHaveURL('/dashboard');
       
       // Wait for header to appear
       await page.waitForSelector('header', { timeout: 10000 });
@@ -68,7 +68,7 @@ test.describe('Auth E2E Tests', () => {
       await login(page, uniqueUser.email, uniqueUser.password);
       
       // Should be redirected to home page
-      await expect(page).toHaveURL('/');
+      await expect(page).toHaveURL('/dashboard');
       
       // Wait for header to appear
       await page.waitForSelector('header', { timeout: 10000 });

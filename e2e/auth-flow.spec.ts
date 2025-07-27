@@ -35,7 +35,7 @@ test.describe('Authentication Flow', () => {
     console.log('After login - URL:', page.url());
     
     // Should be redirected to main app (dashboard)
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/dashboard');
     
     // Wait for dashboard to load
     await page.waitForLoadState('domcontentloaded');
@@ -64,7 +64,7 @@ test.describe('Authentication Flow', () => {
     console.log('After login - URL:', page.url());
     
     // Should be redirected to main app (dashboard)
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/dashboard');
     
     // Wait for dashboard to load
     await page.waitForLoadState('domcontentloaded');

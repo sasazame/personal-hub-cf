@@ -6,6 +6,12 @@ compatibility_flags = ["nodejs_compat"]
 [dev]
 port = 8787
 
+# Default database binding for local development
+[[d1_databases]]
+binding = "DB"
+database_name = "personal-hub-local"
+database_id = "local"
+
 # Development environment
 [env.development]
 name = "personal-hub-backend-dev"

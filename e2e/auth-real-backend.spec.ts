@@ -36,13 +36,13 @@ test.describe('Auth E2E Tests (Real Backend)', () => {
     // Wait for page to load
     await page.waitForSelector('h1:has-text("Login")', { timeout: 10000 });
     
-    // Click register link - look for "Sign Up" text
-    await page.getByText('Sign Up').click();
+    // Click register link
+    await page.getByRole('link', { name: 'Register' }).click();
     
     await expect(page).toHaveURL(/\/register/);
     
-    // Go back to login - look for "Sign In" text
-    await page.getByText('Sign In').click();
+    // Go back to login
+    await page.getByRole('link', { name: 'Login' }).click();
     
     await expect(page).toHaveURL(/\/login/);
   });
@@ -51,12 +51,12 @@ test.describe('Auth E2E Tests (Real Backend)', () => {
     await page.goto('/register');
     
     // Check form elements are visible
-    await expect(page.locator('input[placeholder="Username"]')).toBeVisible();
-    await expect(page.locator('input[placeholder="Email"]')).toBeVisible();
-    await expect(page.locator('input[placeholder="Password"]')).toBeVisible();
-    await expect(page.locator('input[placeholder="Confirm Password"]')).toBeVisible();
+    await expect(page.locator('input[placeholder="Please enter your username"]')).toBeVisible();
+    await expect(page.locator('input[placeholder="Please enter your email address"]')).toBeVisible();
+    await expect(page.locator('input[name="password"]')).toBeVisible();
+    await expect(page.locator('input[name="confirmPassword"]')).toBeVisible();
     await expect(page.locator('button[type="submit"]')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Create Account' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Create account' })).toBeVisible();
   });
 
   // Note: Actual login tests would require creating test users in the database
