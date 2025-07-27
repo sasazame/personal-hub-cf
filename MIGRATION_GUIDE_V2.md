@@ -200,7 +200,34 @@ wrangler deploy --env staging
 # Rollback immediately if issues
 ```
 
-## Phase 4: Frontend Preparation (Week 9-10)
+## Phase 4: E2E Test Migration & Frontend Preparation (Week 9-10)
+
+### 4.0 Migrate E2E Tests First (Critical Path)
+```bash
+# Copy existing E2E tests from original project
+cp -r ../personal-hub/personal-hub-frontend/e2e ./
+cp ../personal-hub/personal-hub-frontend/playwright.config.ts ./
+
+# Update configuration to point to new backend
+# Update BASE_URL to Cloudflare Workers endpoint
+# Keep all test logic unchanged
+```
+
+```typescript
+// playwright.config.ts
+export default defineConfig({
+  use: {
+    baseURL: process.env.E2E_BASE_URL || 'http://localhost:8787',
+    // Point to Cloudflare Workers backend
+  },
+});
+```
+
+**E2E Test-Driven Migration Process:**
+1. Run E2E tests against existing frontend + new backend
+2. Fix any API compatibility issues found
+3. Use E2E tests as safety net for each page migration
+4. Ensure 100% pass rate before proceeding
 
 ### 4.1 Extract Shared Components
 ```typescript
@@ -235,20 +262,25 @@ wrangler deploy --env staging
 4. Complex features (Calendar, TODO)
 5. Authentication pages (last)
 
-### 5.2 Page-by-Page Migration Process
+### 5.2 Page-by-Page Migration Process (E2E Test-Driven)
 For EACH page:
 ```bash
-1. Create feature flag
-2. Copy page to new frontend
-3. Update imports to new structure
-4. Ensure pixel-perfect match
-5. Run visual regression tests
-6. Deploy behind feature flag
-7. A/B test with small percentage
-8. Monitor for issues
-9. Gradually increase percentage
-10. Full migration when stable
+1. Run E2E tests for the specific page/feature
+2. Ensure tests pass with new backend (100% required)
+3. Create feature flag
+4. Copy page to new frontend
+5. Update imports to new structure
+6. Run E2E tests again to verify functionality
+7. Ensure pixel-perfect match
+8. Run visual regression tests
+9. Deploy behind feature flag
+10. A/B test with small percentage
+11. Monitor for issues
+12. Gradually increase percentage
+13. Full migration when stable
 ```
+
+**Key Point**: E2E tests act as the safety net - no page migration proceeds without passing E2E tests
 
 ### 5.3 Routing Strategy
 ```typescript
@@ -306,11 +338,13 @@ Only AFTER successful migration:
 // Test rate limiting
 ```
 
-### 2. E2E Tests
+### 2. E2E Tests (Migration Safety Net)
 ```typescript
-// Run existing Playwright tests
-// Should pass WITHOUT modification
-// Add new tests for migration-specific scenarios
+// IMPORTANT: Copy existing tests from personal-hub/personal-hub-frontend
+// These tests serve as the safety net for migration
+// Run BEFORE migrating each page to ensure compatibility
+// Should pass WITHOUT modification against new backend
+// Use for incremental page-by-page validation
 ```
 
 ### 3. Visual Regression Tests
