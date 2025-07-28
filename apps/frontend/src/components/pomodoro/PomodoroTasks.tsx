@@ -5,6 +5,7 @@ import { Button } from '@/components/ui';
 import { Plus, CheckCircle, Circle, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import toast from 'react-hot-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface PomodoroTasksProps {
   sessionId?: string;
@@ -19,6 +20,7 @@ export function PomodoroTasks({
   isActiveSession,
   onCreateSession 
 }: PomodoroTasksProps) {
+  const queryClient = useQueryClient();
   const [newTaskDescription, setNewTaskDescription] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +45,8 @@ export function PomodoroTasks({
         description: newTaskDescription
       });
       setNewTaskDescription('');
+      // Invalidate active session to refetch with new tasks
+      queryClient.invalidateQueries({ queryKey: ['pomodoro-session-active'] });
       toast.success('タスクが追加されました');
     } catch (error) {
       console.error('Failed to add task:', error);
@@ -59,6 +63,7 @@ export function PomodoroTasks({
       await pomodoroApi.updateTask(sessionId, task.id, {
         completed: !task.completed
       });
+      queryClient.invalidateQueries({ queryKey: ['pomodoro-session-active'] });
       toast.success(task.completed ? 'タスクを未完了にしました' : 'タスクを完了しました');
     } catch (error) {
       console.error('Failed to update task:', error);
@@ -71,6 +76,7 @@ export function PomodoroTasks({
 
     try {
       await pomodoroApi.deleteTask(sessionId, taskId);
+      queryClient.invalidateQueries({ queryKey: ['pomodoro-session-active'] });
       toast.success('タスクを削除しました');
     } catch (error) {
       console.error('Failed to delete task:', error);

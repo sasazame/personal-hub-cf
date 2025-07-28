@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { pomodoroSessions, pomodoroTasks, pomodoroConfigs } from '../db/schema';
 import type { Bindings, Variables } from '../types';
 import { authMiddleware } from '../middleware/auth';
@@ -47,6 +47,11 @@ const configSchema = z.object({
 
 const updateTaskSchema = z.object({
   completed: z.boolean(),
+});
+
+const createTaskSchema = z.object({
+  todoId: z.number().optional(),
+  description: z.string().min(1),
 });
 
 // GET /pomodoro/sessions
@@ -295,6 +300,70 @@ app.put('/sessions/:id', zValidator('json', updateSessionSchema, springBootValid
     return c.json(result[0]);
   } catch (error) {
     console.error('Update session error:', error);
+    return c.json(
+      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      StatusCodes.INTERNAL_ERROR
+    );
+  }
+});
+
+// POST /pomodoro/sessions/:sessionId/tasks
+app.post('/sessions/:sessionId/tasks', zValidator('json', createTaskSchema, springBootValidator), async (c) => {
+  const db = c.get('db');
+  const userId = c.get('userId');
+  const sessionId = c.req.param('sessionId');
+  const data = c.req.valid('json');
+  
+  try {
+    // Verify session belongs to user
+    const session = await db.select()
+      .from(pomodoroSessions)
+      .where(and(
+        eq(pomodoroSessions.id, sessionId),
+        eq(pomodoroSessions.userId, userId)
+      ))
+      .get();
+    
+    if (!session) {
+      return c.json(
+        createErrorResponse(ErrorCodes.NOT_FOUND, 'Session not found'),
+        StatusCodes.NOT_FOUND
+      );
+    }
+    
+    // Get current max orderIndex
+    const maxOrderResult = await db.select({
+      maxOrder: sql<number>`MAX(${pomodoroTasks.orderIndex})`
+    })
+      .from(pomodoroTasks)
+      .where(eq(pomodoroTasks.sessionId, sessionId))
+      .get();
+    
+    const orderIndex = (maxOrderResult?.maxOrder || 0) + 1;
+    
+    // Create task
+    const taskId = nanoid();
+    const now = new Date().toISOString();
+    
+    await db.insert(pomodoroTasks).values({
+      id: taskId,
+      sessionId,
+      todoId: data.todoId,
+      description: data.description,
+      orderIndex,
+      completed: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    
+    const newTask = await db.select()
+      .from(pomodoroTasks)
+      .where(eq(pomodoroTasks.id, taskId))
+      .get();
+    
+    return c.json(newTask);
+  } catch (error) {
+    console.error('Create task error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
       StatusCodes.INTERNAL_ERROR
