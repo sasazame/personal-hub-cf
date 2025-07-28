@@ -201,10 +201,10 @@ test.describe('Pomodoro Feature E2E Tests', () => {
       await page.click('[data-testid="settings-button"]');
       
       // Set work duration to 1 minute
-      await page.fill('input[value="25"]', '1');
+      await page.fill('input[name="workDuration"]', '1');
       
       // Set short break to 1 minute  
-      await page.fill('input[value="5"]', '1');
+      await page.fill('input[name="shortBreakDuration"]', '1');
       
       // Enable auto-start breaks
       const autoStartBreaksSwitch = page.locator('#autoStartBreaks');
@@ -270,7 +270,7 @@ test.describe('Pomodoro Feature E2E Tests', () => {
       await page.click('[data-testid="settings-button"]');
       
       // Set cycles before long break to 3
-      await page.fill('input[value="4"]', '3');
+      await page.fill('input[name="cyclesBeforeLongBreak"]', '3');
       
       // Save settings
       await page.click('button:has-text("保存")');

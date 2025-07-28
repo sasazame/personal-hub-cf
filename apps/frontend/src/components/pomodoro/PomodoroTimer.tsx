@@ -215,15 +215,25 @@ export function PomodoroTimer({ session, onComplete, onUpdate }: PomodoroTimerPr
       
       <div className="flex justify-center gap-4">
         {!isRunning && !session.startTime ? (
-          <Button
-            onClick={handleStart}
-            size="lg"
-            variant="primary"
-            className="gap-2"
-          >
-            <Play className="w-5 h-5" />
-            開始
-          </Button>
+          <>
+            <Button
+              onClick={handleStart}
+              size="lg"
+              variant="primary"
+              className="gap-2"
+            >
+              <Play className="w-5 h-5" />
+              開始
+            </Button>
+            <Button
+              onClick={handleComplete}
+              size="lg"
+              variant="secondary"
+              className="gap-2"
+            >
+              スキップ
+            </Button>
+          </>
         ) : (
           <>
             {isRunning ? (

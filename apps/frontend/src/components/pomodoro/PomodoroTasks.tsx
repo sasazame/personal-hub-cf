@@ -189,6 +189,7 @@ export function PomodoroTasks({
         </Button>
       </div>
       
+      {/* TODO: Implement todo linking functionality
       {sessionId && (
         <Button
           variant="secondary"
@@ -198,7 +199,7 @@ export function PomodoroTasks({
         >
           TODOをリンク
         </Button>
-      )}
+      )} */}
     </div>
   );
 }

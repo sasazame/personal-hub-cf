@@ -9,6 +9,7 @@ import { toast } from 'react-hot-toast';
 
 export function PomodoroConfig() {
   const [isOpen, setIsOpen] = useState(false);
+  const [showSavedMessage, setShowSavedMessage] = useState(false);
   const queryClient = useQueryClient();
   
   const { data: config } = useQuery({
@@ -23,8 +24,12 @@ export function PomodoroConfig() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pomodoro-config'] });
       toast.success('設定が保存されました');
-      setIsOpen(false);
-      setFormData({});
+      setShowSavedMessage(true);
+      setTimeout(() => {
+        setIsOpen(false);
+        setFormData({});
+        setShowSavedMessage(false);
+      }, 1500);
     },
     onError: () => {
       toast.error('設定の保存に失敗しました');
@@ -127,6 +132,7 @@ export function PomodoroConfig() {
             </label>
             <input
               type="number"
+              name="longBreakDuration"
               min="1"
               max="60"
               value={formData.longBreakDuration || 15}
@@ -149,6 +155,7 @@ export function PomodoroConfig() {
             </label>
             <input
               type="number"
+              name="cyclesBeforeLongBreak"
               min="1"
               max="10"
               value={formData.cyclesBeforeLongBreak || 4}
@@ -247,9 +254,9 @@ export function PomodoroConfig() {
             {updateMutation.isPending ? '保存中...' : '保存'}
           </Button>
         </div>
-        {toast.success && (
+        {showSavedMessage && (
           <div 
-            className="absolute top-0 left-0 right-0 bg-green-500 text-white text-center py-2 hidden"
+            className="absolute top-0 left-0 right-0 bg-green-500 text-white text-center py-2"
             data-testid="settings-saved-message"
           >
             設定が保存されました
