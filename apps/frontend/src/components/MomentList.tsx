@@ -143,6 +143,7 @@ export function MomentList({
                         }}
                         className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 hover:text-blue-600"
                         title="Edit"
+                        aria-label="Edit"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
@@ -154,6 +155,7 @@ export function MomentList({
                         }}
                         className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 hover:text-red-600"
                         title="Delete"
+                        aria-label="Delete"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
