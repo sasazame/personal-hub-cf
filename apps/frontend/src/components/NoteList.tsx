@@ -1,6 +1,6 @@
 import { Edit, Trash2, Tag } from 'lucide-react';
 import { Note } from '@/types/note';
-import { cn } from '@/lib/cn';
+import { Card } from '@/components/ui/Card';
 
 interface NoteListProps {
   notes: Note[];
@@ -49,12 +49,9 @@ export function NoteList({ notes, onNoteClick, onEditNote, onDeleteNote }: NoteL
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {sortedNotes.map((note) => (
-        <div
+        <Card
           key={note.id}
-          className={cn(
-            "bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700",
-            "p-4 cursor-pointer hover:shadow-lg transition-all group relative"
-          )}
+          className="p-4 cursor-pointer hover:shadow-lg transition-all group relative"
           onClick={() => onNoteClick(note)}
         >
           {/* Header */}
@@ -121,7 +118,7 @@ export function NoteList({ notes, onNoteClick, onEditNote, onDeleteNote }: NoteL
               <div>Updated: {formatDateTime(note.updatedAt)}</div>
             )}
           </div>
-        </div>
+        </Card>
       ))}
     </div>
   );
