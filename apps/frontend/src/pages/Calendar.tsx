@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout';
 import { Button, Modal } from '@/components/ui';
-import { CalendarGrid } from '@/components/calendar';
+import { CalendarGrid, EventForm } from '@/components/calendar';
 import { calendarApi } from '@/lib/calendar-api';
 import { toast } from '@/components/ui/toast';
 import { CalendarEvent, CreateCalendarEventDto, UpdateCalendarEventDto } from '@/types/calendar';
@@ -224,45 +224,26 @@ export function Calendar() {
           onEventDateChange={handleEventDateChange}
         />
 
-        {/* Placeholder for Event Form */}
-        {isEventFormOpen && (
-          <Modal open={isEventFormOpen} onClose={() => setIsEventFormOpen(false)}>
-            <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">
-                {selectedEvent ? 'Edit Event' : 'New Event'}
-              </h2>
-              <p className="text-gray-500">Event form will be implemented here</p>
-              {selectedDate && (
-                <p className="text-sm text-gray-400 mt-2">
-                  Selected date: {format(selectedDate, 'PPP')}
-                </p>
-              )}
-              <div className="flex gap-2 mt-4">
-                <Button variant="secondary" onClick={() => setIsEventFormOpen(false)}>
-                  Cancel
-                </Button>
-                <Button 
-                  variant="primary" 
-                  onClick={() => {
-                    // Placeholder for form submission
-                    if (selectedEvent) {
-                      handleUpdateEvent({ title: 'Updated Event' });
-                    } else {
-                      handleCreateEvent({
-                        title: 'New Event',
-                        startDateTime: new Date().toISOString(),
-                        endDateTime: new Date().toISOString(),
-                        allDay: false
-                      });
-                    }
-                  }}
-                >
-                  Save
-                </Button>
-              </div>
-            </div>
-          </Modal>
-        )}
+        {/* Event Form */}
+        <EventForm
+          isOpen={isEventFormOpen}
+          onClose={() => {
+            setIsEventFormOpen(false);
+            setSelectedEvent(null);
+            setSelectedDate(null);
+          }}
+          onSubmit={(data) => {
+            if (selectedEvent) {
+              handleUpdateEvent(data as UpdateCalendarEventDto);
+            } else {
+              handleCreateEvent(data as CreateCalendarEventDto);
+            }
+          }}
+          event={selectedEvent || undefined}
+          defaultDate={selectedDate || undefined}
+          isSubmitting={isSubmitting}
+          onDelete={selectedEvent ? () => setEventToDelete(selectedEvent) : undefined}
+        />
 
         {/* Delete Confirmation Modal */}
         {eventToDelete && (

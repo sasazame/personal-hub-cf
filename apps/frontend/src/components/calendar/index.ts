@@ -1,4 +1,4 @@
 export { CalendarGrid } from './CalendarGrid';
+export { EventForm } from './EventForm';
 // export { WeeklyCalendar } from './WeeklyCalendar';
-// export { EventForm } from './EventForm';
 // export { GoogleCalendarSettings } from './GoogleCalendarSettings';
