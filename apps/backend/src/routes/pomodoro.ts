@@ -27,9 +27,11 @@ const createSessionSchema = z.object({
 });
 
 const updateSessionSchema = z.object({
+  action: z.enum(['START', 'PAUSE', 'RESUME', 'COMPLETE', 'CANCEL', 'SWITCH_TYPE']).optional(),
   status: z.enum(['ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED']).optional(),
   completedCycles: z.number().optional(),
   endTime: z.string().optional(),
+  sessionType: z.enum(['WORK', 'SHORT_BREAK', 'LONG_BREAK']).optional(),
 });
 
 const configSchema = z.object({
@@ -177,11 +179,11 @@ app.post('/sessions', zValidator('json', createSessionSchema, springBootValidato
     const newSession = {
       id: sessionId,
       userId,
-      startTime: now,
+      startTime: null,
       workDuration: data.workDuration,
       breakDuration: data.breakDuration,
       status: 'ACTIVE' as const,
-      sessionType: data.sessionType,
+      sessionType: data.sessionType || 'WORK',
       completedCycles: 0,
       createdAt: now,
       updatedAt: now,
@@ -240,10 +242,47 @@ app.put('/sessions/:id', zValidator('json', updateSessionSchema, springBootValid
       return c.json({ error: 'Session not found' }, 404);
     }
     
-    const updateData = {
-      ...data,
-      updatedAt: new Date().toISOString(),
+    const now = new Date().toISOString();
+    let updateData: any = {
+      updatedAt: now,
     };
+    
+    // Handle actions
+    if (data.action) {
+      switch (data.action) {
+        case 'START':
+          if (!existing.startTime) {
+            updateData.startTime = now;
+          }
+          updateData.status = 'ACTIVE';
+          break;
+        case 'PAUSE':
+          updateData.status = 'PAUSED';
+          break;
+        case 'RESUME':
+          updateData.status = 'ACTIVE';
+          break;
+        case 'COMPLETE':
+          updateData.status = 'COMPLETED';
+          updateData.endTime = now;
+          if (existing.sessionType === 'WORK') {
+            updateData.completedCycles = (existing.completedCycles || 0) + 1;
+          }
+          break;
+        case 'CANCEL':
+          updateData.status = 'CANCELLED';
+          updateData.endTime = now;
+          break;
+        case 'SWITCH_TYPE':
+          if (data.sessionType) {
+            updateData.sessionType = data.sessionType;
+          }
+          break;
+      }
+    } else {
+      // Apply direct field updates
+      Object.assign(updateData, data);
+    }
     
     const result = await db.update(pomodoroSessions)
       .set(updateData)

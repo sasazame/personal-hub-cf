@@ -214,7 +214,7 @@ export function PomodoroTimer({ session, onComplete, onUpdate }: PomodoroTimerPr
       </div>
       
       <div className="flex justify-center gap-4">
-        {!isRunning && session.status !== SessionStatus.ACTIVE ? (
+        {!isRunning && !session.startTime ? (
           <Button
             onClick={handleStart}
             size="lg"

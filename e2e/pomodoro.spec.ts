@@ -30,7 +30,7 @@ test.describe('Pomodoro Feature E2E Tests', () => {
     
     // Verify we're on the Pomodoro page
     await expect(page).toHaveURL('/pomodoro');
-    await expect(page.locator('h1')).toContainText('ポモドーロタイマー');
+    await expect(page.locator('main h1').first()).toContainText('ポモドーロタイマー');
   });
 
   test('should create and start a Pomodoro session', async ({ page }) => {
