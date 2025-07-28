@@ -1,23 +1,70 @@
+import { useState } from 'react';
 import { AppLayout } from '@/components/layout';
-import { useAuth } from '@/contexts/AuthContext';
+import { ProfileForm, PasswordForm, SettingsForm, DangerZone } from '@/components/profile';
+import { Card } from '@/components/ui/Card';
+import { User, Lock, Settings, Shield } from 'lucide-react';
+import { cn } from '@/lib/cn';
+
+type TabType = 'profile' | 'password' | 'settings' | 'danger';
 
 export function Profile() {
-  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<TabType>('profile');
+
+  const tabs = [
+    { id: 'profile' as const, label: 'プロフィール', icon: User },
+    { id: 'password' as const, label: 'パスワード', icon: Lock },
+    { id: 'settings' as const, label: '設定', icon: Settings },
+    { id: 'danger' as const, label: 'アカウント管理', icon: Shield },
+  ];
 
   return (
     <AppLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Profile</h1>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Username</h3>
-              <p className="mt-1 text-lg text-gray-900 dark:text-white">{user?.username}</p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Email</h3>
-              <p className="mt-1 text-lg text-gray-900 dark:text-white">{user?.email}</p>
-            </div>
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <User className="h-8 w-8" />
+            アカウント設定
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            プロフィールと設定を管理します
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <Card className="p-4">
+              <nav className="space-y-1">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors",
+                        activeTab === tab.id
+                          ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                          : "hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+                      )}
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="font-medium">{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </Card>
+          </div>
+
+          {/* Content */}
+          <div className="lg:col-span-3">
+            <Card className="p-6">
+              {activeTab === 'profile' && <ProfileForm />}
+              {activeTab === 'password' && <PasswordForm />}
+              {activeTab === 'settings' && <SettingsForm />}
+              {activeTab === 'danger' && <DangerZone />}
+            </Card>
           </div>
         </div>
       </div>
