@@ -1,6 +1,6 @@
-import { Moment, CreateMomentDto, UpdateMomentDto, MomentFilters, MomentPage } from '@/types/moment';
+import { Moment, CreateMomentDto, UpdateMomentDto, MomentPage } from '@/types/moment';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8787';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8787';
 
 export function getAuthHeaders() {
   const token = localStorage.getItem('accessToken');
@@ -181,3 +181,47 @@ export async function deleteMoment(id: number): Promise<void> {
     throw new Error(error.error || `Failed to delete moment: ${response.statusText}`);
   }
 }
+
+export const momentApi = {
+  getMoments: async (params?: { page?: number; size?: number; search?: string; tags?: string[] }) => {
+    const { page = 0, size = 20, search, tags } = params || {};
+    
+    if (search) {
+      const moments = await searchMoments(search, tags?.[0]);
+      return {
+        content: moments.slice(page * size, (page + 1) * size),
+        totalElements: moments.length,
+        totalPages: Math.ceil(moments.length / size),
+        first: page === 0,
+        last: (page + 1) * size >= moments.length,
+        pageable: {
+          pageNumber: page,
+          pageSize: size,
+          sort: { sorted: false, direction: 'desc', properties: [] }
+        }
+      };
+    }
+    
+    if (tags && tags.length > 0) {
+      const moments = await fetchMomentsByTag(tags[0]);
+      return {
+        content: moments.slice(page * size, (page + 1) * size),
+        totalElements: moments.length,
+        totalPages: Math.ceil(moments.length / size),
+        first: page === 0,
+        last: (page + 1) * size >= moments.length,
+        pageable: {
+          pageNumber: page,
+          pageSize: size,
+          sort: { sorted: false, direction: 'desc', properties: [] }
+        }
+      };
+    }
+    
+    return fetchMoments(page, size);
+  },
+  getTags: fetchMomentTags,
+  createMoment,
+  updateMoment,
+  deleteMoment
+};

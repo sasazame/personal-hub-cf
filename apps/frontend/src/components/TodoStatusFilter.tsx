@@ -1,6 +1,5 @@
 import { TodoStatus } from '@/types/todo'
 import { Button } from '@/components/ui'
-import { mapApiStatusToDisplay } from '@/utils/todoStatusMapper'
 
 interface TodoStatusFilterProps {
   selectedStatus: TodoStatus | 'ALL'

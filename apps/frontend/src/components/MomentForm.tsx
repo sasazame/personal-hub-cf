@@ -4,7 +4,6 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { TextArea } from '@/components/ui/TextArea';
 import { X, Plus, Tag } from 'lucide-react';
-import { toast } from '@/components/ui/toast';
 import { cn } from '@/lib/cn';
 
 interface MomentFormProps {
@@ -34,7 +33,7 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
   const [tags, setTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState('');
   const [showCustomTagInput, setShowCustomTagInput] = useState(false);
-  const [errors, setErrors] = useState<{ content?: string }>({});
+  const [, setErrors] = useState<{ content?: string }>({});
 
   useEffect(() => {
     if (moment) {
@@ -107,8 +106,10 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={moment ? 'Edit Moment' : 'Add Moment'}>
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <Modal open={isOpen} onClose={handleClose}>
+      <div className="p-6">
+        <h3 className="text-lg font-medium mb-4">{moment ? 'Edit Moment' : 'Add Moment'}</h3>
+        <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Moment Content *
@@ -118,7 +119,6 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
             onChange={(e) => setContent(e.target.value)}
             placeholder="What's on your mind?"
             rows={6}
-            error={errors.content}
             className="w-full"
           />
         </div>
@@ -231,7 +231,8 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
             {isSubmitting ? 'Saving...' : (moment ? 'Update' : 'Create')}
           </Button>
         </div>
-      </form>
+        </form>
+      </div>
     </Modal>
   );
 }

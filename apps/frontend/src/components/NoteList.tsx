@@ -1,4 +1,3 @@
-import React from 'react';
 import { Edit, Trash2, Tag } from 'lucide-react';
 import { Note } from '@/types/note';
 import { cn } from '@/lib/cn';

@@ -153,10 +153,11 @@ export function Notes() {
           </div>
           <Button
             onClick={handleNewNote}
-            gradient="purple"
+            variant="primary"
             size="lg"
-            leftIcon={<Plus className="w-5 h-5" />}
+            className="flex items-center gap-2"
           >
+            <Plus className="w-5 h-5" />
             New Note
           </Button>
         </div>

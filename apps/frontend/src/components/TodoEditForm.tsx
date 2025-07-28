@@ -6,7 +6,6 @@ import { Input } from '@/components/ui'
 import { TextArea } from '@/components/ui'
 import { Button } from '@/components/ui'
 import { Repeat, Calendar } from 'lucide-react'
-import { mapApiStatusToDisplay } from '@/utils/todoStatusMapper'
 
 interface TodoEditFormProps {
   todo: Todo

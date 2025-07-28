@@ -1,4 +1,3 @@
-import React from 'react';
 import { Edit, Trash2, Tag, X } from 'lucide-react';
 import { Note } from '@/types/note';
 import { Modal } from '@/components/ui/Modal';
@@ -27,7 +26,7 @@ export function NoteViewer({ note, isOpen, onClose, onEdit, onDelete }: NoteView
   };
 
   return (
-    <Modal open={isOpen} onClose={onClose} size="lg">
+    <Modal open={isOpen} onClose={onClose}>
       <div className="p-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">

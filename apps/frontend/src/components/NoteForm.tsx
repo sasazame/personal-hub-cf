@@ -103,7 +103,6 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
                 if (errors.title) setErrors({ ...errors, title: undefined });
               }}
               placeholder="Enter note title"
-              error={errors.title}
             />
           </div>
 
@@ -119,7 +118,6 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
               }}
               placeholder="Enter note content"
               rows={12}
-              error={errors.content}
             />
           </div>
 

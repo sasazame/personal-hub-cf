@@ -6,7 +6,6 @@ import { FormInput, FormTextArea, FormSelect, FormCheckbox } from '@/components/
 import { Button } from '@/components/ui'
 import { Input } from '@/components/ui'
 import { Calendar } from 'lucide-react'
-import { mapApiStatusToDisplay } from '@/utils/todoStatusMapper'
 
 interface TodoFormProps {
   onSubmit: (data: CreateTodoDto) => void
