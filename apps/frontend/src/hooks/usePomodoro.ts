@@ -1,0 +1,58 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { pomodoroApi } from '@/lib/pomodoro-api';
+import { 
+  CreatePomodoroSessionRequest, 
+  UpdatePomodoroSessionRequest,
+  UpdatePomodoroConfigRequest
+} from '@/types/pomodoro';
+
+export function useActiveSession() {
+  return useQuery({
+    queryKey: ['pomodoro-session-active'],
+    queryFn: () => pomodoroApi.getActiveSession(),
+    refetchInterval: 1000 // Refetch every second to update timer
+  });
+}
+
+export function useCreateSession() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (data: CreatePomodoroSessionRequest) => pomodoroApi.createSession(data),
+    onSuccess: (newSession) => {
+      queryClient.setQueryData(['pomodoro-session-active'], newSession);
+      queryClient.invalidateQueries({ queryKey: ['pomodoro-sessions'] });
+    }
+  });
+}
+
+export function useUpdateSession() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: string } & UpdatePomodoroSessionRequest) => 
+      pomodoroApi.updateSession(id, data),
+    onSuccess: (updatedSession) => {
+      queryClient.setQueryData(['pomodoro-session-active'], updatedSession);
+      queryClient.invalidateQueries({ queryKey: ['pomodoro-sessions'] });
+    }
+  });
+}
+
+export function usePomodoroConfig() {
+  return useQuery({
+    queryKey: ['pomodoro-config'],
+    queryFn: () => pomodoroApi.getConfig()
+  });
+}
+
+export function useUpdatePomodoroConfig() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (data: UpdatePomodoroConfigRequest) => pomodoroApi.updateConfig(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pomodoro-config'] });
+    }
+  });
+}
