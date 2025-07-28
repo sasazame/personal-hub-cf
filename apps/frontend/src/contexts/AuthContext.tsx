@@ -94,10 +94,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     
     try {
       const response = await apiClient.post('/api/v1/auth/login', { email, password })
-      const { user, token } = response.data
+      const { user, accessToken } = response.data
       
       // Store token
-      localStorage.setItem('accessToken', token)
+      localStorage.setItem('accessToken', accessToken)
       
       dispatch({ type: 'AUTH_SUCCESS', payload: user })
       toast.success(`Welcome back, ${user.username}!`)
@@ -118,10 +118,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email, 
         password 
       })
-      const { user, token } = response.data
+      const { user, accessToken } = response.data
       
       // Store token
-      localStorage.setItem('accessToken', token)
+      localStorage.setItem('accessToken', accessToken)
       
       dispatch({ type: 'AUTH_SUCCESS', payload: user })
       toast.success(`Welcome, ${user.username}! Account created successfully.`)

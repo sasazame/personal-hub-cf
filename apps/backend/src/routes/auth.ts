@@ -86,14 +86,19 @@ app.post('/register', zValidator('json', registerSchema, springBootValidator), a
       email,
       password: hashedPassword,
       username,
-      emailVerified: false,
+      email_verified: false,
       enabled: true,
-      weekStartDay: 1,
-      createdAt: now,
-      updatedAt: now,
+      week_start_day: 1,
+      created_at: now,
+      updated_at: now,
     };
     
-    await db.insert(users).values(newUser);
+    try {
+      await db.insert(users).values(newUser);
+    } catch (dbError) {
+      console.error('Database insert error:', dbError);
+      throw dbError;
+    }
     
     // Generate tokens
     const tokens = await generateTokens(userId, c.env.JWT_SECRET);
@@ -102,10 +107,11 @@ app.post('/register', zValidator('json', registerSchema, springBootValidator), a
     const refreshTokenData = {
       id: nanoid(),
       tokenHash: await createHash(tokens.refreshToken),
-      userId,
+      userId: userId,
       clientId: 'web',
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       createdAt: now,
+      revoked: false
     };
     
     await db.insert(refreshTokens).values(refreshTokenData);
@@ -113,6 +119,8 @@ app.post('/register', zValidator('json', registerSchema, springBootValidator), a
     return c.json(createAuthResponse(newUser, tokens.accessToken, tokens.refreshToken), StatusCodes.CREATED);
   } catch (error) {
     console.error('Registration error:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
+    console.error('Error details:', JSON.stringify(error, null, 2));
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
       StatusCodes.INTERNAL_ERROR
@@ -172,6 +180,7 @@ app.post('/login', zValidator('json', loginSchema, springBootValidator), async (
       clientId: 'web',
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       createdAt: new Date().toISOString(),
+      revoked: false
     });
     
     return c.json(createAuthResponse(user, tokens.accessToken, tokens.refreshToken));
@@ -214,7 +223,7 @@ app.post('/refresh', zValidator('json', refreshSchema, springBootValidator), asy
       );
     }
     
-    if (new Date(storedToken.expiresAt) < new Date()) {
+    if (new Date(storedToken.expires_at) < new Date()) {
       return c.json(
         createErrorResponse(ErrorCodes.TOKEN_EXPIRED),
         StatusCodes.TOKEN_EXPIRED
@@ -250,6 +259,7 @@ app.post('/refresh', zValidator('json', refreshSchema, springBootValidator), asy
       clientId: 'web',
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       createdAt: new Date().toISOString(),
+      revoked: false
     });
     
     return c.json(createAuthResponse(user, tokens.accessToken, tokens.refreshToken));
@@ -293,9 +303,9 @@ app.get('/me', async (c) => {
       id: user.id,
       username: user.username,
       email: user.email,
-      weekStartDay: user.weekStartDay,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+      weekStartDay: user.week_start_day,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at,
     });
   } catch (error) {
     console.error('Auth error:', error);

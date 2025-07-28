@@ -116,9 +116,9 @@ export function createAuthResponse(
       id: user.id,
       username: user.username,
       email: user.email,
-      weekStartDay: user.weekStartDay || null,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
+      weekStartDay: user.week_start_day || user.weekStartDay || null,
+      createdAt: user.created_at || user.createdAt,
+      updatedAt: user.updated_at || user.updatedAt
     }
   };
 }
