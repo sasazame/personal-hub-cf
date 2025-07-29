@@ -51,7 +51,7 @@ export function Register() {
     try {
       clearError()
       await registerUser(data.username, data.email, data.password)
-      navigate('/login?registered=true')
+      // Don't navigate - let useEffect handle redirect when authenticated
     } catch {
       // Error is already handled by the auth context
     }

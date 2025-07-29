@@ -38,7 +38,18 @@ export const todoApi = {
   },
 
   async create(data: CreateTodoDto): Promise<Todo> {
-    const response = await apiClient.post('/api/v1/todos', data)
+    // Transform repeatConfig to individual fields for backend
+    const backendData: any = {
+      ...data,
+      repeatType: data.repeatConfig?.repeatType,
+      repeatInterval: data.repeatConfig?.interval,
+      repeatDaysOfWeek: data.repeatConfig?.daysOfWeek,
+      repeatDayOfMonth: data.repeatConfig?.dayOfMonth,
+      repeatEndDate: data.repeatConfig?.endDate,
+    }
+    delete backendData.repeatConfig
+    
+    const response = await apiClient.post('/api/v1/todos', backendData)
     return response.data
   },
 

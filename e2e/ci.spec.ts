@@ -24,7 +24,7 @@ test.describe('CI Critical Path Tests', () => {
     
     // Should redirect to dashboard
     await expect(page).toHaveURL('/dashboard');
-    await expect(page.locator('h1')).toContainText('ダッシュボード');
+    await expect(page.locator('main h1').first()).toContainText('Welcome back');
   });
 
   test('should create and complete a todo', async ({ page }) => {
