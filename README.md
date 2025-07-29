@@ -1,10 +1,6 @@
-# Personal Hub - Cloudflare Migration
+# Personal Hub - Cloudflare
 
 A modern, edge-native personal productivity hub built on Cloudflare's platform, featuring task management, note-taking, goal tracking, and analytics.
-
-## 🚧 Migration Status
-
-This project is a careful migration from the original Spring Boot + Next.js architecture to a Cloudflare-native stack. See [MIGRATION_GUIDE_V2.md](./MIGRATION_GUIDE_V2.md) for the detailed migration strategy.
 
 ## ✅ Project Status
 
@@ -14,23 +10,27 @@ This project is a careful migration from the original Spring Boot + Next.js arch
 - ✅ All 13 API endpoint groups implemented
 - ✅ Authentication system with JWT tokens
 - ✅ Comprehensive test suite (93.44% coverage, 243 tests passing)
-- ✅ Production deployment complete
 - ✅ CI/CD pipeline with GitHub Actions
 - ✅ API documentation (OpenAPI 3.0)
+- ✅ **Frontend migration from Next.js to Vite+React**
+- ✅ **All main features implemented in new frontend**
+- ✅ **E2E test suite with Playwright (32 test files)**
 
 **In Progress:**
-- 🚧 File structure organization
-- 🚧 Frontend migration planning
+- 🚧 Cloudflare Pages deployment setup
+- 🚧 E2E test stability improvements
+- 🚧 OAuth integration (GitHub/Google)
 
 **Next Steps:**
-- 📋 Extract shared UI components
-- 📋 Migrate frontend incrementally
-- 📋 Set up E2E tests
+- 📋 Deploy to Cloudflare Pages for staging
+- 📋 Implement missing OAuth flows
+- 📋 Performance optimizations
+- 📋 Dark mode toggle
 
 ## 📋 Prerequisites
 
-- Node.js 18+
-- pnpm 9+
+- Node.js 20+
+- pnpm 10.13.1
 - Cloudflare account
 - Wrangler CLI (`npm install -g wrangler`)
 
@@ -57,11 +57,14 @@ pnpm typecheck
 pnpm lint
 ```
 
-## 🌐 Production Deployment
+## 🌐 Deployment
 
-The backend is deployed and accessible at:
-- **API Endpoint**: https://personal-hub-backend-prod.zametech.workers.dev
+See [Deployment Guide](./docs/DEPLOYMENT.md) for detailed deployment instructions.
+
+### Quick Links
+- **Backend API**: https://personal-hub-backend-prod.zametech.workers.dev
 - **Health Check**: https://personal-hub-backend-prod.zametech.workers.dev/health
+- **Frontend**: https://personal-hub.pages.dev (after deployment)
 
 All API endpoints are available under `/api/v1/*` prefix.
 
@@ -80,7 +83,15 @@ personal-hub-cf/
 │   │   │   ├── utils/       # Utilities and helpers
 │   │   │   └── __tests__/   # Comprehensive test suite
 │   │   └── wrangler.toml    # Cloudflare configuration
-│   └── frontend/            # Next.js frontend (to be migrated)
+│   └── frontend/            # React + Vite frontend
+│       ├── src/
+│       │   ├── components/  # React components
+│       │   ├── pages/       # Page components
+│       │   ├── contexts/    # React contexts
+│       │   ├── hooks/       # Custom hooks
+│       │   └── lib/         # API clients
+│       └── vite.config.ts   # Vite configuration
+├── e2e/                     # E2E test suite (Playwright)
 ├── docs/
 │   ├── api/                 # API documentation
 │   │   ├── README.md        # Quick API reference
@@ -103,11 +114,15 @@ personal-hub-cf/
 - **Testing**: Vitest with Miniflare
 - **Coverage**: 93.44% statement coverage
 
-### Frontend (To be migrated)
-- **Framework**: Next.js 14
-- **UI**: React with TypeScript
-- **Styling**: Tailwind CSS
-- **State Management**: React Context API
+### Frontend
+- **Framework**: React with Vite
+- **UI Library**: Material-UI (MUI)
+- **Styling**: Tailwind CSS + Emotion
+- **State Management**: React Query + Zustand
+- **Calendar**: FullCalendar
+- **Charts**: Recharts
+- **Markdown**: React Markdown
+- **Testing**: Playwright for E2E
 
 ## 📝 Migration Principles
 
@@ -119,14 +134,17 @@ personal-hub-cf/
 ## 🧪 Testing Strategy
 
 ```bash
-# Run API compatibility tests
-pnpm --filter @personal-hub/api-compat-test test:compare
-
 # Run unit tests
 pnpm test
 
-# Run E2E tests (coming soon)
-pnpm e2e
+# Run E2E tests (requires dev servers running)
+SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:5173 pnpm playwright test
+
+# Run CI-optimized tests
+SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:5173 pnpm playwright test e2e/ci.spec.ts
+
+# Run tests with UI
+pnpm test:e2e:ui
 ```
 
 ## 📚 Documentation
