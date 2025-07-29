@@ -4,9 +4,22 @@ import type { Todo, CreateTodoDto, UpdateTodoDto, PaginatedResponse, TodoStatus 
 export const todoApi = {
   async getAll(page = 0, size = 20): Promise<PaginatedResponse<Todo>> {
     const response = await apiClient.get('/api/v1/todos', {
-      params: { page, size, sort: 'createdAt,desc' }
+      params: { page: page + 1, limit: size, sort: 'createdAt', order: 'desc' }
     })
-    return response.data
+    // Convert backend format to Spring Boot format
+    const { items, total, page: currentPage, limit, totalPages } = response.data
+    return {
+      content: items,
+      pageable: {
+        pageNumber: currentPage - 1,
+        pageSize: limit,
+        sort: { sorted: true, ascending: false },
+      },
+      totalElements: total,
+      totalPages,
+      first: currentPage === 1,
+      last: currentPage === totalPages,
+    }
   },
 
   async getByStatus(status: TodoStatus): Promise<Todo[]> {

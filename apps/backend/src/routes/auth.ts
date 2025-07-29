@@ -25,7 +25,7 @@ const registerSchema = z.object({
   email: z.string().email(ValidationMessages.EMAIL_INVALID),
   password: z.string()
     .min(8, ValidationMessages.PASSWORD_WEAK)
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/, ValidationMessages.PASSWORD_WEAK),
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).*$/, ValidationMessages.PASSWORD_WEAK),
   username: z.string()
     .min(3, ValidationMessages.USERNAME_INVALID)
     .max(20, ValidationMessages.USERNAME_INVALID),
@@ -48,7 +48,7 @@ const resetPasswordSchema = z.object({
   token: z.string(),
   newPassword: z.string()
     .min(8, ValidationMessages.PASSWORD_WEAK)
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, ValidationMessages.PASSWORD_WEAK),
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).*$/, ValidationMessages.PASSWORD_WEAK),
 });
 
 // POST /auth/register

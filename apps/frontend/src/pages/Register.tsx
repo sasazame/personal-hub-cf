@@ -7,9 +7,16 @@ import { z } from 'zod'
 import { useAuth } from '@/contexts/AuthContext'
 
 const registerSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters'),
+  username: z.string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(20, 'Username must be at most 20 characters'),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).*$/,
+      'Password must contain uppercase, lowercase, digit, and special character'
+    ),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",

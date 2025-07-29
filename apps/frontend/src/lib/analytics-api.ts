@@ -10,7 +10,7 @@ const api = axios.create({
 
 // Add auth interceptor
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('accessToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -216,22 +216,22 @@ function transformToAnalyticsData(
 
 export const analyticsApi = {
   getOverview: async (): Promise<OverviewData> => {
-    const response = await api.get('/analytics/overview');
+    const response = await api.get('/api/v1/analytics/overview');
     return response.data;
   },
 
   getProductivity: async (fromDate: string, toDate: string): Promise<ProductivityData> => {
-    const response = await api.get(`/analytics/productivity?fromDate=${fromDate}&toDate=${toDate}`);
+    const response = await api.get(`/api/v1/analytics/productivity?fromDate=${fromDate}&toDate=${toDate}`);
     return response.data;
   },
 
   getHabits: async (days: number = 30): Promise<HabitsData> => {
-    const response = await api.get(`/analytics/habits?days=${days}`);
+    const response = await api.get(`/api/v1/analytics/habits?days=${days}`);
     return response.data;
   },
 
   getGoalsProgress: async (): Promise<GoalProgress[]> => {
-    const response = await api.get('/analytics/goals-progress');
+    const response = await api.get('/api/v1/analytics/goals-progress');
     return response.data;
   },
 

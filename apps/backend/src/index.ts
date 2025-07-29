@@ -18,8 +18,18 @@ const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
 // Apply CORS middleware
 app.use('*', cors({
-  origin: ['http://localhost:3000', 'http://localhost:8080'],
+  origin: (origin) => {
+    // Allow requests from localhost during development
+    if (!origin || origin.startsWith('http://localhost:')) {
+      return origin;
+    }
+    // In production, allow requests from the deployed frontend
+    // This will be updated with actual production URL
+    return origin;
+  },
   credentials: true,
+  allowHeaders: ['Content-Type', 'Authorization'],
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 }));
 
 // Database middleware

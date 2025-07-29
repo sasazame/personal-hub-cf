@@ -20,43 +20,43 @@ export async function getCalendarEvents(filters?: EventFilters): Promise<Calenda
   }
   
   const queryString = params.toString();
-  const url = `/api/v1/calendar${queryString ? `?${queryString}` : ''}`;
+  const url = `/api/v1/events${queryString ? `?${queryString}` : ''}`;
   
   const response = await apiClient.get<CalendarEvent[]>(url);
   return response.data;
 }
 
 export async function getCalendarEvent(id: number): Promise<CalendarEvent> {
-  const response = await apiClient.get<CalendarEvent>(`/api/v1/calendar/${id}`);
+  const response = await apiClient.get<CalendarEvent>(`/api/v1/events/${id}`);
   return response.data;
 }
 
 export async function createCalendarEvent(data: CreateCalendarEventDto): Promise<CalendarEvent> {
-  const response = await apiClient.post<CalendarEvent>('/api/v1/calendar', data);
+  const response = await apiClient.post<CalendarEvent>('/api/v1/events', data);
   return response.data;
 }
 
 export async function updateCalendarEvent(id: number, data: UpdateCalendarEventDto): Promise<CalendarEvent> {
-  const response = await apiClient.put<CalendarEvent>(`/api/v1/calendar/${id}`, data);
+  const response = await apiClient.put<CalendarEvent>(`/api/v1/events/${id}`, data);
   return response.data;
 }
 
 export async function deleteCalendarEvent(id: number): Promise<void> {
-  await apiClient.delete(`/api/v1/calendar/${id}`);
+  await apiClient.delete(`/api/v1/events/${id}`);
 }
 
 export async function syncWithGoogleCalendar(): Promise<{ synced: number; failed: number }> {
-  const response = await apiClient.post<{ synced: number; failed: number }>('/api/v1/calendar/sync');
+  const response = await apiClient.post<{ synced: number; failed: number }>('/api/v1/events/sync');
   return response.data;
 }
 
 export async function getGoogleCalendarSettings(): Promise<{ enabled: boolean; calendars: any[] }> {
-  const response = await apiClient.get<{ enabled: boolean; calendars: any[] }>('/api/v1/calendar/google/settings');
+  const response = await apiClient.get<{ enabled: boolean; calendars: any[] }>('/api/v1/events/google/settings');
   return response.data;
 }
 
 export async function updateGoogleCalendarSettings(settings: { enabled: boolean; calendarId?: string }): Promise<void> {
-  await apiClient.put('/api/v1/calendar/google/settings', settings);
+  await apiClient.put('/api/v1/events/google/settings', settings);
 }
 
 export const calendarApi = {
