@@ -172,7 +172,15 @@ app.post('/login', zValidator('json', loginSchema, springBootValidator), async (
     // Generate tokens
     const tokens = await generateTokens(user.id, c.env.JWT_SECRET);
     
-    // Store refresh token
+    // Revoke any existing refresh tokens for this user
+    await db.update(refreshTokens)
+      .set({ revoked: true })
+      .where(and(
+        eq(refreshTokens.userId, user.id),
+        eq(refreshTokens.revoked, false)
+      ));
+    
+    // Store new refresh token
     await db.insert(refreshTokens).values({
       id: nanoid(),
       tokenHash: await createHash(tokens.refreshToken),
