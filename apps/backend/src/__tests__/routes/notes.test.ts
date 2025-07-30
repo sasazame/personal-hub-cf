@@ -5,7 +5,7 @@ import { generateTokens } from '../../utils/auth';
 import { createMockDbChain } from '../helpers/test-context';
 import type { Bindings, Variables } from '../../types';
 import type { D1Database } from '@cloudflare/workers-types';
-import type { NoteResponse, PaginatedResponse } from '../helpers/response-types';
+import type { NoteResponse, PaginatedResponse, APIErrorResponse } from '../helpers/response-types';
 
 describe('Notes Routes', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
@@ -236,7 +236,7 @@ describe('Notes Routes', () => {
       }, env);
 
       expect(res.status).toBe(400);
-      const body = await res.json() as NoteResponse;
+      const body = await res.json() as APIErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
   });
@@ -359,7 +359,7 @@ describe('Notes Routes', () => {
       }, env);
 
       expect(res.status).toBe(404);
-      const body = await res.json() as NoteResponse;
+      const body = await res.json() as APIErrorResponse;
       expect(body.code).toBe('NOT_FOUND');
     });
   });

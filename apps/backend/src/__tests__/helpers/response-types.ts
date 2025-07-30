@@ -1,5 +1,12 @@
 // Common response types for tests
 
+export interface APIErrorResponse {
+  code: string;
+  message?: string;
+  details?: unknown;
+  timestamp?: string;
+}
+
 export interface ErrorResponse {
   error?: string;
   code?: string;
@@ -117,6 +124,10 @@ export interface PomodoroTaskResponse {
   createdAt: string;
 }
 
+export interface PomodoroSessionWithTasksResponse extends PomodoroSessionResponse {
+  tasks?: PomodoroTaskResponse[];
+}
+
 export interface PomodoroConfigResponse {
   userId: string;
   workDuration: number;
@@ -136,6 +147,8 @@ export interface PaginatedResponse<T> {
   total: number;
   limit: number;
   offset: number;
+  page?: number;
+  totalPages?: number;
 }
 
 export interface TagCount {
@@ -169,4 +182,14 @@ export interface AnalyticsTimeDistributionResponse {
 
 export interface MessageResponse {
   message: string;
+}
+
+export interface MomentsStatsResponse {
+  totalMoments: number;
+  daysWithMoments: number;
+  averagePerDay: number;
+  maxPerDay: number;
+  momentsByDate: Record<string, number>;
+  totalTags?: number;
+  recentMoments?: MomentResponse[];
 }

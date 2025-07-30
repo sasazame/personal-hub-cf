@@ -5,7 +5,7 @@ import { generateTokens } from '../../utils/auth';
 import { createMockDbChain } from '../helpers/test-context';
 import type { Bindings, Variables } from '../../types';
 import type { D1Database } from '@cloudflare/workers-types';
-import type { GoalResponse } from '../helpers/response-types';
+import type { GoalResponse, APIErrorResponse } from '../helpers/response-types';
 
 describe('Goals Routes', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
@@ -202,7 +202,7 @@ describe('Goals Routes', () => {
       }, env);
 
       expect(res.status).toBe(400);
-      const body = await res.json() as GoalResponse[];
+      const body = await res.json() as APIErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
   });
