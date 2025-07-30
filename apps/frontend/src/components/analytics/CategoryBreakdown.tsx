@@ -1,4 +1,5 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { CustomTooltip } from './CustomTooltip';
 
 interface CategoryBreakdownProps {
   data: Array<{
@@ -18,19 +19,13 @@ const COLORS = [
 ];
 
 export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0];
-      return (
-        <div className="bg-gray-900 text-white p-3 rounded shadow-lg border border-gray-700">
-          <p className="text-sm font-medium">{data.name}</p>
-          <p className="text-sm">
-            {data.value} ({(data.payload as any)?.percentage}%)
-          </p>
-        </div>
-      );
-    }
-    return null;
+  const CategoryTooltipContent = (props: any) => {
+    if (!props.active || !props.payload || props.payload.length === 0) return null;
+    
+    const item = props.payload[0];
+    const valueFormatter = (value: any) => `${value} (${(item.payload as any)?.percentage}%)`;
+    
+    return <CustomTooltip {...props} showLabel={false} valueFormatter={valueFormatter} />;
   };
 
   const renderCustomizedLabel = (props: any) => {
@@ -108,7 +103,7 @@ export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={CategoryTooltipContent} />
           <Legend
             verticalAlign="middle"
             align="right"

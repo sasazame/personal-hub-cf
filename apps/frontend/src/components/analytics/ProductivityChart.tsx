@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { ChartData } from '@/types/analytics';
+import { CustomTooltip } from './CustomTooltip';
 
 interface ProductivityChartProps {
   data: ChartData;
@@ -26,21 +27,7 @@ export function ProductivityChart({ data, title = 'タスク完了率', height =
     return point;
   });
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-gray-900 text-white p-3 rounded shadow-lg border border-gray-700">
-          <p className="text-sm font-medium mb-1">{label}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} className="text-sm" style={{ color: entry.color }}>
-              {entry.name}: {entry.value}%
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
+  const tooltipValueFormatter = (value: any) => `${value}%`;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
@@ -66,7 +53,7 @@ export function ProductivityChart({ data, title = 'タスク完了率', height =
             domain={[0, 100]}
             tickFormatter={(value) => `${value}%`}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={(props: any) => <CustomTooltip {...props} valueFormatter={tooltipValueFormatter} />} />
           <Legend
             wrapperStyle={{ paddingTop: '20px' }}
             iconType="line"

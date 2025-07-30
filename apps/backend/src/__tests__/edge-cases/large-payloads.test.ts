@@ -56,7 +56,7 @@ describe('Large Payload Edge Cases', () => {
             }),
           };
         }
-        return customMocks.select();
+        return customMocks.select ? customMocks.select() : {};
       });
     } else {
       setupDbMock();
