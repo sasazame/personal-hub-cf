@@ -1,10 +1,24 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
 /**
  * CI-friendly E2E test suite
  * These tests are designed to run quickly in CI environments
  * They test critical user flows without exhaustive coverage
  */
+
+async function handlePostRegistrationFlow(page: Page, timestamp: string, userType: string) {
+  // Wait for navigation - either to dashboard or login
+  await page.waitForURL(url => url.pathname === '/dashboard' || url.pathname === '/login', { timeout: 10000 });
+  
+  // If redirected to login, login again
+  if (page.url().includes('/login')) {
+    const email = `${userType}${timestamp}@test.com`;
+    await page.fill('input[name="email"]', email);
+    await page.fill('input[name="password"]', 'Test123456!');
+    await page.click('button[type="submit"]');
+    await page.waitForURL('/dashboard', { timeout: 10000 });
+  }
+}
 
 test.describe('CI Critical Path Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -54,21 +68,8 @@ test.describe('CI Critical Path Tests', () => {
     // Click submit
     await page.click('button[type="submit"]');
     
-    // Wait for navigation
-    await page.waitForURL(url => url.pathname === '/dashboard' || url.pathname === '/login', { timeout: 10000 });
-    
-    // If redirected to login, login again
-    if (page.url().includes('/login')) {
-      const email = timestamp.includes('todo') ? `todo${timestamp}@test.com` : 
-                    timestamp.includes('note') ? `note${timestamp}@test.com` :
-                    timestamp.includes('moment') ? `moment${timestamp}@test.com` :
-                    timestamp.includes('pomo') ? `pomo${timestamp}@test.com` :
-                    `nav${timestamp}@test.com`;
-      await page.fill('input[name="email"]', email);
-      await page.fill('input[name="password"]', 'Test123456!');
-      await page.click('button[type="submit"]');
-      await page.waitForURL('/dashboard', { timeout: 10000 });
-    }
+    // Handle post-registration flow
+    await handlePostRegistrationFlow(page, timestamp, 'todo');
     
     // Navigate to todos
     await page.goto('/todos');
@@ -117,21 +118,8 @@ test.describe('CI Critical Path Tests', () => {
     // Click submit
     await page.click('button[type="submit"]');
     
-    // Wait for navigation
-    await page.waitForURL(url => url.pathname === '/dashboard' || url.pathname === '/login', { timeout: 10000 });
-    
-    // If redirected to login, login again
-    if (page.url().includes('/login')) {
-      const email = timestamp.includes('todo') ? `todo${timestamp}@test.com` : 
-                    timestamp.includes('note') ? `note${timestamp}@test.com` :
-                    timestamp.includes('moment') ? `moment${timestamp}@test.com` :
-                    timestamp.includes('pomo') ? `pomo${timestamp}@test.com` :
-                    `nav${timestamp}@test.com`;
-      await page.fill('input[name="email"]', email);
-      await page.fill('input[name="password"]', 'Test123456!');
-      await page.click('button[type="submit"]');
-      await page.waitForURL('/dashboard', { timeout: 10000 });
-    }
+    // Handle post-registration flow
+    await handlePostRegistrationFlow(page, timestamp, 'note');
     
     // Navigate to notes
     await page.goto('/notes');
@@ -167,21 +155,8 @@ test.describe('CI Critical Path Tests', () => {
     // Click submit
     await page.click('button[type="submit"]');
     
-    // Wait for navigation
-    await page.waitForURL(url => url.pathname === '/dashboard' || url.pathname === '/login', { timeout: 10000 });
-    
-    // If redirected to login, login again
-    if (page.url().includes('/login')) {
-      const email = timestamp.includes('todo') ? `todo${timestamp}@test.com` : 
-                    timestamp.includes('note') ? `note${timestamp}@test.com` :
-                    timestamp.includes('moment') ? `moment${timestamp}@test.com` :
-                    timestamp.includes('pomo') ? `pomo${timestamp}@test.com` :
-                    `nav${timestamp}@test.com`;
-      await page.fill('input[name="email"]', email);
-      await page.fill('input[name="password"]', 'Test123456!');
-      await page.click('button[type="submit"]');
-      await page.waitForURL('/dashboard', { timeout: 10000 });
-    }
+    // Handle post-registration flow
+    await handlePostRegistrationFlow(page, timestamp, 'moment');
     
     // Navigate to moments
     await page.goto('/moments');
@@ -212,21 +187,8 @@ test.describe('CI Critical Path Tests', () => {
     // Click submit
     await page.click('button[type="submit"]');
     
-    // Wait for navigation
-    await page.waitForURL(url => url.pathname === '/dashboard' || url.pathname === '/login', { timeout: 10000 });
-    
-    // If redirected to login, login again
-    if (page.url().includes('/login')) {
-      const email = timestamp.includes('todo') ? `todo${timestamp}@test.com` : 
-                    timestamp.includes('note') ? `note${timestamp}@test.com` :
-                    timestamp.includes('moment') ? `moment${timestamp}@test.com` :
-                    timestamp.includes('pomo') ? `pomo${timestamp}@test.com` :
-                    `nav${timestamp}@test.com`;
-      await page.fill('input[name="email"]', email);
-      await page.fill('input[name="password"]', 'Test123456!');
-      await page.click('button[type="submit"]');
-      await page.waitForURL('/dashboard', { timeout: 10000 });
-    }
+    // Handle post-registration flow
+    await handlePostRegistrationFlow(page, timestamp, 'pomo');
     
     // Navigate to pomodoro
     await page.goto('/pomodoro');
@@ -253,21 +215,8 @@ test.describe('CI Critical Path Tests', () => {
     // Click submit
     await page.click('button[type="submit"]');
     
-    // Wait for navigation
-    await page.waitForURL(url => url.pathname === '/dashboard' || url.pathname === '/login', { timeout: 10000 });
-    
-    // If redirected to login, login again
-    if (page.url().includes('/login')) {
-      const email = timestamp.includes('todo') ? `todo${timestamp}@test.com` : 
-                    timestamp.includes('note') ? `note${timestamp}@test.com` :
-                    timestamp.includes('moment') ? `moment${timestamp}@test.com` :
-                    timestamp.includes('pomo') ? `pomo${timestamp}@test.com` :
-                    `nav${timestamp}@test.com`;
-      await page.fill('input[name="email"]', email);
-      await page.fill('input[name="password"]', 'Test123456!');
-      await page.click('button[type="submit"]');
-      await page.waitForURL('/dashboard', { timeout: 10000 });
-    }
+    // Handle post-registration flow
+    await handlePostRegistrationFlow(page, timestamp, 'nav');
     
     // Test navigation
     const pages = [

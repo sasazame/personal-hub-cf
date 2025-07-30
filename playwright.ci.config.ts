@@ -18,7 +18,7 @@ export default defineConfig({
   reporter: process.env.CI ? 'github' : 'html',
   use: {
     actionTimeout: 0,
-    baseURL: 'http://localhost:3000',
+    baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
