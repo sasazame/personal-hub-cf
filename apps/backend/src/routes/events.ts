@@ -186,7 +186,7 @@ app.post('/', zValidator('json', createEventSchema, springBootValidator), async 
     
     const result = await db.insert(events).values(newEvent).returning();
     
-    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode as ContentfulStatusCode);
   } catch (error) {
     console.error('Create event error:', error);
     return c.json(
@@ -315,7 +315,7 @@ app.post('/sync/settings', zValidator('json', syncSettingsSchema, springBootVali
     if (existing) {
       return c.json(
         createErrorResponse(ErrorCodes.CONFLICT, 'Settings already exist for this calendar'),
-        StatusCodes.CONFLICT as ContentfulStatusCode
+        StatusCodes.CONFLICT as ContentfulStatusCode as ContentfulStatusCode
       );
     }
     
@@ -332,7 +332,7 @@ app.post('/sync/settings', zValidator('json', syncSettingsSchema, springBootVali
     
     const result = await db.insert(calendarSyncSettings).values(newSettings).returning();
     
-    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode as ContentfulStatusCode);
   } catch (error) {
     console.error('Create sync settings error:', error);
     return c.json(

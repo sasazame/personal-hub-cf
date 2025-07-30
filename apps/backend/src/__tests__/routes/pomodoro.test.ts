@@ -75,7 +75,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(401);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body.code).toBe('UNAUTHORIZED');
     });
 
@@ -130,7 +130,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       
       expect(Array.isArray(body)).toBe(true);
       expect(body).toEqual(mockSessions);
@@ -218,7 +218,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       
       expect(body.id).toBe(mockSession.id);
       expect(body.tasks).toEqual(mockTasks);
@@ -235,7 +235,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(404);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body.code).toBe('NOT_FOUND');
     });
   });
@@ -280,7 +280,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       
       expect(body.id).toBe('session-123');
       expect(body.tasks).toEqual(mockTasks);
@@ -422,7 +422,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(409);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body.code).toBe('CONFLICT');
     });
 
@@ -437,7 +437,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
   });
@@ -475,7 +475,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       
       expect(body.status).toBe('COMPLETED');
       expect(body.completedCycles).toBe(4);
@@ -587,7 +587,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body).toEqual(mockConfig);
     });
 
@@ -691,7 +691,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
   });
@@ -735,7 +735,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       
       expect(body.totalSessions).toBe(3);
       expect(body.totalCycles).toBe(9);
@@ -775,7 +775,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       
       expect(body.totalSessions).toBe(0);
       expect(body.totalCycles).toBe(0);
@@ -814,7 +814,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(500);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body.code).toBe('INTERNAL_ERROR');
     });
   });

@@ -63,7 +63,7 @@ app.post('/register', zValidator('json', registerSchema, springBootValidator), a
     if (existing) {
       return c.json(
         createErrorResponse(ErrorCodes.EMAIL_ALREADY_EXISTS, ErrorMessages.EMAIL_ALREADY_EXISTS),
-        StatusCodes.USER_EXISTS
+        StatusCodes.USER_EXISTS as ContentfulStatusCode
       );
     }
     
@@ -117,7 +117,7 @@ app.post('/register', zValidator('json', registerSchema, springBootValidator), a
     
     await db.insert(refreshTokens).values(refreshTokenData);
     
-    return c.json(createAuthResponse(newUser, tokens.accessToken, tokens.refreshToken), StatusCodes.CREATED);
+    return c.json(createAuthResponse(newUser, tokens.accessToken, tokens.refreshToken), StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Registration error:', error);
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
@@ -141,7 +141,7 @@ app.post('/login', zValidator('json', loginSchema, springBootValidator), async (
       // Match Spring Boot behavior - returns AUTHENTICATION_FAILED for non-existent user
       return c.json(
         createErrorResponse(ErrorCodes.AUTHENTICATION_FAILED),
-        StatusCodes.AUTHENTICATION_FAILED
+        StatusCodes.AUTHENTICATION_FAILED as ContentfulStatusCode
       );
     }
     
@@ -149,7 +149,7 @@ app.post('/login', zValidator('json', loginSchema, springBootValidator), async (
       // User registered via OAuth
       return c.json(
         createErrorResponse(ErrorCodes.AUTHENTICATION_FAILED, 'Please login using your social account'),
-        StatusCodes.AUTHENTICATION_FAILED
+        StatusCodes.AUTHENTICATION_FAILED as ContentfulStatusCode
       );
     }
     
@@ -158,7 +158,7 @@ app.post('/login', zValidator('json', loginSchema, springBootValidator), async (
     if (!valid) {
       return c.json(
         createErrorResponse(ErrorCodes.AUTHENTICATION_FAILED),
-        StatusCodes.AUTHENTICATION_FAILED
+        StatusCodes.AUTHENTICATION_FAILED as ContentfulStatusCode
       );
     }
     
@@ -166,7 +166,7 @@ app.post('/login', zValidator('json', loginSchema, springBootValidator), async (
     if (!user.enabled) {
       return c.json(
         createErrorResponse(ErrorCodes.FORBIDDEN, 'Account is disabled'),
-        StatusCodes.FORBIDDEN
+        StatusCodes.FORBIDDEN as ContentfulStatusCode as ContentfulStatusCode
       );
     }
     
@@ -214,7 +214,7 @@ app.post('/refresh', zValidator('json', refreshSchema, springBootValidator), asy
     if (decoded.type !== 'refresh') {
       return c.json(
         createErrorResponse(ErrorCodes.INVALID_TOKEN),
-        StatusCodes.INVALID_TOKEN
+        StatusCodes.INVALID_TOKEN as ContentfulStatusCode
       );
     }
     
@@ -228,14 +228,14 @@ app.post('/refresh', zValidator('json', refreshSchema, springBootValidator), asy
     if (!storedToken || storedToken.revoked) {
       return c.json(
         createErrorResponse(ErrorCodes.INVALID_TOKEN),
-        StatusCodes.INVALID_TOKEN
+        StatusCodes.INVALID_TOKEN as ContentfulStatusCode
       );
     }
     
-    if (new Date(storedToken.expires_at) < new Date()) {
+    if (new Date(storedToken.expiresAt) < new Date()) {
       return c.json(
         createErrorResponse(ErrorCodes.TOKEN_EXPIRED),
-        StatusCodes.TOKEN_EXPIRED
+        StatusCodes.TOKEN_EXPIRED as ContentfulStatusCode
       );
     }
     
@@ -248,7 +248,7 @@ app.post('/refresh', zValidator('json', refreshSchema, springBootValidator), asy
     if (!user || !user.enabled) {
       return c.json(
         createErrorResponse(ErrorCodes.USER_NOT_FOUND),
-        StatusCodes.USER_NOT_FOUND
+        StatusCodes.USER_NOT_FOUND as ContentfulStatusCode
       );
     }
     
@@ -276,7 +276,7 @@ app.post('/refresh', zValidator('json', refreshSchema, springBootValidator), asy
     console.error('Refresh error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INVALID_TOKEN),
-      StatusCodes.INVALID_TOKEN
+      StatusCodes.INVALID_TOKEN as ContentfulStatusCode
     );
   }
 });
@@ -286,7 +286,7 @@ app.get('/me', async (c) => {
   const authHeader = c.req.header('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     // Match Spring Boot - returns 403 Forbidden
-    return c.text('Forbidden', StatusCodes.FORBIDDEN as any);
+    return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode as ContentfulStatusCode as any);
   }
   
   const token = authHeader.substring(7);
@@ -294,7 +294,7 @@ app.get('/me', async (c) => {
   try {
     const decoded = await verifyToken(token, c.env.JWT_SECRET);
     if (decoded.type !== 'access') {
-      return c.text('Forbidden', StatusCodes.FORBIDDEN as any);
+      return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode as ContentfulStatusCode as any);
     }
     
     const db = c.get('db');
@@ -304,7 +304,7 @@ app.get('/me', async (c) => {
       .get();
     
     if (!user || !user.enabled) {
-      return c.text('Forbidden', StatusCodes.FORBIDDEN as any);
+      return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode as ContentfulStatusCode as any);
     }
     
     // Return user data in Spring Boot format
@@ -318,7 +318,7 @@ app.get('/me', async (c) => {
     });
   } catch (error) {
     console.error('Auth error:', error);
-    return c.text('Forbidden', StatusCodes.FORBIDDEN as any);
+    return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode as ContentfulStatusCode as any);
   }
 });
 
@@ -453,12 +453,12 @@ app.get('/oidc/github/authorize', (c) => {
 // Placeholder for OAuth callbacks
 app.post('/oidc/google/callback', (c) => {
   // Match Spring Boot - returns 403 for invalid callback
-  return c.text('Forbidden', StatusCodes.FORBIDDEN);
+  return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode as ContentfulStatusCode);
 });
 
 app.post('/oidc/github/callback', (c) => {
   // Match Spring Boot - returns 403 for invalid callback
-  return c.text('Forbidden', StatusCodes.FORBIDDEN);
+  return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode as ContentfulStatusCode);
 });
 
 // POST /auth/logout - Spring Boot endpoint

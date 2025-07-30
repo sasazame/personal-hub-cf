@@ -217,7 +217,7 @@ describe('Notes Routes', () => {
       }, env);
 
       expect(res.status).toBe(201);
-      const body = await res.json() as unknown;
+      const body = await res.json() as NoteResponse;
       expect(body.title).toBe('New Note');
       expect(body.userId).toBe(userId);
     });
@@ -236,7 +236,7 @@ describe('Notes Routes', () => {
       }, env);
 
       expect(res.status).toBe(400);
-      const body = await res.json() as unknown;
+      const body = await res.json() as NoteResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
   });
@@ -290,7 +290,7 @@ describe('Notes Routes', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as NoteResponse;
       expect(body.content).toBe('Updated content');
     });
   });
@@ -359,7 +359,7 @@ describe('Notes Routes', () => {
       }, env);
 
       expect(res.status).toBe(404);
-      const body = await res.json() as unknown;
+      const body = await res.json() as NoteResponse;
       expect(body.code).toBe('NOT_FOUND');
     });
   });

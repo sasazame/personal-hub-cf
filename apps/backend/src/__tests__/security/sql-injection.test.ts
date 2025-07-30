@@ -26,8 +26,8 @@ describe('SQL Injection Security Tests', () => {
 
     // Create test user
     const userData = await createTestUserData();
-    testUser = await db.insert(schema.users).values(userData).returning();
-    testUser = testUser[0];
+    const users = await db.insert(schema.users).values(userData).returning();
+    testUser = users[0];
     
     // Generate access token
     accessToken = await jwt.sign(
@@ -112,7 +112,6 @@ describe('SQL Injection Security Tests', () => {
         title: 'Test Note',
         content: 'Content',
         tags: 'work,important',
-        isArchived: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -318,7 +317,6 @@ describe('SQL Injection Security Tests', () => {
         title: "Note with 'quotes' and \"double quotes\"",
         content: "Content with backslash \\ and semicolon ;",
         tags: "tag1,tag-with-dash,tag_with_underscore",
-        isArchived: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });

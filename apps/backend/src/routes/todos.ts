@@ -162,7 +162,7 @@ app.post('/', zValidator('json', createTodoSchema, springBootValidator), async (
   try {
     const newTodo = {
       ...data,
-      userId,
+      userId: userId as string,
       status: data.status || 'TODO',
       priority: data.priority || 'MEDIUM',
       isRepeatable: data.isRepeatable || false,
@@ -174,7 +174,7 @@ app.post('/', zValidator('json', createTodoSchema, springBootValidator), async (
     const result = await db.insert(todos).values(newTodo).returning();
     const insertedTodo = Array.isArray(result) ? result[0] : result;
     
-    return c.json(insertedTodo, StatusCodes.CREATED as ContentfulStatusCode);
+    return c.json(insertedTodo, StatusCodes.CREATED as ContentfulStatusCode as ContentfulStatusCode);
   } catch (error) {
     console.error('Create todo error:', error);
     return c.json(

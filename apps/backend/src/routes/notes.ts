@@ -174,7 +174,7 @@ app.post('/', zValidator('json', createNoteSchema, springBootValidator), async (
     
     const result = await db.insert(notes).values(newNote).returning();
     
-    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode as ContentfulStatusCode);
   } catch (error) {
     console.error('Create note error:', error);
     return c.json(

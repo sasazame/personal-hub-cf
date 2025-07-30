@@ -4,7 +4,7 @@ import momentsRoutes from '../../routes/moments';
 import type { Bindings, Variables } from '../../types';
 import { createTestContext } from '../helpers/test-context';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
-import type { MomentResponse, PaginatedResponse } from '../helpers/response-types';
+import type { MomentResponse, PaginatedResponse, ErrorResponse } from '../helpers/response-types';
 
 describe('Moments Routes', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
@@ -132,7 +132,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(401);
-      const body = await res.json() as unknown;
+      const body = await res.json() as MomentResponse;
       expect(body.code).toBe('UNAUTHORIZED');
     });
 
@@ -165,7 +165,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as MomentResponse;
       
       expect(body).toHaveProperty('items');
       expect(body).toHaveProperty('total');
@@ -270,7 +270,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as MomentResponse;
       expect(body).toEqual([]);
     });
   });
@@ -315,7 +315,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as MomentResponse;
       expect(body).toEqual([]);
     });
   });
@@ -420,7 +420,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as MomentResponse;
       expect(body).toEqual(mockMoment);
     });
 
@@ -435,7 +435,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(404);
-      const body = await res.json() as unknown;
+      const body = await res.json() as MomentResponse;
       expect(body.code).toBe('NOT_FOUND');
     });
   });
@@ -468,7 +468,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(201);
-      const body = await res.json() as unknown;
+      const body = await res.json() as MomentResponse;
       
       expect(body.content).toBe(momentData.content);
       expect(body.tags).toBe(momentData.tags);
@@ -486,7 +486,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
-      const body = await res.json() as unknown;
+      const body = await res.json() as MomentResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
 
@@ -554,7 +554,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as MomentResponse;
       
       expect(body.content).toBe(updateData.content);
       expect(body.tags).toBe(updateData.tags);
@@ -638,7 +638,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(500);
-      const body = await res.json() as unknown;
+      const body = await res.json() as MomentResponse;
       expect(body.code).toBe('INTERNAL_ERROR');
     });
   });

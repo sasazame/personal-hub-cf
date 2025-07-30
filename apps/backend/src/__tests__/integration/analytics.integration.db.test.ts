@@ -60,11 +60,15 @@ describe('Analytics Routes Integration with Real Database', () => {
   describe('GET /analytics/overview', () => {
     it('should return complete analytics overview with real data', async () => {
       // Create test data
-      await db.insert(schema.todos).values([
-        createTestTodoData(testUser.id, { status: 'DONE' }),
-        createTestTodoData(testUser.id, { status: 'IN_PROGRESS' }),
-        createTestTodoData(testUser.id, { status: 'TODO' }),
-      ]);
+      await db.insert(schema.todos).values(
+        createTestTodoData(testUser.id, { status: 'DONE' })
+      );
+      await db.insert(schema.todos).values(
+        createTestTodoData(testUser.id, { status: 'IN_PROGRESS' })
+      );
+      await db.insert(schema.todos).values(
+        createTestTodoData(testUser.id, { status: 'TODO' })
+      );
 
       await db.insert(schema.goals).values(
         createTestGoalData(testUser.id, { isActive: true })

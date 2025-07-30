@@ -80,15 +80,15 @@ describe('Spring Boot Compatibility Utils', () => {
 
   describe('StatusCodes', () => {
     it('should have correct HTTP status codes', () => {
-      expect(StatusCodes.OK).toBe(200);
-      expect(StatusCodes.CREATED).toBe(201);
-      expect(StatusCodes.NO_CONTENT).toBe(204);
-      expect(StatusCodes.BAD_REQUEST).toBe(400);
-      expect(StatusCodes.UNAUTHORIZED).toBe(401);
-      expect(StatusCodes.FORBIDDEN).toBe(403);
-      expect(StatusCodes.NOT_FOUND).toBe(404);
-      expect(StatusCodes.CONFLICT).toBe(409);
-      expect(StatusCodes.INTERNAL_ERROR).toBe(500);
+      expect(StatusCodes.OK as ContentfulStatusCode).toBe(200);
+      expect(StatusCodes.CREATED as ContentfulStatusCode).toBe(201);
+      expect(StatusCodes.NO_CONTENT as ContentfulStatusCode).toBe(204);
+      expect(StatusCodes.BAD_REQUEST as ContentfulStatusCode).toBe(400);
+      expect(StatusCodes.UNAUTHORIZED as ContentfulStatusCode).toBe(401);
+      expect(StatusCodes.FORBIDDEN as ContentfulStatusCode).toBe(403);
+      expect(StatusCodes.NOT_FOUND as ContentfulStatusCode).toBe(404);
+      expect(StatusCodes.CONFLICT as ContentfulStatusCode).toBe(409);
+      expect(StatusCodes.INTERNAL_ERROR as ContentfulStatusCode).toBe(500);
     });
   });
 

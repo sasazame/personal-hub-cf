@@ -96,7 +96,7 @@ describe('Goals Routes', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as GoalResponse[];
       expect(body).toEqual([]);
     });
 
@@ -183,7 +183,7 @@ describe('Goals Routes', () => {
       }, env);
 
       expect(res.status).toBe(201);
-      const body = await res.json() as unknown;
+      const body = await res.json() as GoalResponse;
       expect(body.title).toBe('New Goal');
       expect(body.userId).toBe(userId);
     });
@@ -202,7 +202,7 @@ describe('Goals Routes', () => {
       }, env);
 
       expect(res.status).toBe(400);
-      const body = await res.json() as unknown;
+      const body = await res.json() as GoalResponse[];
       expect(body.code).toBe('VALIDATION_ERROR');
     });
   });
@@ -260,7 +260,7 @@ describe('Goals Routes', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as GoalResponse;
       expect(body.description).toBe('Updated description');
     });
   });

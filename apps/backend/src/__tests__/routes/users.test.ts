@@ -140,7 +140,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body).toEqual(mockUser);
     });
 
@@ -209,7 +209,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body.username).toBe('newusername');
       expect(body.givenName).toBe('Updated');
     });
@@ -245,7 +245,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(409);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body.details.username).toBe('Username already taken');
     });
 
@@ -298,7 +298,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body.success).toBe(true);
       expect(vi.mocked(authUtils.verifyPassword)).toHaveBeenCalledWith('oldpass123', 'hashed-old-password');
       expect(vi.mocked(authUtils.hashPassword)).toHaveBeenCalledWith('newpass123');
@@ -322,7 +322,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body.details.currentPassword).toBe('Current password is incorrect');
     });
 
@@ -397,7 +397,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body.success).toBe(true);
     });
 
@@ -491,7 +491,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body).toEqual(updateData);
     });
 
@@ -559,7 +559,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body).toEqual(mockAccounts);
     });
   });
@@ -710,7 +710,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body.success).toBe(true);
     });
 
@@ -753,7 +753,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as any;
       expect(body.success).toBe(true);
     });
   });
