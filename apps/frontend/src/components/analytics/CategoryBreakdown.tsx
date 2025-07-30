@@ -19,24 +19,28 @@ const COLORS = [
 ];
 
 export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
-  const CategoryTooltipContent = (props: {
-    active?: boolean;
-    payload?: Array<{
-      payload: {
-        category: string;
-        count: number;
-        percentage: number;
-      };
-      value: number;
-    }>;
-    label?: string;
-  }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const CategoryTooltipContent = (props: any) => {
     if (!props.active || !props.payload || props.payload.length === 0) return null;
     
     const item = props.payload[0];
-    const valueFormatter = (value: number) => `${value} (${item.payload?.percentage}%)`;
+    const valueFormatter = (value: number | string) => `${value} (${item.payload?.percentage}%)`;
     
-    return <CustomTooltip {...props} showLabel={false} valueFormatter={valueFormatter} />;
+    // Transform props to match CustomTooltip interface
+    const customTooltipProps = {
+      active: props.active,
+      label: props.label,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload: props.payload?.map((p: any) => ({
+        name: p.dataKey || 'value',
+        value: p.value,
+        color: p.fill || p.color
+      })),
+      showLabel: false,
+      valueFormatter
+    };
+    
+    return <CustomTooltip {...customTooltipProps} />;
   };
 
   const renderCustomizedLabel = (props: {
@@ -121,7 +125,8 @@ export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip content={CategoryTooltipContent} />
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <Tooltip content={CategoryTooltipContent as any} />
           <Legend
             verticalAlign="middle"
             align="right"

@@ -53,7 +53,8 @@ export function ProductivityChart({ data, title = 'タスク完了率', height =
             domain={[0, 100]}
             tickFormatter={(value) => `${value}%`}
           />
-          <Tooltip content={(props) => <CustomTooltip {...props} valueFormatter={tooltipValueFormatter} />} />
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <Tooltip content={(props: any) => <CustomTooltip {...props} valueFormatter={tooltipValueFormatter} />} />
           <Legend
             wrapperStyle={{ paddingTop: '20px' }}
             iconType="line"

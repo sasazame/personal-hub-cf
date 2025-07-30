@@ -5,7 +5,7 @@ interface CustomTooltipProps {
     value: number | string;
     color?: string;
   }>;
-  label?: string;
+  label?: string | number;
   valueFormatter?: (value: number | string) => string;
   showLabel?: boolean;
 }
