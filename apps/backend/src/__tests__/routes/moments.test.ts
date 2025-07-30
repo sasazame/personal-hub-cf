@@ -4,7 +4,7 @@ import momentsRoutes from '../../routes/moments';
 import type { Bindings, Variables } from '../../types';
 import { createTestContext } from '../helpers/test-context';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
-import type { MomentResponse, PaginatedResponse, ErrorResponse } from '../helpers/response-types';
+import type { MomentResponse, PaginatedResponse } from '../helpers/response-types';
 
 describe('Moments Routes', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;

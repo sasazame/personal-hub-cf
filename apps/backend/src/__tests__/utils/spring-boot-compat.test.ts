@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import {
   createErrorResponse,
   createValidationError,

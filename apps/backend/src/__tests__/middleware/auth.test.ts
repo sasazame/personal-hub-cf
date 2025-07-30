@@ -4,7 +4,6 @@ import { authMiddleware } from '../../middleware/auth';
 import { generateTokens } from '../../utils/auth';
 import { createMockDbChain, createTestContext } from '../helpers/test-context';
 import type { Bindings, Variables } from '../../types';
-import type { D1Database } from '@cloudflare/workers-types';
 
 describe('Auth Middleware', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;

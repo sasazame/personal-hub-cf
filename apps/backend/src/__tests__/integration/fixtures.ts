@@ -30,13 +30,22 @@ export async function createTestUserData(overrides = {}) {
   };
 }
 
-export function createTestTodoData(userId: string, overrides = {}) {
+export function createTestTodoData(userId: string, overrides: Partial<{
+  title: string;
+  description: string;
+  status: 'TODO' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  dueDate?: string;
+  tags?: string;
+  createdAt: string;
+  updatedAt: string;
+}> = {}) {
   return {
     userId,
     title: 'Test Todo',
     description: 'Test Description',
-    status: 'TODO',
-    priority: 'MEDIUM',
+    status: 'TODO' as const,
+    priority: 'MEDIUM' as const,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...overrides,
