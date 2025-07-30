@@ -167,7 +167,7 @@ describe('Todos Routes Integration with Real Database', () => {
       // Create a todo
       const todos = await db.insert(schema.todos)
         .values(createTestTodoData(testUser.id, { title: 'Original Title' }))
-        .returning();
+        .returning() as InferSelectModel<typeof schema.todos>[];
       const todo = todos[0];
 
       const updateData = {
@@ -203,7 +203,7 @@ describe('Todos Routes Integration with Real Database', () => {
       const otherUser = otherUsers[0];
       const otherTodos = await db.insert(schema.todos)
         .values(createTestTodoData(otherUser.id, { title: 'Other User Todo' }))
-        .returning();
+        .returning() as InferSelectModel<typeof schema.todos>[];
       const otherTodo = otherTodos[0];
 
       const res = await app.request(`/todos/${otherTodo.id}`, {
@@ -229,7 +229,7 @@ describe('Todos Routes Integration with Real Database', () => {
       // Create a todo
       const deleteTodos = await db.insert(schema.todos)
         .values(createTestTodoData(testUser.id))
-        .returning();
+        .returning() as InferSelectModel<typeof schema.todos>[];
       const todo = deleteTodos[0];
 
       const res = await app.request(`/todos/${todo.id}`, {
