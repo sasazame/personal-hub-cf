@@ -19,16 +19,34 @@ const COLORS = [
 ];
 
 export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
-  const CategoryTooltipContent = (props: any) => {
+  const CategoryTooltipContent = (props: {
+    active?: boolean;
+    payload?: Array<{
+      payload: {
+        category: string;
+        count: number;
+        percentage: number;
+      };
+      value: number;
+    }>;
+    label?: string;
+  }) => {
     if (!props.active || !props.payload || props.payload.length === 0) return null;
     
     const item = props.payload[0];
-    const valueFormatter = (value: any) => `${value} (${(item.payload as any)?.percentage}%)`;
+    const valueFormatter = (value: number) => `${value} (${item.payload?.percentage}%)`;
     
     return <CustomTooltip {...props} showLabel={false} valueFormatter={valueFormatter} />;
   };
 
-  const renderCustomizedLabel = (props: any) => {
+  const renderCustomizedLabel = (props: {
+    cx?: number;
+    cy?: number;
+    midAngle?: number;
+    innerRadius?: number;
+    outerRadius?: number;
+    percent?: number;
+  }) => {
     const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props;
     if (!cx || !cy || midAngle === undefined || !innerRadius || !outerRadius || !percent) return null;
     

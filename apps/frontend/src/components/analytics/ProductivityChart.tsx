@@ -27,7 +27,7 @@ export function ProductivityChart({ data, title = 'タスク完了率', height =
     return point;
   });
 
-  const tooltipValueFormatter = (value: any) => `${value}%`;
+  const tooltipValueFormatter = (value: number | string) => `${value}%`;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
@@ -53,7 +53,7 @@ export function ProductivityChart({ data, title = 'タスク完了率', height =
             domain={[0, 100]}
             tickFormatter={(value) => `${value}%`}
           />
-          <Tooltip content={(props: any) => <CustomTooltip {...props} valueFormatter={tooltipValueFormatter} />} />
+          <Tooltip content={(props) => <CustomTooltip {...props} valueFormatter={tooltipValueFormatter} />} />
           <Legend
             wrapperStyle={{ paddingTop: '20px' }}
             iconType="line"

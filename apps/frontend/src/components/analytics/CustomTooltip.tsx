@@ -1,8 +1,12 @@
 interface CustomTooltipProps {
   active?: boolean;
-  payload?: any[];
+  payload?: Array<{
+    name: string;
+    value: number | string;
+    color?: string;
+  }>;
   label?: string;
-  valueFormatter?: (value: any) => string;
+  valueFormatter?: (value: number | string) => string;
   showLabel?: boolean;
 }
 
@@ -22,7 +26,7 @@ export function CustomTooltip({
       {showLabel && label && (
         <p className="text-sm font-medium mb-1">{label}</p>
       )}
-      {payload.map((entry: any, index: number) => (
+      {payload.map((entry, index) => (
         <p key={index} className="text-sm" style={{ color: entry.color }}>
           {entry.name}: {valueFormatter(entry.value)}
         </p>
