@@ -1,4 +1,4 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, TooltipProps, LabelProps } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 interface CategoryBreakdownProps {
   data: Array<{
@@ -18,13 +18,14 @@ const COLORS = [
 ];
 
 export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
-  const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
+  const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
+      const data = payload[0];
       return (
         <div className="bg-gray-900 text-white p-3 rounded shadow-lg border border-gray-700">
-          <p className="text-sm font-medium">{payload[0].name}</p>
+          <p className="text-sm font-medium">{data.name}</p>
           <p className="text-sm">
-            {payload[0].value} ({payload[0].payload.percentage}%)
+            {data.value} ({(data.payload as any)?.percentage}%)
           </p>
         </div>
       );
@@ -32,14 +33,10 @@ export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
     return null;
   };
 
-  const renderCustomizedLabel = ({
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    percent,
-  }: LabelProps) => {
+  const renderCustomizedLabel = (props: any) => {
+    const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props;
+    if (!cx || !cy || midAngle === undefined || !innerRadius || !outerRadius || !percent) return null;
+    
     const RADIAN = Math.PI / 180;
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);

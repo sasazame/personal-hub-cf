@@ -17,7 +17,7 @@ export const authTests: APITest[] = [
       username: `testuser_${Date.now()}`,
     },
     expectedStatus: 201,
-    validateResponse: (oldRes, newRes) => {
+    validateResponse: (oldRes, _newRes) => {
       // Store tokens for subsequent tests
       if (oldRes.data?.accessToken) {
         authToken = oldRes.data.accessToken;
@@ -73,7 +73,7 @@ export const authTests: APITest[] = [
       password: testPassword,
     },
     expectedStatus: 200,
-    validateResponse: (oldRes, newRes) => {
+    validateResponse: (oldRes, _newRes) => {
       // Update auth token
       if (oldRes.data?.accessToken) {
         authToken = oldRes.data.accessToken;

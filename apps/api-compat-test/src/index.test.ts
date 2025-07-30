@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import { makeAPIRequest } from './utils/api-client';
 import { compareResponses } from './utils/comparator';
 
 describe('API Compatibility Test Utils', () => {

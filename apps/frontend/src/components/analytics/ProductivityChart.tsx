@@ -7,7 +7,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  TooltipProps,
 } from 'recharts';
 import { ChartData } from '@/types/analytics';
 
@@ -27,12 +26,12 @@ export function ProductivityChart({ data, title = 'タスク完了率', height =
     return point;
   });
 
-  const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+  const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-gray-900 text-white p-3 rounded shadow-lg border border-gray-700">
           <p className="text-sm font-medium mb-1">{label}</p>
-          {payload.map((entry, index: number) => (
+          {payload.map((entry: any, index: number) => (
             <p key={index} className="text-sm" style={{ color: entry.color }}>
               {entry.name}: {entry.value}%
             </p>
