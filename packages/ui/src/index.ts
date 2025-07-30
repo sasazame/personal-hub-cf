@@ -1,2 +1,2 @@
 // UI components will be exported here
-export {};
+export { Button } from './Button';
