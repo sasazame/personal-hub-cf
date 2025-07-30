@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { eq, and, between, gte, sql, isNotNull } from 'drizzle-orm';
@@ -6,7 +7,7 @@ import { todos, goals, goalAchievementHistory, pomodoroSessions, events, notes, 
 import type { Bindings, Variables } from '../types';
 import { authMiddleware } from '../middleware/auth';
 import { springBootValidator } from '../utils/validation';
-import { createErrorResponse, ErrorCodes, StatusCodes } from '../utils/spring-boot-compat';
+import { createErrorResponse, ErrorCodes } from '../utils/spring-boot-compat';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -41,7 +42,7 @@ app.get('/overview', async (c) => {
         todo: sql<number>`count(case when status = 'TODO' then 1 end)`,
       })
       .from(todos)
-      .where(eq(todos.userId, userId))
+      .where(eq(todos.userId, userId as string))
       .get(),
       
       // Goal stats
@@ -50,7 +51,7 @@ app.get('/overview', async (c) => {
         active: sql<number>`count(case when is_active = 1 then 1 end)`,
       })
       .from(goals)
-      .where(eq(goals.userId, userId))
+      .where(eq(goals.userId, userId as string))
       .get(),
       
       // Pomodoro stats
@@ -60,7 +61,7 @@ app.get('/overview', async (c) => {
         totalCycles: sql<number>`sum(completed_cycles)`,
       })
       .from(pomodoroSessions)
-      .where(eq(pomodoroSessions.userId, userId))
+      .where(eq(pomodoroSessions.userId, userId as string))
       .get(),
       
       // Event stats
@@ -69,7 +70,7 @@ app.get('/overview', async (c) => {
         upcoming: sql<number>`count(case when start_date_time > datetime('now') then 1 end)`,
       })
       .from(events)
-      .where(eq(events.userId, userId))
+      .where(eq(events.userId, userId as string))
       .get(),
       
       // Note stats
@@ -77,7 +78,7 @@ app.get('/overview', async (c) => {
         total: sql<number>`count(*)`,
       })
       .from(notes)
-      .where(eq(notes.userId, userId))
+      .where(eq(notes.userId, userId as string))
       .get(),
       
       // Moment stats
@@ -86,7 +87,7 @@ app.get('/overview', async (c) => {
         today: sql<number>`count(case when date(created_at) = date('now') then 1 end)`,
       })
       .from(moments)
-      .where(eq(moments.userId, userId))
+      .where(eq(moments.userId, userId as string))
       .get(),
     ]);
     
@@ -123,7 +124,7 @@ app.get('/overview', async (c) => {
     console.error('Get overview error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -142,7 +143,7 @@ app.get('/productivity', zValidator('query', dateRangeSchema, springBootValidato
     })
     .from(todos)
     .where(and(
-      eq(todos.userId, userId),
+      eq(todos.userId, userId as string),
       eq(todos.status, 'DONE'),
       between(todos.updatedAt, fromDate, toDate)
     ))
@@ -156,7 +157,7 @@ app.get('/productivity', zValidator('query', dateRangeSchema, springBootValidato
     .from(goalAchievementHistory)
     .innerJoin(goals, eq(goalAchievementHistory.goalId, goals.id))
     .where(and(
-      eq(goals.userId, userId),
+      eq(goals.userId, userId as string),
       between(goalAchievementHistory.achievedDate, fromDate, toDate)
     ))
     .groupBy(goalAchievementHistory.achievedDate);
@@ -170,7 +171,7 @@ app.get('/productivity', zValidator('query', dateRangeSchema, springBootValidato
     })
     .from(pomodoroSessions)
     .where(and(
-      eq(pomodoroSessions.userId, userId),
+      eq(pomodoroSessions.userId, userId as string),
       eq(pomodoroSessions.status, 'COMPLETED'),
       between(pomodoroSessions.createdAt, fromDate, toDate)
     ))
@@ -185,7 +186,7 @@ app.get('/productivity', zValidator('query', dateRangeSchema, springBootValidato
     console.error('Get productivity error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -207,7 +208,7 @@ app.get('/habits', async (c) => {
     })
     .from(todos)
     .where(and(
-      eq(todos.userId, userId),
+      eq(todos.userId, userId as string),
       gte(todos.createdAt, startDate.toISOString())
     ))
     .groupBy(sql`date(created_at)`)
@@ -218,7 +219,7 @@ app.get('/habits', async (c) => {
       })
       .from(moments)
       .where(and(
-        eq(moments.userId, userId),
+        eq(moments.userId, userId as string),
         gte(moments.createdAt, startDate.toISOString())
       ))
       .groupBy(sql`date(created_at)`)
@@ -231,7 +232,7 @@ app.get('/habits', async (c) => {
     })
     .from(todos)
     .where(and(
-      eq(todos.userId, userId),
+      eq(todos.userId, userId as string),
       eq(todos.status, 'DONE'),
       gte(todos.createdAt, startDate.toISOString())
     ))
@@ -246,7 +247,7 @@ app.get('/habits', async (c) => {
     })
     .from(todos)
     .where(and(
-      eq(todos.userId, userId),
+      eq(todos.userId, userId as string),
       eq(todos.status, 'DONE'),
       gte(todos.createdAt, startDate.toISOString())
     ))
@@ -285,7 +286,7 @@ app.get('/habits', async (c) => {
     console.error('Get habits error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -310,7 +311,7 @@ app.get('/goals-progress', async (c) => {
     })
     .from(goals)
     .where(and(
-      eq(goals.userId, userId),
+      eq(goals.userId, userId as string),
       eq(goals.isActive, true)
     ));
     
@@ -340,7 +341,7 @@ app.get('/goals-progress', async (c) => {
     console.error('Get goals progress error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -355,10 +356,10 @@ app.get('/tags', async (c) => {
     const [noteTags, momentTags] = await Promise.all([
       db.select({ tags: notes.tags })
         .from(notes)
-        .where(and(eq(notes.userId, userId), isNotNull(notes.tags))),
+        .where(and(eq(notes.userId, userId as string), isNotNull(notes.tags))),
       db.select({ tags: moments.tags })
         .from(moments)
-        .where(and(eq(moments.userId, userId), isNotNull(moments.tags))),
+        .where(and(eq(moments.userId, userId as string), isNotNull(moments.tags))),
     ]);
     
     // Count tag occurrences
@@ -400,7 +401,7 @@ app.get('/tags', async (c) => {
     console.error('Get tags analytics error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -422,7 +423,7 @@ app.get('/time-distribution', async (c) => {
     })
     .from(todos)
     .where(and(
-      eq(todos.userId, userId),
+      eq(todos.userId, userId as string),
       gte(todos.createdAt, startDate.toISOString())
     ))
     .groupBy(sql`strftime('%H', created_at)`);
@@ -443,7 +444,7 @@ app.get('/time-distribution', async (c) => {
     })
     .from(todos)
     .where(and(
-      eq(todos.userId, userId),
+      eq(todos.userId, userId as string),
       gte(todos.createdAt, startDate.toISOString())
     ))
     .groupBy(sql`strftime('%w', created_at)`);
@@ -456,7 +457,7 @@ app.get('/time-distribution', async (c) => {
     console.error('Get time distribution error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });

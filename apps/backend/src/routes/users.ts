@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { users, userSocialAccounts } from '../db/schema';
 import type { Bindings, Variables } from '../types';
 import { authMiddleware } from '../middleware/auth';
@@ -60,13 +61,13 @@ app.get('/profile', async (c) => {
       updatedAt: users.updatedAt,
     })
     .from(users)
-    .where(eq(users.id, userId))
+    .where(eq(users.id, userId as string))
     .get();
     
     if (!user) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'User not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -75,7 +76,7 @@ app.get('/profile', async (c) => {
     console.error('Get profile error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -97,7 +98,7 @@ app.put('/profile', zValidator('json', updateProfileSchema, springBootValidator)
       if (existing && existing.id !== userId) {
         return c.json(
           createValidationError({ username: 'Username already taken' }),
-          StatusCodes.CONFLICT
+          StatusCodes.CONFLICT as ContentfulStatusCode
         );
       }
     }
@@ -107,7 +108,7 @@ app.put('/profile', zValidator('json', updateProfileSchema, springBootValidator)
         ...data,
         updatedAt: new Date().toISOString(),
       })
-      .where(eq(users.id, userId))
+      .where(eq(users.id, userId as string))
       .returning({
         id: users.id,
         email: users.email,
@@ -125,7 +126,7 @@ app.put('/profile', zValidator('json', updateProfileSchema, springBootValidator)
     console.error('Update profile error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -139,13 +140,13 @@ app.put('/password', zValidator('json', changePasswordSchema, springBootValidato
   try {
     const user = await db.select()
       .from(users)
-      .where(eq(users.id, userId))
+      .where(eq(users.id, userId as string))
       .get();
     
     if (!user || !user.password) {
       return c.json(
         createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'Invalid request'),
-        StatusCodes.VALIDATION_ERROR
+        400
       );
     }
     
@@ -154,7 +155,7 @@ app.put('/password', zValidator('json', changePasswordSchema, springBootValidato
     if (!valid) {
       return c.json(
         createValidationError({ currentPassword: 'Current password is incorrect' }),
-        StatusCodes.VALIDATION_ERROR
+        400
       );
     }
     
@@ -166,14 +167,14 @@ app.put('/password', zValidator('json', changePasswordSchema, springBootValidato
         password: hashedPassword,
         updatedAt: new Date().toISOString(),
       })
-      .where(eq(users.id, userId));
+      .where(eq(users.id, userId as string));
     
     return c.json({ success: true, message: 'Password updated successfully' });
   } catch (error) {
     console.error('Change password error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -187,13 +188,13 @@ app.put('/email', zValidator('json', updateEmailSchema, springBootValidator), as
   try {
     const user = await db.select()
       .from(users)
-      .where(eq(users.id, userId))
+      .where(eq(users.id, userId as string))
       .get();
     
     if (!user || !user.password) {
       return c.json(
         createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'Invalid request'),
-        StatusCodes.VALIDATION_ERROR
+        400
       );
     }
     
@@ -202,7 +203,7 @@ app.put('/email', zValidator('json', updateEmailSchema, springBootValidator), as
     if (!valid) {
       return c.json(
         createValidationError({ password: 'Password is incorrect' }),
-        StatusCodes.VALIDATION_ERROR
+        400
       );
     }
     
@@ -215,7 +216,7 @@ app.put('/email', zValidator('json', updateEmailSchema, springBootValidator), as
     if (existing) {
       return c.json(
         createErrorResponse(ErrorCodes.CONFLICT, 'Email already in use'),
-        StatusCodes.CONFLICT
+        StatusCodes.CONFLICT as ContentfulStatusCode
       );
     }
     
@@ -225,7 +226,7 @@ app.put('/email', zValidator('json', updateEmailSchema, springBootValidator), as
         emailVerified: false,
         updatedAt: new Date().toISOString(),
       })
-      .where(eq(users.id, userId));
+      .where(eq(users.id, userId as string));
     
     // TODO: Send email verification
     
@@ -237,7 +238,7 @@ app.put('/email', zValidator('json', updateEmailSchema, springBootValidator), as
     console.error('Update email error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -254,7 +255,7 @@ app.put('/preferences', zValidator('json', updatePreferencesSchema, springBootVa
         ...data,
         updatedAt: new Date().toISOString(),
       })
-      .where(eq(users.id, userId))
+      .where(eq(users.id, userId as string))
       .returning({
         weekStartDay: users.weekStartDay,
         locale: users.locale,
@@ -265,7 +266,7 @@ app.put('/preferences', zValidator('json', updatePreferencesSchema, springBootVa
     console.error('Update preferences error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -285,14 +286,14 @@ app.get('/social-accounts', async (c) => {
       createdAt: userSocialAccounts.createdAt,
     })
     .from(userSocialAccounts)
-    .where(eq(userSocialAccounts.userId, userId));
+    .where(eq(userSocialAccounts.userId, userId as string));
     
     return c.json(accounts);
   } catch (error) {
     console.error('Get social accounts error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -306,14 +307,14 @@ app.delete('/social-accounts/:provider', async (c) => {
   try {
     // Check if user has a password or other social accounts
     const [user, socialAccounts] = await Promise.all([
-      db.select().from(users).where(eq(users.id, userId)).get(),
-      db.select().from(userSocialAccounts).where(eq(userSocialAccounts.userId, userId))
+      db.select().from(users).where(eq(users.id, userId as string)).get(),
+      db.select().from(userSocialAccounts).where(eq(userSocialAccounts.userId, userId as string))
     ]);
     
     if (!user) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'User not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -321,19 +322,21 @@ app.delete('/social-accounts/:provider', async (c) => {
     if (!user.password && socialAccounts.length <= 1) {
       return c.json(
         createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'Cannot remove the last authentication method. Please set a password first.'),
-        StatusCodes.VALIDATION_ERROR
+        400
       );
     }
     
     const result = await db.delete(userSocialAccounts)
-      .where(eq(userSocialAccounts.userId, userId))
-      .where(eq(userSocialAccounts.provider, provider))
+      .where(and(
+        eq(userSocialAccounts.userId, userId as string),
+        eq(userSocialAccounts.provider, provider)
+      ))
       .returning();
     
     if (!result.length) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Social account not found'),
-        StatusCodes.NOT_FOUND
+        404
       );
     }
     
@@ -342,7 +345,7 @@ app.delete('/social-accounts/:provider', async (c) => {
     console.error('Delete social account error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -356,13 +359,13 @@ app.delete('/account', zValidator('json', z.object({ password: z.string() }), sp
   try {
     const user = await db.select()
       .from(users)
-      .where(eq(users.id, userId))
+      .where(eq(users.id, userId as string))
       .get();
     
     if (!user) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'User not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -370,7 +373,10 @@ app.delete('/account', zValidator('json', z.object({ password: z.string() }), sp
     if (user.password) {
       const valid = await verifyPassword(password, user.password);
       if (!valid) {
-        return c.json({ error: 'Password is incorrect' }, 401);
+        return c.json(
+          createValidationError({ password: 'Password is incorrect' }),
+          StatusCodes.UNAUTHORIZED as ContentfulStatusCode
+        );
       }
     }
     
@@ -381,7 +387,7 @@ app.delete('/account', zValidator('json', z.object({ password: z.string() }), sp
         enabled: false,
         updatedAt: new Date().toISOString(),
       })
-      .where(eq(users.id, userId));
+      .where(eq(users.id, userId as string));
     
     return c.json({ 
       success: true,
@@ -391,7 +397,7 @@ app.delete('/account', zValidator('json', z.object({ password: z.string() }), sp
     console.error('Delete account error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -410,14 +416,14 @@ app.post('/verify-email', zValidator('json', z.object({ token: z.string() }), sp
         emailVerified: true,
         updatedAt: new Date().toISOString(),
       })
-      .where(eq(users.id, userId));
+      .where(eq(users.id, userId as string));
     
     return c.json({ success: true, message: 'Email verified successfully' });
   } catch (error) {
     console.error('Verify email error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });

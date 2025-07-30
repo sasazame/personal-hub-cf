@@ -3,7 +3,7 @@
 export interface SpringBootError {
   code: string;
   message: string;
-  details: Record<string, any> | null;
+  details: Record<string, unknown> | null;
   timestamp: string;
 }
 
@@ -85,8 +85,7 @@ export const ValidationMessages = {
 export function createErrorResponse(
   code: string,
   message?: string,
-  details: Record<string, any> | null = null,
-  status: number = 400
+  details: Record<string, unknown> | null = null
 ): SpringBootError {
   return {
     code,
@@ -105,7 +104,17 @@ export function createValidationError(fieldErrors: Record<string, string>): Spri
 }
 
 export function createAuthResponse(
-  user: any,
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    week_start_day?: number | null;
+    weekStartDay?: number | null;
+    created_at?: string;
+    createdAt?: string;
+    updated_at?: string;
+    updatedAt?: string;
+  },
   accessToken: string,
   refreshToken: string
 ): SpringBootAuthResponse {
@@ -117,8 +126,8 @@ export function createAuthResponse(
       username: user.username,
       email: user.email,
       weekStartDay: user.week_start_day || user.weekStartDay || null,
-      createdAt: user.created_at || user.createdAt,
-      updatedAt: user.updated_at || user.updatedAt
+      createdAt: user.created_at || user.createdAt || new Date().toISOString(),
+      updatedAt: user.updated_at || user.updatedAt || new Date().toISOString()
     }
   };
 }

@@ -58,8 +58,17 @@ export async function toggleAchievement(goalId: number, date: string): Promise<T
   return response.data;
 }
 
-export async function getGoalStats(goalId: number): Promise<any> {
-  const response = await apiClient.get<any>(`/api/v1/goals/${goalId}/stats`);
+interface GoalStats {
+  totalAchievements: number;
+  currentStreak: number;
+  longestStreak: number;
+  achievementRate: number;
+  daysRemaining: number;
+  progressPercentage: number;
+}
+
+export async function getGoalStats(goalId: number): Promise<GoalStats> {
+  const response = await apiClient.get<GoalStats>(`/api/v1/goals/${goalId}/stats`);
   return response.data;
 }
 

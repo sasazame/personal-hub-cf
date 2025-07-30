@@ -7,6 +7,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  TooltipProps,
 } from 'recharts';
 import { ChartData } from '@/types/analytics';
 
@@ -19,19 +20,19 @@ interface ProductivityChartProps {
 export function ProductivityChart({ data, title = 'タスク完了率', height = 300 }: ProductivityChartProps) {
   // Transform data for recharts
   const chartData = data.labels.map((label, index) => {
-    const point: any = { name: label };
+    const point: Record<string, string | number> = { name: label };
     data.datasets.forEach((dataset) => {
       point[dataset.label] = dataset.data[index];
     });
     return point;
   });
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-gray-900 text-white p-3 rounded shadow-lg border border-gray-700">
           <p className="text-sm font-medium mb-1">{label}</p>
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry, index: number) => (
             <p key={index} className="text-sm" style={{ color: entry.color }}>
               {entry.name}: {entry.value}%
             </p>

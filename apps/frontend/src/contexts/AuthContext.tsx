@@ -9,6 +9,29 @@ interface User {
   roles: string[]
 }
 
+interface ApiErrorResponse {
+  response?: {
+    data?: {
+      error?: string
+      message?: string
+    }
+  }
+}
+
+function isApiError(error: unknown): error is ApiErrorResponse {
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    'response' in error &&
+    typeof error.response === 'object' &&
+    error.response !== null &&
+    'data' in error.response &&
+    typeof error.response.data === 'object' &&
+    error.response.data !== null &&
+    ('error' in error.response.data || 'message' in error.response.data)
+  )
+}
+
 interface AuthState {
   user: User | null
   isAuthenticated: boolean
@@ -101,8 +124,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       dispatch({ type: 'AUTH_SUCCESS', payload: user })
       toast.success(`Welcome back, ${user.username}!`)
-    } catch (error: any) {
-      const message = error.response?.data?.error || 'Login failed'
+    } catch (error) {
+      const message = isApiError(error) ? error.response?.data?.error || error.response?.data?.message || 'Login failed' : 'Login failed'
       dispatch({ type: 'AUTH_ERROR', payload: message })
       toast.error(message)
       throw error
@@ -125,8 +148,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       dispatch({ type: 'AUTH_SUCCESS', payload: user })
       toast.success(`Welcome, ${user.username}! Account created successfully.`)
-    } catch (error: any) {
-      const message = error.response?.data?.error || 'Registration failed'
+    } catch (error) {
+      const message = isApiError(error) ? error.response?.data?.error || error.response?.data?.message || 'Registration failed' : 'Registration failed'
       dispatch({ type: 'AUTH_ERROR', payload: message })
       toast.error(message)
       throw error

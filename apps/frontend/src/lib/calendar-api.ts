@@ -50,8 +50,14 @@ export async function syncWithGoogleCalendar(): Promise<{ synced: number; failed
   return response.data;
 }
 
-export async function getGoogleCalendarSettings(): Promise<{ enabled: boolean; calendars: any[] }> {
-  const response = await apiClient.get<{ enabled: boolean; calendars: any[] }>('/api/v1/events/google/settings');
+interface GoogleCalendar {
+  id: string;
+  name: string;
+  primary?: boolean;
+}
+
+export async function getGoogleCalendarSettings(): Promise<{ enabled: boolean; calendars: GoogleCalendar[] }> {
+  const response = await apiClient.get<{ enabled: boolean; calendars: GoogleCalendar[] }>('/api/v1/events/google/settings');
   return response.data;
 }
 

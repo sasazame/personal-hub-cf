@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Hono } from 'hono';
 import type { Bindings, Variables } from '../../types';
-import { createTestContext, createMockDbChain } from '../helpers/test-context';
+import { createTestContext } from '../helpers/test-context';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
 import todosRoutes from '../../routes/todos';
 import notesRoutes from '../../routes/notes';
@@ -9,18 +9,16 @@ import momentsRoutes from '../../routes/moments';
 
 describe('Large Payload Edge Cases', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let ctx: any;
+  let ctx: ReturnType<typeof createTestContext>;
   let validToken: string;
   const userId = 'test-user';
 
   // Helper to setup database mock with auth
   const setupDbMock = () => {
-    let callCount = 0;
     ctx.db.select.mockImplementation(() => ({
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
       get: vi.fn().mockImplementation(() => {
-        callCount++;
         // Always return user for auth middleware
         return Promise.resolve({
           id: userId,
@@ -33,7 +31,12 @@ describe('Large Payload Edge Cases', () => {
   };
 
   // Helper to setup auth and custom db behavior
-  const setupDbWithAuth = (customMocks: any) => {
+  const setupDbWithAuth = (customMocks: {
+    select?: () => ReturnType<typeof vi.fn>;
+    insert?: () => ReturnType<typeof vi.fn>;
+    update?: () => ReturnType<typeof vi.fn>;
+    delete?: () => ReturnType<typeof vi.fn>;
+  }) => {
     let selectCallCount = 0;
     
     // Handle select with auth
@@ -113,7 +116,7 @@ describe('Large Payload Edge Cases', () => {
       expect([201, 400].includes(res.status)).toBe(true);
       
       if (res.status === 400) {
-        const body = await res.json();
+        const body = await res.json() as { code: string; message?: string };
         expect(body.code).toBe('VALIDATION_ERROR');
       }
     });
@@ -150,7 +153,7 @@ describe('Large Payload Edge Cases', () => {
         }]),
       }));
 
-      let deeplyNested = { value: 'test' };
+      let deeplyNested: { value?: string; nested?: unknown } = { value: 'test' };
       for (let i = 0; i < 100; i++) {
         deeplyNested = { nested: deeplyNested };
       }
@@ -286,7 +289,7 @@ describe('Large Payload Edge Cases', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as { items: unknown[]; total?: number };
       
       // Should enforce maximum page size
       expect(body.items.length).toBeLessThanOrEqual(100);
@@ -327,7 +330,7 @@ describe('Large Payload Edge Cases', () => {
         expect([201, 400].includes(res.status)).toBe(true);
         
         if (res.status === 201) {
-          const body = await res.json();
+          const body = await res.json() as { content: string };
           expect(body.content).toBe(payload);
         }
       }
@@ -357,7 +360,7 @@ describe('Large Payload Edge Cases', () => {
       }, ctx.env);
 
       expect(res.status).toBe(201);
-      const body = await res.json();
+      const body = await res.json() as { title: string };
       expect(body.title).toBe(mixedDirection);
     });
   });
@@ -430,7 +433,7 @@ describe('Large Payload Edge Cases', () => {
         if (!input.title) {
           // Empty string should fail
           expect(res.status).toBe(400);
-          const body = await res.json();
+          const body = await res.json() as { code: string; message?: string };
           expect(body.code).toBe('VALIDATION_ERROR');
         } else {
           // Whitespace-only and other inputs may succeed depending on validation
@@ -451,7 +454,7 @@ describe('Large Payload Edge Cases', () => {
       }));
 
       setupDbWithAuth({
-        select: () => ({
+        select: vi.fn().mockReturnValue({
           from: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
           get: vi.fn().mockResolvedValue({ 
@@ -463,7 +466,7 @@ describe('Large Payload Edge Cases', () => {
             enabled: true,
           }),
         }),
-        update: () => ({
+        update: vi.fn().mockReturnValue({
           set: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
           returning: vi.fn().mockResolvedValue([{
@@ -514,7 +517,7 @@ describe('Large Payload Edge Cases', () => {
         }, ctx.env);
 
         expect(res.status).toBe(400);
-        const body = await res.json();
+        const body = await res.json() as { code: string; message?: string };
         expect(body.code).toBeDefined();
       }
     });
@@ -550,7 +553,7 @@ describe('Large Payload Edge Cases', () => {
       }, ctx.env);
 
       expect(res.status).toBe(500);
-      const body = await res.json();
+      const body = await res.json() as { code: string; message: string };
       expect(body.code).toBe('INTERNAL_ERROR');
       // Should not expose internal error details
       expect(body.message).not.toContain('Connection timeout');

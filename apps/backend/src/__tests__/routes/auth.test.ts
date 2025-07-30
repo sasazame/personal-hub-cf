@@ -2,11 +2,14 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import authRoutes from '../../routes/auth';
 import { createTestContext, createMockDbChain } from '../helpers/test-context';
 import { hashPassword } from '../../utils/auth';
+import type { Hono } from 'hono';
+import type { Bindings, Variables } from '../../types';
+import type { ErrorResponse, AuthResponse } from '../helpers/response-types';
 
 describe('Auth Routes', () => {
-  let app: any;
-  let env: any;
-  let mockDb: any;
+  let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
+  let env: Bindings;
+  let mockDb: ReturnType<typeof createTestContext>['db'];
 
   beforeEach(() => {
     const testContext = createTestContext();
@@ -30,7 +33,7 @@ describe('Auth Routes', () => {
       }, env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
       expect(body.details).toBeDefined();
     });
@@ -43,7 +46,7 @@ describe('Auth Routes', () => {
       }, env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
 
@@ -67,7 +70,7 @@ describe('Auth Routes', () => {
       }, env);
 
       expect(res.status).toBe(409);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('EMAIL_ALREADY_EXISTS');
     });
 
@@ -102,11 +105,11 @@ describe('Auth Routes', () => {
       }, env);
 
       expect(res.status).toBe(201);
-      const body = await res.json();
+      const body = await res.json() as AuthResponse;
       expect(body.accessToken).toBeDefined();
       expect(body.refreshToken).toBeDefined();
       expect(body.user).toBeDefined();
-      expect(body.user.email).toBe('newuser@example.com');
+      expect(body.user?.email).toBe('newuser@example.com');
     });
   });
 
@@ -119,7 +122,7 @@ describe('Auth Routes', () => {
       }, env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
 
@@ -137,7 +140,7 @@ describe('Auth Routes', () => {
       }, env);
 
       expect(res.status).toBe(401);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('AUTHENTICATION_FAILED');
     });
 
@@ -167,7 +170,7 @@ describe('Auth Routes', () => {
       }, env);
 
       expect(res.status).toBe(401);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('AUTHENTICATION_FAILED');
     });
 
@@ -192,6 +195,12 @@ describe('Auth Routes', () => {
         enabled: true
       }));
       
+      // Mock update for refresh token revocation
+      mockDb.update.mockReturnValue({
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+      });
+      
       // Mock successful refresh token insert
       mockDb.insert.mockReturnValue({
         values: vi.fn().mockReturnThis(),
@@ -207,11 +216,11 @@ describe('Auth Routes', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as AuthResponse;
       expect(body.accessToken).toBeDefined();
       expect(body.refreshToken).toBeDefined();
       expect(body.user).toBeDefined();
-      expect(body.user.email).toBe('user@example.com');
+      expect(body.user?.email).toBe('user@example.com');
     });
   });
 
@@ -224,7 +233,7 @@ describe('Auth Routes', () => {
       }, env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
 
@@ -238,7 +247,7 @@ describe('Auth Routes', () => {
       }, env);
 
       expect(res.status).toBe(401);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('INVALID_TOKEN');
     });
   });

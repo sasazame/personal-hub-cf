@@ -4,11 +4,17 @@ import { authMiddleware } from '../../middleware/auth';
 import { generateTokens } from '../../utils/auth';
 import { createMockDbChain } from '../helpers/test-context';
 import type { Bindings, Variables } from '../../types';
+import type { D1Database } from '@cloudflare/workers-types';
 
 describe('Auth Middleware', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
   let env: Bindings;
-  let mockDb: any;
+  let mockDb: {
+    select: ReturnType<typeof vi.fn>;
+    insert: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+    delete: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     mockDb = {
@@ -19,12 +25,13 @@ describe('Auth Middleware', () => {
     };
     
     env = {
-      DB: {} as any,
+      DB: {} as D1Database,
       JWT_SECRET: 'test-jwt-secret',
       OAUTH_GITHUB_CLIENT_ID: 'test',
       OAUTH_GITHUB_CLIENT_SECRET: 'test',
       OAUTH_GOOGLE_CLIENT_ID: 'test',
       OAUTH_GOOGLE_CLIENT_SECRET: 'test',
+      ENVIRONMENT: 'test',
     };
 
     app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
@@ -49,7 +56,7 @@ describe('Auth Middleware', () => {
     }, env);
 
     expect(res.status).toBe(401);
-    const body = await res.json();
+    const body = await res.json() as { code: string; message?: string };
     expect(body.code).toBe('UNAUTHORIZED');
   });
 
@@ -62,7 +69,7 @@ describe('Auth Middleware', () => {
     }, env);
 
     expect(res.status).toBe(401);
-    const body = await res.json();
+    const body = await res.json() as { code: string; message?: string };
     expect(body.code).toBe('UNAUTHORIZED');
   });
 
@@ -75,7 +82,7 @@ describe('Auth Middleware', () => {
     }, env);
 
     expect(res.status).toBe(401);
-    const body = await res.json();
+    const body = await res.json() as { code: string; message?: string };
     expect(body.code).toBe('UNAUTHORIZED');
   });
 
@@ -99,7 +106,7 @@ describe('Auth Middleware', () => {
     }, env);
 
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = await res.json() as { userId: string; message: string };
     expect(body.userId).toBe(userId);
     expect(body.message).toBe('Protected route accessed');
   });
@@ -116,7 +123,7 @@ describe('Auth Middleware', () => {
     }, env);
 
     expect(res.status).toBe(401);
-    const body = await res.json();
+    const body = await res.json() as { code: string; message?: string };
     expect(body.code).toBe('UNAUTHORIZED');
   });
 
@@ -132,7 +139,7 @@ describe('Auth Middleware', () => {
     }, env);
 
     expect(res.status).toBe(401);
-    const body = await res.json();
+    const body = await res.json() as { code: string; message?: string };
     expect(body.code).toBe('UNAUTHORIZED');
   });
 });

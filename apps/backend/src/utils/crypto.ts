@@ -1,4 +1,4 @@
-export async function createHash(input: string): string {
+export async function createHash(input: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(input);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);

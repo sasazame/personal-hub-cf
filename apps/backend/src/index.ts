@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { cors } from 'hono/cors';
 import { ZodError } from 'zod';
 import { createDb } from './db';
@@ -12,7 +13,7 @@ import notesRoutes from './routes/notes';
 import momentsRoutes from './routes/moments';
 import usersRoutes from './routes/users';
 import analyticsRoutes from './routes/analytics';
-import { createValidationError, StatusCodes } from './utils/spring-boot-compat';
+import { createValidationError } from './utils/spring-boot-compat';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -41,7 +42,16 @@ app.use('*', async (c, next) => {
 
 // Health check
 app.get('/health', (c) => {
-  return c.json({ status: 'ok', environment: c.env.ENVIRONMENT });
+  return c.json({ status: 'ok', environment: c.env.ENVIRONMENT || 'development' });
+});
+
+// API version endpoint
+app.get('/api/v1', (c) => {
+  return c.json({ 
+    message: 'Personal Hub API v1',
+    version: '1.0.0',
+    status: 'active'
+  });
 });
 
 // Mount routes
@@ -57,7 +67,7 @@ app.route('/api/v1/analytics', analyticsRoutes);
 
 // 404 handler
 app.notFound((c) => {
-  return c.json({ error: 'Not found' }, 404);
+  return c.json({ error: 'Not found' }, 404 as ContentfulStatusCode);
 });
 
 // Error handler
@@ -75,12 +85,12 @@ app.onError((err, c) => {
     
     return c.json(
       createValidationError(fieldErrors),
-      StatusCodes.VALIDATION_ERROR
+      400 as ContentfulStatusCode
     );
   }
   
   // Default error response
-  return c.json({ error: 'Internal server error' }, 500);
+  return c.json({ error: 'Internal server error' }, 500 as ContentfulStatusCode);
 });
 
 export default app;

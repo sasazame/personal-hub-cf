@@ -5,14 +5,16 @@ import { setupTestDatabase, cleanupTestDatabase, closeTestDatabase } from './set
 import { createTestUserData, createTestTodoData } from './fixtures';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
 import type { Bindings, Variables } from '../../types';
+import type { Database } from '../../db';
 import * as schema from '../../db/schema';
 import { eq } from 'drizzle-orm';
+import { InferSelectModel } from 'drizzle-orm';
 
 describe('Todos Routes Integration with Real Database', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let db: any;
+  let db: Database;
   let env: Bindings;
-  let testUser: any;
+  let testUser: InferSelectModel<typeof schema.users>;
   let accessToken: string;
 
   beforeEach(async () => {
@@ -66,7 +68,7 @@ describe('Todos Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as { items: InferSelectModel<typeof schema.todos>[], total: number };
       
       expect(body).toHaveProperty('items');
       expect(body.items).toEqual([]);
@@ -75,10 +77,10 @@ describe('Todos Routes Integration with Real Database', () => {
 
     it('should return user todos with pagination', async () => {
       // Create test todos
-      const todo1 = await db.insert(schema.todos)
+      await db.insert(schema.todos)
         .values(createTestTodoData(testUser.id, { title: 'Todo 1' }))
         .returning();
-      const todo2 = await db.insert(schema.todos)
+      await db.insert(schema.todos)
         .values(createTestTodoData(testUser.id, { title: 'Todo 2' }))
         .returning();
 
@@ -90,13 +92,13 @@ describe('Todos Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as { items: InferSelectModel<typeof schema.todos>[], total: number };
       
       expect(body.items).toHaveLength(2);
       expect(body.total).toBe(2);
       
       // Items might be returned in any order, so check both exist
-      const titles = body.items.map((item: any) => item.title);
+      const titles = body.items.map((item) => item.title);
       expect(titles).toContain('Todo 1');
       expect(titles).toContain('Todo 2');
     });
@@ -119,7 +121,7 @@ describe('Todos Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as { items: InferSelectModel<typeof schema.todos>[], total: number };
       
       expect(body.items).toHaveLength(0);
       expect(body.total).toBe(0);
@@ -145,7 +147,7 @@ describe('Todos Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(201);
-      const body = await res.json();
+      const body = await res.json() as InferSelectModel<typeof schema.todos>;
       
       expect(body.title).toBe(todoData.title);
       expect(body.description).toBe(todoData.description);
@@ -182,7 +184,7 @@ describe('Todos Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as InferSelectModel<typeof schema.todos>;
       
       expect(body.title).toBe(updateData.title);
       expect(body.status).toBe(updateData.status);

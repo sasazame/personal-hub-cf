@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { users, refreshTokens, passwordResetTokens } from '../db/schema';
 import type { Bindings, Variables } from '../types';
 import { nanoid } from '../utils/nanoid';
@@ -25,7 +26,7 @@ const registerSchema = z.object({
   email: z.string().email(ValidationMessages.EMAIL_INVALID),
   password: z.string()
     .min(8, ValidationMessages.PASSWORD_WEAK)
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).*$/, ValidationMessages.PASSWORD_WEAK),
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).*$/, ValidationMessages.PASSWORD_WEAK),
   username: z.string()
     .min(3, ValidationMessages.USERNAME_INVALID)
     .max(20, ValidationMessages.USERNAME_INVALID),
@@ -48,7 +49,7 @@ const resetPasswordSchema = z.object({
   token: z.string(),
   newPassword: z.string()
     .min(8, ValidationMessages.PASSWORD_WEAK)
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).*$/, ValidationMessages.PASSWORD_WEAK),
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).*$/, ValidationMessages.PASSWORD_WEAK),
 });
 
 // POST /auth/register
@@ -71,7 +72,7 @@ app.post('/register', zValidator('json', registerSchema, springBootValidator), a
     if (existingUsername) {
       return c.json(
         createValidationError({ username: 'Username is already taken' }),
-        StatusCodes.VALIDATION_ERROR
+        400 as ContentfulStatusCode
       );
     }
     
@@ -123,7 +124,7 @@ app.post('/register', zValidator('json', registerSchema, springBootValidator), a
     console.error('Error details:', JSON.stringify(error, null, 2));
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -197,7 +198,7 @@ app.post('/login', zValidator('json', loginSchema, springBootValidator), async (
     // Match Spring Boot - returns 500 for unexpected errors
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -352,7 +353,7 @@ app.post('/forgot-password', zValidator('json', forgotPasswordSchema, springBoot
     console.error('Forgot password error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -372,14 +373,14 @@ app.post('/reset-password', zValidator('json', resetPasswordSchema, springBootVa
     if (!resetToken || resetToken.used) {
       return c.json(
         createErrorResponse(ErrorCodes.INVALID_TOKEN, 'Invalid or expired reset token'),
-        StatusCodes.VALIDATION_ERROR
+        400
       );
     }
     
     if (new Date(resetToken.expiresAt) < new Date()) {
       return c.json(
         createErrorResponse(ErrorCodes.TOKEN_EXPIRED, 'Reset token has expired'),
-        StatusCodes.VALIDATION_ERROR
+        400
       );
     }
     
@@ -404,7 +405,7 @@ app.post('/reset-password', zValidator('json', resetPasswordSchema, springBootVa
     console.error('Reset password error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -473,14 +474,14 @@ app.get('/validate-reset-token', (c) => {
   if (!token) {
     return c.json(
       createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'Token is required'),
-      StatusCodes.VALIDATION_ERROR
+      400
     );
   }
   
   // TODO: Implement token validation
   return c.json(
     createErrorResponse(ErrorCodes.NOT_FOUND),
-    StatusCodes.NOT_FOUND
+    404
   );
 });
 

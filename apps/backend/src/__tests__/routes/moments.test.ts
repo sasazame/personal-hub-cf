@@ -2,17 +2,18 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Hono } from 'hono';
 import momentsRoutes from '../../routes/moments';
 import type { Bindings, Variables } from '../../types';
-import { createTestContext, createMockDbChain } from '../helpers/test-context';
+import { createTestContext } from '../helpers/test-context';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
+import type { MomentResponse, PaginatedResponse } from '../helpers/response-types';
 
 describe('Moments Routes', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let ctx: any;
+  let ctx: ReturnType<typeof createTestContext>;
   let validToken: string;
   const userId = 'test-user';
 
   // Helper to setup database mock with auth
-  const setupDbMock = (dataReturns: any) => {
+  const setupDbMock = (dataReturns: unknown) => {
     let callCount = 0;
     ctx.db.select.mockImplementation(() => {
       callCount++;
@@ -44,7 +45,7 @@ describe('Moments Routes', () => {
         mockChain.orderBy = vi.fn().mockResolvedValue(dataReturns);
         // Also create a thenable chain for when where() is the final method
         Object.assign(mockChain, {
-          then: (resolve: any) => Promise.resolve(dataReturns).then(resolve),
+          then: (resolve: (value: unknown) => unknown) => Promise.resolve(dataReturns).then(resolve),
         });
       }
       
@@ -53,7 +54,7 @@ describe('Moments Routes', () => {
   };
 
   // Helper for paginated queries (used by GET /moments)
-  const setupPaginatedDbMock = (items: any[], total: number = items.length) => {
+  const setupPaginatedDbMock = (items: unknown[], total: number = items.length) => {
     let callCount = 0;
     ctx.db.select.mockImplementation(() => {
       callCount++;
@@ -131,7 +132,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(401);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.code).toBe('UNAUTHORIZED');
     });
 
@@ -164,7 +165,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       
       expect(body).toHaveProperty('items');
       expect(body).toHaveProperty('total');
@@ -185,7 +186,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as PaginatedResponse<MomentResponse>;
       expect(body.items).toEqual([]);
     });
 
@@ -204,7 +205,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as PaginatedResponse<MomentResponse>;
       expect(body.items).toEqual(mockMoments);
     });
 
@@ -253,7 +254,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as Array<{ tag: string; count: number }>;
       expect(Array.isArray(body)).toBe(true);
       expect(body).toEqual(mockMoments);
     });
@@ -269,7 +270,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body).toEqual([]);
     });
   });
@@ -290,12 +291,12 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as Array<{ tag: string; count: number }>;
       
       expect(Array.isArray(body)).toBe(true);
-      expect(body.find(t => t.tag === 'gratitude')?.count).toBe(2);
-      expect(body.find(t => t.tag === 'reflection')?.count).toBe(2);
-      expect(body.find(t => t.tag === 'learning')?.count).toBe(1);
+      expect(body.find((t) => t.tag === 'gratitude')?.count).toBe(2);
+      expect(body.find((t) => t.tag === 'reflection')?.count).toBe(2);
+      expect(body.find((t) => t.tag === 'learning')?.count).toBe(1);
       expect(body[0].count).toBeGreaterThanOrEqual(body[1].count); // Sorted by count
     });
 
@@ -314,7 +315,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body).toEqual([]);
     });
   });
@@ -335,22 +336,22 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as Array<{ tag: string; count: number }>;
       
       // Should include default tags
-      expect(body.find(t => t.tag === 'gratitude')).toBeDefined();
-      expect(body.find(t => t.tag === 'achievement')).toBeDefined();
-      expect(body.find(t => t.tag === 'reflection')).toBeDefined();
-      expect(body.find(t => t.tag === 'learning')).toBeDefined();
-      expect(body.find(t => t.tag === 'milestone')).toBeDefined();
+      expect(body.find((t) => t.tag === 'gratitude')).toBeDefined();
+      expect(body.find((t) => t.tag === 'achievement')).toBeDefined();
+      expect(body.find((t) => t.tag === 'reflection')).toBeDefined();
+      expect(body.find((t) => t.tag === 'learning')).toBeDefined();
+      expect(body.find((t) => t.tag === 'milestone')).toBeDefined();
       
       // Should include user's custom tags
-      expect(body.find(t => t.tag === 'custom1')).toBeDefined();
-      expect(body.find(t => t.tag === 'custom2')).toBeDefined();
+      expect(body.find((t) => t.tag === 'custom1')).toBeDefined();
+      expect(body.find((t) => t.tag === 'custom2')).toBeDefined();
       
       // Verify counts
-      expect(body.find(t => t.tag === 'gratitude')?.count).toBe(2);
-      expect(body.find(t => t.tag === 'custom1')?.count).toBe(2);
+      expect(body.find((t) => t.tag === 'gratitude')?.count).toBe(2);
+      expect(body.find((t) => t.tag === 'custom1')?.count).toBe(2);
     });
   });
 
@@ -372,7 +373,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as { totalMoments: number; totalTags: number; recentMoments: MomentResponse[] };
       
       expect(body.totalMoments).toBe(5);
       expect(body.daysWithMoments).toBe(2);
@@ -393,7 +394,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as { totalMoments: number; totalTags: number; recentMoments: MomentResponse[] };
       
       expect(body.totalMoments).toBe(0);
       expect(body.averagePerDay).toBe(0);
@@ -419,7 +420,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body).toEqual(mockMoment);
     });
 
@@ -434,7 +435,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(404);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.code).toBe('NOT_FOUND');
     });
   });
@@ -467,7 +468,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(201);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       
       expect(body.content).toBe(momentData.content);
       expect(body.tags).toBe(momentData.tags);
@@ -485,7 +486,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
 
@@ -553,7 +554,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       
       expect(body.content).toBe(updateData.content);
       expect(body.tags).toBe(updateData.tags);
@@ -637,7 +638,7 @@ describe('Moments Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(500);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.code).toBe('INTERNAL_ERROR');
     });
   });

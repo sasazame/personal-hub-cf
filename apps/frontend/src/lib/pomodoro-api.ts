@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { apiClient } from './api-client';
 import { 
   PomodoroSession, 
@@ -22,8 +23,8 @@ export async function getActiveSession(): Promise<PomodoroSession | null> {
   try {
     const response = await apiClient.get<PomodoroSession>('/api/v1/pomodoro/sessions/active');
     return response.data;
-  } catch (error: any) {
-    if (error.response?.status === 404) {
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
       return null;
     }
     throw error;
@@ -80,9 +81,24 @@ export async function updatePomodoroConfig(data: UpdatePomodoroConfigRequest): P
   return response.data;
 }
 
-export async function getSessionStats(period?: string): Promise<any> {
+interface PomodoroStats {
+  totalSessions: number;
+  completedSessions: number;
+  totalCycles: number;
+  totalWorkTime: number;
+  averageSessionDuration: number;
+  completionRate: number;
+  dailyStats?: Array<{
+    date: string;
+    sessions: number;
+    cycles: number;
+    workTime: number;
+  }>;
+}
+
+export async function getSessionStats(period?: string): Promise<PomodoroStats> {
   const params = period ? `?period=${period}` : '';
-  const response = await apiClient.get<any>(`/api/v1/pomodoro/stats${params}`);
+  const response = await apiClient.get<PomodoroStats>(`/api/v1/pomodoro/stats${params}`);
   return response.data;
 }
 

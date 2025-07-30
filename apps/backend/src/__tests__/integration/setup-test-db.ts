@@ -1,7 +1,7 @@
-import { execSync } from 'child_process';
 import { drizzle } from 'drizzle-orm/d1';
 import * as schema from '../../db/schema';
 import { Miniflare } from 'miniflare';
+import type { Database } from '../../db';
 
 let mf: Miniflare | null = null;
 
@@ -81,7 +81,7 @@ export async function closeTestDatabase() {
   }
 }
 
-export async function createTestUser(db: any, userData = {}) {
+export async function createTestUser(db: Database, userData = {}) {
   const defaultUser = {
     id: 'test-user-id',
     username: 'testuser',

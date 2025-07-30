@@ -98,12 +98,19 @@ export async function generateTokens(userId: string, secret: string) {
   return { accessToken, refreshToken };
 }
 
-export async function verifyToken(token: string, secret: string) {
+interface JWTPayload {
+  sub: string;
+  type: 'access' | 'refresh';
+  exp: number;
+  iat?: number;
+}
+
+export async function verifyToken(token: string, secret: string): Promise<JWTPayload> {
   const isValid = await jwt.verify(token, secret);
   if (!isValid) {
     throw new Error('Invalid token');
   }
   
   const decoded = jwt.decode(token);
-  return decoded.payload;
+  return decoded.payload as JWTPayload;
 }

@@ -1,4 +1,4 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, TooltipProps, LabelProps } from 'recharts';
 
 interface CategoryBreakdownProps {
   data: Array<{
@@ -18,7 +18,7 @@ const COLORS = [
 ];
 
 export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-gray-900 text-white p-3 rounded shadow-lg border border-gray-700">
@@ -39,7 +39,7 @@ export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
     innerRadius,
     outerRadius,
     percent,
-  }: any) => {
+  }: LabelProps) => {
     const RADIAN = Math.PI / 180;
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -61,11 +61,22 @@ export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
     );
   };
 
-  const CustomLegend = (props: any) => {
+  interface LegendPayloadItem {
+    value: string;
+    color: string;
+    payload: {
+      category: string;
+      count: number;
+      percentage: number;
+    };
+  }
+
+  const CustomLegend = (props: { payload?: LegendPayloadItem[] }) => {
     const { payload } = props;
+    if (!payload) return null;
     return (
       <ul className="space-y-2">
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry: LegendPayloadItem, index: number) => (
           <li key={`item-${index}`} className="flex items-center gap-2 text-sm">
             <span
               className="w-3 h-3 rounded-full"

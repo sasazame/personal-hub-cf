@@ -1,0 +1,5 @@
+
+> @personal-hub/backend@0.0.1 lint /home/sasazame/git/personal-hub-cf/apps/backend
+> eslint . 2
+
+ ELIFECYCLE  Command failed with exit code 2.

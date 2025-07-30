@@ -31,7 +31,11 @@ export default [
         HTMLInputElement: 'readonly',
         HTMLTextAreaElement: 'readonly',
         HTMLAudioElement: 'readonly',
+        HTMLButtonElement: 'readonly',
+        HTMLSelectElement: 'readonly',
         Audio: 'readonly',
+        MouseEvent: 'readonly',
+        Node: 'readonly',
         IntersectionObserver: 'readonly',
         HeadersInit: 'readonly',
         KeyboardEvent: 'readonly',
@@ -44,8 +48,18 @@ export default [
         __dirname: 'readonly',
         process: 'readonly',
         NodeJS: 'readonly',
+        Buffer: 'readonly',
+        atob: 'readonly',
+        btoa: 'readonly',
         // React
         React: 'readonly',
+        // Cloudflare Workers globals
+        crypto: 'readonly',
+        TextEncoder: 'readonly',
+        Response: 'readonly',
+        Request: 'readonly',
+        URL: 'readonly',
+        Headers: 'readonly',
       },
     },
     rules: {
@@ -56,7 +70,7 @@ export default [
     },
   },
   {
-    ignores: ['**/dist/**', '**/build/**', '**/node_modules/**', '**/.turbo/**'],
+    ignores: ['**/dist/**', '**/build/**', '**/node_modules/**', '**/.turbo/**', '**/.wrangler/**'],
   },
   prettier,
 ];
