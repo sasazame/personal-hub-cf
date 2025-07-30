@@ -17,6 +17,8 @@
     "zod": "^4.0.13"
   },
   "devDependencies": {
-    "@types/node": "^24.1.0"
+    "@cloudflare/workers-types": "^4.20250726.0",
+    "@types/node": "^24.1.0",
+    "typescript": "^5.8.3"
   }
 }

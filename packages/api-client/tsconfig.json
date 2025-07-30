@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "types": ["@cloudflare/workers-types"],
+    "paths": {
+      "@personal-hub/shared/*": ["../shared/src/*"],
+      "@personal-hub/ui/*": ["../ui/src/*"]
+    }
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "../../apps/backend/src/**/*",
+    "../../apps/frontend/src/**/*"
+  ]
+}
