@@ -286,7 +286,7 @@ app.get('/me', async (c) => {
   const authHeader = c.req.header('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     // Match Spring Boot - returns 403 Forbidden
-    return c.text('Forbidden', StatusCodes.FORBIDDEN);
+    return c.text('Forbidden', StatusCodes.FORBIDDEN as any);
   }
   
   const token = authHeader.substring(7);
@@ -294,7 +294,7 @@ app.get('/me', async (c) => {
   try {
     const decoded = await verifyToken(token, c.env.JWT_SECRET);
     if (decoded.type !== 'access') {
-      return c.text('Forbidden', StatusCodes.FORBIDDEN);
+      return c.text('Forbidden', StatusCodes.FORBIDDEN as any);
     }
     
     const db = c.get('db');
@@ -304,7 +304,7 @@ app.get('/me', async (c) => {
       .get();
     
     if (!user || !user.enabled) {
-      return c.text('Forbidden', StatusCodes.FORBIDDEN);
+      return c.text('Forbidden', StatusCodes.FORBIDDEN as any);
     }
     
     // Return user data in Spring Boot format
@@ -312,13 +312,13 @@ app.get('/me', async (c) => {
       id: user.id,
       username: user.username,
       email: user.email,
-      weekStartDay: user.week_start_day,
-      createdAt: user.created_at,
-      updatedAt: user.updated_at,
+      weekStartDay: user.weekStartDay,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     });
   } catch (error) {
     console.error('Auth error:', error);
-    return c.text('Forbidden', StatusCodes.FORBIDDEN);
+    return c.text('Forbidden', StatusCodes.FORBIDDEN as any);
   }
 });
 
@@ -336,7 +336,7 @@ app.post('/forgot-password', zValidator('json', forgotPasswordSchema, springBoot
     
     if (user) {
       // Generate reset token
-      const resetToken = nanoid(32);
+      const resetToken = nanoid();
       await db.insert(passwordResetTokens).values({
         id: nanoid(),
         token: resetToken,
@@ -414,7 +414,7 @@ app.post('/reset-password', zValidator('json', resetPasswordSchema, springBootVa
 // GET /auth/oidc/google/authorize
 app.get('/oidc/google/authorize', (c) => {
   const redirectUri = `${c.req.url.split('/api')[0]}/api/v1/auth/oidc/google/callback`;
-  const state = nanoid(16);
+  const state = nanoid();
   const scope = 'openid email profile';
   
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
@@ -434,7 +434,7 @@ app.get('/oidc/google/authorize', (c) => {
 // GET /auth/oidc/github/authorize
 app.get('/oidc/github/authorize', (c) => {
   const redirectUri = `${c.req.url.split('/api')[0]}/api/v1/auth/oidc/github/callback`;
-  const state = nanoid(16);
+  const state = nanoid();
   const scope = 'user:email';
   
   const url = new URL('https://github.com/login/oauth/authorize');

@@ -52,16 +52,17 @@ app.get('/', async (c) => {
     
     // Date range filter
     if (fromDate && toDate) {
-      conditions.push(
-        or(
-          between(events.startDateTime, fromDate, toDate),
-          between(events.endDateTime, fromDate, toDate),
-          and(
-            lte(events.startDateTime, fromDate),
-            gte(events.endDateTime, toDate)
-          )
+      const dateCondition = or(
+        between(events.startDateTime, fromDate, toDate),
+        between(events.endDateTime, fromDate, toDate),
+        and(
+          lte(events.startDateTime, fromDate),
+          gte(events.endDateTime, toDate)
         )
       );
+      if (dateCondition) {
+        conditions.push(dateCondition);
+      }
     } else if (fromDate) {
       conditions.push(gte(events.endDateTime, fromDate));
     } else if (toDate) {
@@ -70,13 +71,14 @@ app.get('/', async (c) => {
     
     // Search filter
     if (search) {
-      conditions.push(
-        or(
-          like(events.title, `%${search}%`),
-          like(events.description, `%${search}%`),
-          like(events.location, `%${search}%`)
-        )
+      const searchCondition = or(
+        like(events.title, `%${search}%`),
+        like(events.description, `%${search}%`),
+        like(events.location, `%${search}%`)
       );
+      if (searchCondition) {
+        conditions.push(searchCondition);
+      }
     }
     
     const items = await db.select()
@@ -107,12 +109,12 @@ app.get('/range', async (c) => {
     // Date range filter
     if (fromDate && toDate) {
       conditions.push(
-        between(events.startDateTime, new Date(fromDate), new Date(toDate))
+        between(events.startDateTime, new Date(fromDate).toISOString(), new Date(toDate).toISOString())
       );
     } else if (fromDate) {
-      conditions.push(gte(events.startDateTime, new Date(fromDate)));
+      conditions.push(gte(events.startDateTime, new Date(fromDate).toISOString()));
     } else if (toDate) {
-      conditions.push(lte(events.endDateTime, new Date(toDate)));
+      conditions.push(lte(events.endDateTime, new Date(toDate).toISOString()));
     }
     
     const items = await db.select()

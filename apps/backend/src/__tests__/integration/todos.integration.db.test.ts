@@ -20,13 +20,13 @@ describe('Todos Routes Integration with Real Database', () => {
   beforeEach(async () => {
     // Setup test database
     const setup = await setupTestDatabase();
-    db = setup.db;
+    db = setup.db as any;
     env = setup.env as Bindings;
 
     // Create test user
     const userData = await createTestUserData();
-    testUser = await db.insert(schema.users).values(userData).returning();
-    testUser = testUser[0];
+    const users = await db.insert(schema.users).values(userData).returning();
+    testUser = users[0];
     
     // Generate access token
     accessToken = await jwt.sign(
@@ -42,7 +42,7 @@ describe('Todos Routes Integration with Real Database', () => {
     
     // Add database middleware
     app.use('*', async (c, next) => {
-      c.set('db', db);
+      c.set('db', db as any);
       await next();
     });
     
@@ -165,9 +165,10 @@ describe('Todos Routes Integration with Real Database', () => {
   describe('PUT /todos/:id', () => {
     it('should update own todo', async () => {
       // Create a todo
-      const [todo] = await db.insert(schema.todos)
+      const todos = await db.insert(schema.todos)
         .values(createTestTodoData(testUser.id, { title: 'Original Title' }))
         .returning();
+      const todo = todos[0];
 
       const updateData = {
         title: 'Updated Title',
@@ -198,10 +199,12 @@ describe('Todos Routes Integration with Real Database', () => {
     it('should not update other users todo', async () => {
       // Create another user and their todo
       const otherUserData = await createTestUserData();
-      const [otherUser] = await db.insert(schema.users).values(otherUserData).returning();
-      const [otherTodo] = await db.insert(schema.todos)
+      const otherUsers = await db.insert(schema.users).values(otherUserData).returning();
+      const otherUser = otherUsers[0];
+      const otherTodos = await db.insert(schema.todos)
         .values(createTestTodoData(otherUser.id, { title: 'Other User Todo' }))
         .returning();
+      const otherTodo = otherTodos[0];
 
       const res = await app.request(`/todos/${otherTodo.id}`, {
         method: 'PUT',
@@ -215,7 +218,8 @@ describe('Todos Routes Integration with Real Database', () => {
       expect(res.status).toBe(404);
       
       // Verify todo wasn't changed
-      const [unchangedTodo] = await db.select().from(schema.todos).where(eq(schema.todos.id, otherTodo.id));
+      const unchangedTodos = await db.select().from(schema.todos).where(eq(schema.todos.id, otherTodo.id));
+      const unchangedTodo = unchangedTodos[0];
       expect(unchangedTodo.title).toBe('Other User Todo');
     });
   });
@@ -223,9 +227,10 @@ describe('Todos Routes Integration with Real Database', () => {
   describe('DELETE /todos/:id', () => {
     it('should delete own todo', async () => {
       // Create a todo
-      const [todo] = await db.insert(schema.todos)
+      const deleteTodos = await db.insert(schema.todos)
         .values(createTestTodoData(testUser.id))
         .returning();
+      const todo = deleteTodos[0];
 
       const res = await app.request(`/todos/${todo.id}`, {
         method: 'DELETE',
@@ -237,8 +242,8 @@ describe('Todos Routes Integration with Real Database', () => {
       expect(res.status).toBe(204);
       
       // Verify deleted from database
-      const todos = await db.select().from(schema.todos).where(eq(schema.todos.id, todo.id));
-      expect(todos).toHaveLength(0);
+      const remainingTodos = await db.select().from(schema.todos).where(eq(schema.todos.id, todo.id));
+      expect(remainingTodos).toHaveLength(0);
     });
   });
 });

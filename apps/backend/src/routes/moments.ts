@@ -49,7 +49,10 @@ app.get('/', async (c) => {
         like(moments.tags, `%${tag}%`)
       );
       if (tagConditions.length > 0) {
-        conditions.push(or(...tagConditions));
+        const orCondition = or(...tagConditions);
+        if (orCondition) {
+          conditions.push(orCondition);
+        }
       }
     }
     

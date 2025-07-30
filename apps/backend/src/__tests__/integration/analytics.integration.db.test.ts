@@ -19,13 +19,13 @@ describe('Analytics Routes Integration with Real Database', () => {
   beforeEach(async () => {
     // Setup test database
     const setup = await setupTestDatabase();
-    db = setup.db;
+    db = setup.db as any;
     env = setup.env as Bindings;
 
     // Create test user
     const userData = await createTestUserData();
-    testUser = await db.insert(schema.users).values(userData).returning();
-    testUser = testUser[0];
+    const users = await db.insert(schema.users).values(userData).returning();
+    testUser = users[0];
     
     // Generate access token
     accessToken = await jwt.sign(
@@ -41,7 +41,7 @@ describe('Analytics Routes Integration with Real Database', () => {
     
     // Add database middleware
     app.use('*', async (c, next) => {
-      c.set('db', db);
+      c.set('db', db as any);
       await next();
     });
     
@@ -322,15 +322,17 @@ describe('Analytics Routes Integration with Real Database', () => {
       };
       
       expect(body.totalUniqueTags).toBe(6); // work, important, personal, urgent, reflection, health
-      expect(body.mostUsedTag.tag).toBe('work');
-      expect(body.mostUsedTag.total).toBe(3);
-      expect(body.mostUsedTag.notes).toBe(2);
-      expect(body.mostUsedTag.moments).toBe(1);
+      expect(body.mostUsedTag).not.toBeNull();
+      expect(body.mostUsedTag!.tag).toBe('work');
+      expect(body.mostUsedTag!.total).toBe(3);
+      expect(body.mostUsedTag!.notes).toBe(2);
+      expect(body.mostUsedTag!.moments).toBe(1);
       
       const personalTag = body.tags.find((t: { tag: string; total: number; notes: number; moments: number }) => t.tag === 'personal');
-      expect(personalTag.total).toBe(2);
-      expect(personalTag.notes).toBe(1);
-      expect(personalTag.moments).toBe(1);
+      expect(personalTag).toBeDefined();
+      expect(personalTag!.total).toBe(2);
+      expect(personalTag!.notes).toBe(1);
+      expect(personalTag!.moments).toBe(1);
     });
 
     it('should handle missing tags', async () => {

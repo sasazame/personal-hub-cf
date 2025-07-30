@@ -317,7 +317,7 @@ app.delete('/:goalId/achievements/:id', async (c) => {
       );
     }
     
-    return c.text('', 204);
+    return c.body(null, 204);
   } catch (error) {
     console.error('Delete achievement error:', error);
     return c.json(

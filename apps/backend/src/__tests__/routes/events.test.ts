@@ -47,7 +47,7 @@ describe('Events Routes', () => {
     app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
     
     app.use('*', async (c, next) => {
-      c.set('db', mockDb);
+      c.set('db', mockDb as any);
       await next();
     });
     

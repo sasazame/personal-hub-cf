@@ -56,7 +56,7 @@ describe('Auth Routes Integration', () => {
     
     // Add database middleware (simulating the real app)
     app.use('*', async (c, next) => {
-      c.set('db', mockDb);
+      c.set('db', mockDb as any);
       await next();
     });
     
@@ -269,8 +269,9 @@ describe('Auth Routes Integration', () => {
       
       // Mock update for refresh token revocation
       mockDb.update.mockReturnValue({
-        set: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnThis(),
+        }),
       });
       
       // Mock successful refresh token insert
