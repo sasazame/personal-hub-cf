@@ -5,14 +5,15 @@ import { setupTestDatabase, cleanupTestDatabase, closeTestDatabase } from './set
 import { createTestUserData, createTestTodoData, createTestGoalData, createTestNoteData } from './fixtures';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
 import type { Bindings, Variables } from '../../types';
+import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import * as schema from '../../db/schema';
 import { eq } from 'drizzle-orm';
 
 describe('Analytics Routes Integration with Real Database', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let db: any;
+  let db: DrizzleD1Database;
   let env: Bindings;
-  let testUser: any;
+  let testUser: { id: string; email: string; username: string; enabled: boolean };
   let accessToken: string;
 
   beforeEach(async () => {
@@ -88,7 +89,14 @@ describe('Analytics Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as {
+        todos: { total: number; completed: number; inProgress: number; todo: number; completionRate: number };
+        goals: { total: number; active: number };
+        notes: { total: number };
+        moments: { total: number; today: number };
+        pomodoro?: { totalSessions: number };
+        events?: { total: number };
+      };
       
       expect(body.todos.total).toBe(3);
       expect(body.todos.completed).toBe(1);
@@ -113,7 +121,14 @@ describe('Analytics Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as {
+        todos: { total: number; completed: number; inProgress: number; todo: number; completionRate: number };
+        goals: { total: number; active: number };
+        notes: { total: number };
+        moments: { total: number; today: number };
+        pomodoro: { totalSessions: number };
+        events: { total: number };
+      };
       
       expect(body.todos.total).toBe(0);
       expect(body.todos.completionRate).toBe(0);
@@ -156,7 +171,9 @@ describe('Analytics Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as {
+        completedTodosByDate: Array<{ date: string; count: number }>;
+      };
       
       // If we still only get one date, adjust expectations
       if (body.completedTodosByDate.length === 1) {
@@ -165,8 +182,8 @@ describe('Analytics Routes Integration with Real Database', () => {
       } else {
         expect(body.completedTodosByDate).toHaveLength(2);
         
-        const todayData = body.completedTodosByDate.find((d: any) => d.date === today);
-        const yesterdayData = body.completedTodosByDate.find((d: any) => d.date === yesterday);
+        const todayData = body.completedTodosByDate.find((d: { date: string; count: number }) => d.date === today);
+        const yesterdayData = body.completedTodosByDate.find((d: { date: string; count: number }) => d.date === yesterday);
         
         expect(todayData?.count).toBe(2);
         expect(yesterdayData?.count).toBe(1);
@@ -182,7 +199,7 @@ describe('Analytics Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as { code: string; message?: string };
       expect(body.code).toBe('VALIDATION_ERROR');
     });
   });
@@ -216,7 +233,11 @@ describe('Analytics Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as {
+        currentStreak: number;
+        longestStreak: number;
+        activityDates: string[];
+      };
       
       // Current streak should be at least 1 (today's activity)
       expect(body.currentStreak).toBeGreaterThanOrEqual(1);
@@ -251,7 +272,9 @@ describe('Analytics Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as {
+        mostProductiveHours: Array<{ hour: number; count: number }>;
+      };
       
       expect(body.mostProductiveHours).toBeDefined();
       expect(body.mostProductiveHours[0].hour).toBe(9);
@@ -292,7 +315,11 @@ describe('Analytics Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as {
+        totalUniqueTags: number;
+        mostUsedTag: { tag: string; total: number; notes: number; moments: number } | null;
+        tags: Array<{ tag: string; total: number; notes: number; moments: number }>;
+      };
       
       expect(body.totalUniqueTags).toBe(6); // work, important, personal, urgent, reflection, health
       expect(body.mostUsedTag.tag).toBe('work');
@@ -300,7 +327,7 @@ describe('Analytics Routes Integration with Real Database', () => {
       expect(body.mostUsedTag.notes).toBe(2);
       expect(body.mostUsedTag.moments).toBe(1);
       
-      const personalTag = body.tags.find((t: any) => t.tag === 'personal');
+      const personalTag = body.tags.find((t: { tag: string; total: number; notes: number; moments: number }) => t.tag === 'personal');
       expect(personalTag.total).toBe(2);
       expect(personalTag.notes).toBe(1);
       expect(personalTag.moments).toBe(1);
@@ -320,7 +347,11 @@ describe('Analytics Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as {
+        totalUniqueTags: number;
+        mostUsedTag: { tag: string; total: number; notes: number; moments: number } | null;
+        tags: Array<{ tag: string; total: number; notes: number; moments: number }>;
+      };
       
       expect(body.totalUniqueTags).toBe(0);
       expect(body.mostUsedTag).toBe(null);
@@ -356,10 +387,16 @@ describe('Analytics Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as Array<{
+        id: number;
+        achievementCount: number;
+        totalDays: number;
+        progressPercentage: number;
+        isOnTrack: boolean;
+      }>;
       
       // Debug: Check the actual achievement count in DB
-      const actualAchievements = await db.select()
+      await db.select()
         .from(schema.goalAchievementHistory)
         .where(eq(schema.goalAchievementHistory.goalId, goal[0].id));
       
@@ -399,21 +436,20 @@ describe('Analytics Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as {
+        hourlyDistribution: Array<{ hour: number; todos?: number }>;
+      };
       
       expect(body.hourlyDistribution).toHaveLength(24);
       
       // Check the hours where we created todos
-      const hour9 = body.hourlyDistribution.find((h: any) => h.hour === 9);
-      const hour14 = body.hourlyDistribution.find((h: any) => h.hour === 14);
-      const hour20 = body.hourlyDistribution.find((h: any) => h.hour === 20);
-      const hour0 = body.hourlyDistribution.find((h: any) => h.hour === 0);
       
       // At least verify we have some todos created
-      const totalTodos = body.hourlyDistribution.reduce((sum: number, h: any) => sum + (h.todos || 0), 0);
+      const totalTodos = body.hourlyDistribution.reduce((sum: number, h: { hour: number; todos?: number }) => sum + (h.todos || 0), 0);
       expect(totalTodos).toBe(6); // We created 6 todos
       
       // Verify the distribution has the correct structure
+      const hour0 = body.hourlyDistribution.find((h: { hour: number; todos?: number }) => h.hour === 0);
       expect(hour0).toBeDefined();
       expect(hour0?.hour).toBe(0);
       expect(hour0?.todos).toBeGreaterThanOrEqual(0);

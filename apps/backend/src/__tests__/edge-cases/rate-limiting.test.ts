@@ -14,7 +14,7 @@ vi.mock('../../utils/auth', () => ({
     accessToken: 'test-access-token',
     refreshToken: 'test-refresh-token',
   }),
-  verifyToken: vi.fn().mockImplementation(async (token, secret) => {
+  verifyToken: vi.fn().mockImplementation(async (token, _secret) => {
     if (token === 'invalid-token' || token.startsWith('fake-token')) {
       throw new Error('Invalid token');
     }
@@ -28,7 +28,7 @@ vi.mock('../../utils/auth', () => ({
 
 describe('Rate Limiting and Resource Protection', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let ctx: any;
+  let ctx: ReturnType<typeof createTestContext>;
 
   beforeEach(() => {
     ctx = createTestContext();
@@ -395,7 +395,7 @@ describe('Rate Limiting and Resource Protection', () => {
       
       // Should return proper error responses, not crash
       for (const res of errorResponses) {
-        const body = await res.json();
+        const body = await res.json() as { code: string; message?: string };
         expect(body.code).toBe('INTERNAL_ERROR');
       }
     });
@@ -530,7 +530,7 @@ describe('Rate Limiting and Resource Protection', () => {
       const normalResults = await Promise.all(normalRequests);
       
       // Should allow normal usage
-      expect(normalResults.every((r: any) => r.status === 200)).toBe(true);
+      expect(normalResults.every((r) => (r as Response).status === 200)).toBe(true);
 
       // Suspicious behavior - rapid automated requests
       const suspiciousRequests = Array.from({ length: 50 }, () => 

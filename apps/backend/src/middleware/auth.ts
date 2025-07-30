@@ -26,20 +26,20 @@ export async function authMiddleware(
     if (decoded.type !== 'access') {
       return c.json(
         createErrorResponse(ErrorCodes.UNAUTHORIZED, 'Invalid token type'),
-        StatusCodes.UNAUTHORIZED
+        401
       );
     }
     
     const db = c.get('db');
     const user = await db.select()
       .from(users)
-      .where(eq(users.id, decoded.sub))
+      .where(eq(users.id, decoded.sub as string))
       .get();
     
     if (!user || !user.enabled) {
       return c.json(
         createErrorResponse(ErrorCodes.UNAUTHORIZED, 'User not found or disabled'),
-        StatusCodes.UNAUTHORIZED
+        401
       );
     }
     

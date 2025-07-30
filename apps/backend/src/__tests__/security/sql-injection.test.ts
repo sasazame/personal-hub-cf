@@ -9,12 +9,13 @@ import todosRoutes from '../../routes/todos';
 import notesRoutes from '../../routes/notes';
 import momentsRoutes from '../../routes/moments';
 import analyticsRoutes from '../../routes/analytics';
+import type { Database } from '../../db';
 
 describe('SQL Injection Security Tests', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let db: any;
+  let db: Database;
   let env: Bindings;
-  let testUser: any;
+  let testUser: typeof schema.users.$inferSelect;
   let accessToken: string;
 
   beforeEach(async () => {
@@ -96,7 +97,7 @@ describe('SQL Injection Security Tests', () => {
 
         // Should not cause error, should handle gracefully
         expect(res.status).toBe(200);
-        const body = await res.json();
+        const body = await res.json() as unknown;
         expect(body.items).toBeDefined();
         
         // Verify tables still exist
@@ -131,7 +132,7 @@ describe('SQL Injection Security Tests', () => {
         }, env);
 
         expect(res.status).toBe(200);
-        const body = await res.json();
+        const body = await res.json() as unknown;
         expect(body.items).toBeDefined();
       }
     });
@@ -189,7 +190,7 @@ describe('SQL Injection Security Tests', () => {
         
         // Verify no unauthorized data access
         const todos = await db.select().from(schema.todos).where(schema.eq(schema.todos.userId, testUser.id));
-        todos.forEach(todo => {
+        todos.forEach((todo) => {
           expect(todo.userId).toBe(testUser.id);
         });
       }
@@ -250,7 +251,7 @@ describe('SQL Injection Security Tests', () => {
         
         // Should never return other users' data
         if (res.status === 200) {
-          const body = await res.json();
+          const body = await res.json() as unknown;
           expect(body.userId).toBe(testUser.id);
         }
       }
@@ -280,7 +281,7 @@ describe('SQL Injection Security Tests', () => {
       
       // Verify no unauthorized users were created
       const users = await db.select().from(schema.users);
-      expect(users.every(u => u.id !== 'hacker')).toBe(true);
+      expect(users.every((u) => u.id !== 'hacker')).toBe(true);
     });
 
     it('should handle Unicode and encoded injection attempts', async () => {
@@ -299,10 +300,10 @@ describe('SQL Injection Security Tests', () => {
         }, env);
 
         expect(res.status).toBe(200);
-        const body = await res.json();
+        const body = await res.json() as { items: Array<{ userId: string }> };
         
         // Should only return user's own data
-        body.items.forEach((item: any) => {
+        body.items.forEach((item) => {
           expect(item.userId).toBe(testUser.id);
         });
       }

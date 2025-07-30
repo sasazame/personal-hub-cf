@@ -11,19 +11,19 @@ vi.mock('../../utils/auth', () => ({
   hashPassword: vi.fn(),
   verifyPassword: vi.fn(),
   generateTokens: vi.fn(),
-  verifyToken: vi.fn().mockImplementation(async (token, secret) => {
+  verifyToken: vi.fn().mockImplementation(async (token, _secret) => {
     // Parse the actual JWT to get the payload
     const parts = token.split('.');
     if (parts.length !== 3) throw new Error('Invalid token');
     
     try {
-      const payload = JSON.parse(atob(parts[1]));
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
       // Check if token is expired
       if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
         throw new Error('Token expired');
       }
       return payload;
-    } catch (e) {
+    } catch {
       throw new Error('Invalid token');
     }
   }),
@@ -31,7 +31,7 @@ vi.mock('../../utils/auth', () => ({
 
 describe('Authentication Security Tests', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let ctx: any;
+  let ctx: ReturnType<typeof createTestContext>;
   let validToken: string;
   const userId = 'test-user';
 
@@ -208,8 +208,8 @@ describe('Authentication Security Tests', () => {
       expect(res1.status).toBe(401);
       expect(res2.status).toBe(401);
       
-      const body1 = await res1.json();
-      const body2 = await res2.json();
+      const body1 = await res1.json() as { message: string };
+      const body2 = await res2.json() as { message: string };
       
       expect(body1.message).toBe(body2.message);
     });
@@ -340,7 +340,7 @@ describe('Authentication Security Tests', () => {
       
       // Also mock the refresh token insert
       let insertCount = 0;
-      ctx.db.insert.mockImplementation((table) => {
+      ctx.db.insert.mockImplementation((_table: unknown) => {
         insertCount++;
         return {
           values: vi.fn((values) => {

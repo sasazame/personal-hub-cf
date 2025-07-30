@@ -54,16 +54,20 @@ export default defineConfig({
     // Cloudflare Workers backend
     {
       command: 'cd apps/backend && pnpm dev',
-      url: 'http://localhost:8787',
+      url: 'http://localhost:8787/health',
       reuseExistingServer: !process.env.CI,
-      timeout: 120 * 1000,
+      timeout: 180 * 1000,
+      stdout: 'pipe',
+      stderr: 'pipe',
     },
     // Frontend (Vite + React)
     {
       command: 'cd apps/frontend && pnpm dev',
       url: 'http://localhost:3000',
       reuseExistingServer: !process.env.CI,
-      timeout: 120 * 1000,
+      timeout: 180 * 1000,
+      stdout: 'pipe',
+      stderr: 'pipe',
     },
   ],
 });

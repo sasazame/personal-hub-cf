@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq, and, desc, asc, or, gte, lte, sql } from 'drizzle-orm';
@@ -51,7 +52,7 @@ app.get('/', zValidator('query', querySchema, springBootValidator), async (c) =>
   const query = c.req.valid('query');
   
   try {
-    const conditions = [eq(todos.userId, userId)];
+    const conditions = [eq(todos.userId, userId as string)];
     
     if (query.status) {
       conditions.push(eq(todos.status, query.status));
@@ -66,12 +67,13 @@ app.get('/', zValidator('query', querySchema, springBootValidator), async (c) =>
     }
     
     if (query.search) {
-      conditions.push(
-        or(
-          sql`${todos.title} LIKE ${`%${query.search}%`}`,
-          sql`${todos.description} LIKE ${`%${query.search}%`}`
-        )
+      const searchCondition = or(
+        sql`${todos.title} LIKE ${`%${query.search}%`}`,
+        sql`${todos.description} LIKE ${`%${query.search}%`}`
       );
+      if (searchCondition) {
+        conditions.push(searchCondition);
+      }
     }
     
     if (query.fromDate) {
@@ -117,7 +119,7 @@ app.get('/', zValidator('query', querySchema, springBootValidator), async (c) =>
     console.error('Get todos error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -131,13 +133,13 @@ app.get('/:id', async (c) => {
   try {
     const todo = await db.select()
       .from(todos)
-      .where(and(eq(todos.id, id), eq(todos.userId, userId)))
+      .where(and(eq(todos.id, id), eq(todos.userId, userId as string)))
       .get();
     
     if (!todo) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Todo not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -146,7 +148,7 @@ app.get('/:id', async (c) => {
     console.error('Get todo error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -170,13 +172,14 @@ app.post('/', zValidator('json', createTodoSchema, springBootValidator), async (
     };
     
     const result = await db.insert(todos).values(newTodo).returning();
+    const insertedTodo = Array.isArray(result) ? result[0] : result;
     
-    return c.json(result[0], 201);
+    return c.json(insertedTodo, StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Create todo error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -192,13 +195,13 @@ app.put('/:id', zValidator('json', updateTodoSchema, springBootValidator), async
     // Check if todo exists and belongs to user
     const existing = await db.select()
       .from(todos)
-      .where(and(eq(todos.id, id), eq(todos.userId, userId)))
+      .where(and(eq(todos.id, id), eq(todos.userId, userId as string)))
       .get();
     
     if (!existing) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Todo not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -210,15 +213,16 @@ app.put('/:id', zValidator('json', updateTodoSchema, springBootValidator), async
     
     const result = await db.update(todos)
       .set(updateData)
-      .where(and(eq(todos.id, id), eq(todos.userId, userId)))
+      .where(and(eq(todos.id, id), eq(todos.userId, userId as string)))
       .returning();
     
-    return c.json(result[0]);
+    const updatedTodo = Array.isArray(result) ? result[0] : result;
+    return c.json(updatedTodo);
   } catch (error) {
     console.error('Update todo error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -233,25 +237,25 @@ app.delete('/:id', async (c) => {
     // Check if todo exists and belongs to user
     const existing = await db.select()
       .from(todos)
-      .where(and(eq(todos.id, id), eq(todos.userId, userId)))
+      .where(and(eq(todos.id, id), eq(todos.userId, userId as string)))
       .get();
     
     if (!existing) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Todo not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
     await db.delete(todos)
-      .where(and(eq(todos.id, id), eq(todos.userId, userId)));
+      .where(and(eq(todos.id, id), eq(todos.userId, userId as string)));
     
     return new Response(null, { status: 204 });
   } catch (error) {
     console.error('Delete todo error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -268,22 +272,23 @@ app.post('/:id/complete', async (c) => {
         status: 'DONE',
         updatedAt: new Date().toISOString()
       })
-      .where(and(eq(todos.id, id), eq(todos.userId, userId)))
+      .where(and(eq(todos.id, id), eq(todos.userId, userId as string)))
       .returning();
     
-    if (!result.length) {
+    const resultArray = Array.isArray(result) ? result : [];
+    if (!resultArray.length) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Todo not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
-    return c.json(result[0]);
+    return c.json(resultArray[0]);
   } catch (error) {
     console.error('Complete todo error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -297,7 +302,7 @@ app.get('/:id/subtasks', async (c) => {
   try {
     const subtasks = await db.select()
       .from(todos)
-      .where(and(eq(todos.userId, userId), eq(todos.parentId, parentId)))
+      .where(and(eq(todos.userId, userId as string), eq(todos.parentId, parentId)))
       .orderBy(asc(todos.createdAt));
     
     return c.json(subtasks);
@@ -305,7 +310,7 @@ app.get('/:id/subtasks', async (c) => {
     console.error('Get subtasks error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });

@@ -200,7 +200,7 @@ export function Analytics() {
                   <div
                     className={cn(
                       "h-2 rounded-full transition-all duration-500",
-                      "bg-gradient-to-r from-blue-500 to-blue-600"
+                      "bg-linear-to-r from-blue-500 to-blue-600"
                     )}
                     style={{ width: `${Math.min(100, (goal.progress / goal.target) * 100)}%` }}
                   />

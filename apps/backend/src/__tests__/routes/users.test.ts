@@ -2,15 +2,16 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Hono } from 'hono';
 import usersRoutes from '../../routes/users';
 import type { Bindings, Variables } from '../../types';
-import { createTestContext, createMockDbChain } from '../helpers/test-context';
+import { createTestContext } from '../helpers/test-context';
 import * as authUtils from '../../utils/auth';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
+import type { ErrorResponse, MessageResponse } from '../helpers/response-types';
 
 vi.mock('../../utils/auth', () => ({
   verifyPassword: vi.fn(),
   hashPassword: vi.fn(),
   generateTokens: vi.fn(),
-  verifyToken: vi.fn().mockImplementation(async (token, secret) => {
+  verifyToken: vi.fn().mockImplementation(async (token, _secret) => {
     // Check if it's an invalid token
     if (token === 'invalid-token') {
       throw new Error('Invalid token');
@@ -26,12 +27,12 @@ vi.mock('../../utils/auth', () => ({
 
 describe('Users Routes', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let ctx: any;
+  let ctx: ReturnType<typeof createTestContext>;
   let validToken: string;
   const userId = 'test-user';
 
   // Helper to setup database mock with auth
-  const setupDbMock = (getReturns: any) => {
+  const setupDbMock = (getReturns: unknown) => {
     let callCount = 0;
     ctx.db.select.mockImplementation(() => ({
       from: vi.fn().mockReturnThis(),
@@ -96,7 +97,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(401);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('UNAUTHORIZED');
     });
 
@@ -139,7 +140,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body).toEqual(mockUser);
     });
 
@@ -154,7 +155,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(404);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('NOT_FOUND');
     });
   });
@@ -208,7 +209,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.username).toBe('newusername');
       expect(body.givenName).toBe('Updated');
     });
@@ -244,7 +245,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(409);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.details.username).toBe('Username already taken');
     });
 
@@ -262,7 +263,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
   });
@@ -297,7 +298,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.success).toBe(true);
       expect(vi.mocked(authUtils.verifyPassword)).toHaveBeenCalledWith('oldpass123', 'hashed-old-password');
       expect(vi.mocked(authUtils.hashPassword)).toHaveBeenCalledWith('newpass123');
@@ -321,7 +322,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.details.currentPassword).toBe('Current password is incorrect');
     });
 
@@ -339,7 +340,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
   });
@@ -396,7 +397,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.success).toBe(true);
     });
 
@@ -444,7 +445,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(409);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('CONFLICT');
     });
 
@@ -462,7 +463,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
   });
@@ -490,7 +491,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body).toEqual(updateData);
     });
 
@@ -558,7 +559,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body).toEqual(mockAccounts);
     });
   });
@@ -660,7 +661,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as MessageResponse;
       expect(body.message).toContain('Cannot remove the last authentication method');
     });
 
@@ -709,7 +710,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.success).toBe(true);
     });
 
@@ -728,8 +729,10 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(401);
-      const body = await res.json();
-      expect(body.error).toBe('Password is incorrect');
+      const body = await res.json() as { code: string; message: string; details: Record<string, string> };
+      expect(body.code).toBe('VALIDATION_ERROR');
+      expect(body.message).toBe('Invalid input');
+      expect(body.details.password).toBe('Password is incorrect');
     });
   });
 
@@ -750,7 +753,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.success).toBe(true);
     });
   });
@@ -785,7 +788,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(500);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('INTERNAL_ERROR');
     });
   });

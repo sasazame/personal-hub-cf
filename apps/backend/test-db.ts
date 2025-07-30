@@ -1,11 +1,12 @@
 import { drizzle } from 'drizzle-orm/d1';
-import { users } from './src/db/schema';
+import type { D1Database } from '@cloudflare/workers-types';
+// import { users } from './src/db/schema';
 import { nanoid } from './src/utils/nanoid';
 
 // Test database connection
 async function testDb() {
   // Mock the D1 database for testing
-  const db = drizzle({} as any);
+  drizzle({} as D1Database);
   
   const testUser = {
     id: nanoid(),

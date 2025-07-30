@@ -201,9 +201,9 @@ export function PomodoroHistory({ showTaskDetails = false }: PomodoroHistoryProp
                                 className="flex items-center gap-2 text-sm"
                               >
                                 {task.completed ? (
-                                  <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400 flex-shrink-0" />
+                                  <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400 shrink-0" />
                                 ) : (
-                                  <Circle className="w-3 h-3 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                                  <Circle className="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
                                 )}
                                 <span className={cn(
                                   task.completed && "line-through text-gray-500 dark:text-gray-400"

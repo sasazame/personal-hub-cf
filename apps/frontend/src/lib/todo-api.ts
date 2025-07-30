@@ -13,7 +13,7 @@ export const todoApi = {
       pageable: {
         pageNumber: currentPage - 1,
         pageSize: limit,
-        sort: { sorted: true, ascending: false },
+        sort: { sorted: true, orderBy: 'createdAt', direction: 'DESC' },
       },
       totalElements: total,
       totalPages,
@@ -39,15 +39,23 @@ export const todoApi = {
 
   async create(data: CreateTodoDto): Promise<Todo> {
     // Transform repeatConfig to individual fields for backend
-    const backendData: any = {
+    interface BackendTodoData extends Omit<CreateTodoDto, 'repeatConfig'> {
+      repeatType?: string;
+      repeatInterval?: number;
+      repeatDaysOfWeek?: number[];
+      repeatDayOfMonth?: number;
+      repeatEndDate?: string;
+    }
+    
+    const backendData: BackendTodoData = {
       ...data,
       repeatType: data.repeatConfig?.repeatType,
       repeatInterval: data.repeatConfig?.interval,
-      repeatDaysOfWeek: data.repeatConfig?.daysOfWeek,
-      repeatDayOfMonth: data.repeatConfig?.dayOfMonth,
-      repeatEndDate: data.repeatConfig?.endDate,
+      repeatDaysOfWeek: data.repeatConfig?.daysOfWeek || undefined,
+      repeatDayOfMonth: data.repeatConfig?.dayOfMonth || undefined,
+      repeatEndDate: data.repeatConfig?.endDate || undefined,
     }
-    delete backendData.repeatConfig
+    delete (backendData as CreateTodoDto).repeatConfig
     
     const response = await apiClient.post('/api/v1/todos', backendData)
     return response.data

@@ -4,10 +4,18 @@ import notesRoutes from '../../routes/notes';
 import { generateTokens } from '../../utils/auth';
 import { createMockDbChain } from '../helpers/test-context';
 import type { Bindings, Variables } from '../../types';
+import type { D1Database } from '@cloudflare/workers-types';
+import type { NoteResponse, PaginatedResponse } from '../helpers/response-types';
 
 describe('Notes Routes', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let mockDb: any;
+  let mockDb: {
+    select: ReturnType<typeof vi.fn>;
+    insert: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+    delete: ReturnType<typeof vi.fn>;
+    selectDistinct: ReturnType<typeof vi.fn>;
+  };
   let env: Bindings;
   let validToken: string;
   let userId: string;
@@ -24,12 +32,13 @@ describe('Notes Routes', () => {
     };
 
     env = {
-      DB: {} as any,
+      DB: {} as D1Database,
       JWT_SECRET: 'test-jwt-secret',
       OAUTH_GITHUB_CLIENT_ID: 'test-github-id',
       OAUTH_GITHUB_CLIENT_SECRET: 'test-github-secret',
       OAUTH_GOOGLE_CLIENT_ID: 'test-google-id',
       OAUTH_GOOGLE_CLIENT_SECRET: 'test-google-secret',
+    ENVIRONMENT: 'test',
     };
 
     const tokens = await generateTokens(userId, env.JWT_SECRET);
@@ -96,7 +105,7 @@ describe('Notes Routes', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as PaginatedResponse<NoteResponse>;
       expect(body.items).toHaveLength(1);
       expect(body.items[0].title).toBe('Test Note');
       expect(body.total).toBe(1);
@@ -164,10 +173,10 @@ describe('Notes Routes', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as Array<{ tag: string; count: number }>;
       
       // Extract tags from the response format
-      const tags = body.map((item: any) => item.tag);
+      const tags = body.map((item) => item.tag);
       expect(tags).toHaveLength(4);
       expect(tags).toContain('work');
       expect(tags).toContain('personal');
@@ -208,7 +217,7 @@ describe('Notes Routes', () => {
       }, env);
 
       expect(res.status).toBe(201);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.title).toBe('New Note');
       expect(body.userId).toBe(userId);
     });
@@ -227,7 +236,7 @@ describe('Notes Routes', () => {
       }, env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
   });
@@ -281,7 +290,7 @@ describe('Notes Routes', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.content).toBe('Updated content');
     });
   });
@@ -350,7 +359,7 @@ describe('Notes Routes', () => {
       }, env);
 
       expect(res.status).toBe(404);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.code).toBe('NOT_FOUND');
     });
   });

@@ -4,10 +4,11 @@ import authRoutes from '../../routes/auth';
 import { setupTestDatabase, cleanupTestDatabase, createTestUser, closeTestDatabase } from './setup-test-db';
 import { hashPassword } from '../../utils/auth';
 import type { Bindings, Variables } from '../../types';
+import type { DrizzleD1Database } from 'drizzle-orm/d1';
 
 describe('Auth Routes Integration with Real Database', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let db: any;
+  let db: DrizzleD1Database;
   let env: Bindings;
 
   beforeEach(async () => {
@@ -49,7 +50,11 @@ describe('Auth Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(201);
-      const body = await res.json();
+      const body = await res.json() as {
+        accessToken: string;
+        refreshToken: string;
+        user: { id: string; email: string; username: string };
+      };
       
       expect(body).toHaveProperty('accessToken');
       expect(body).toHaveProperty('refreshToken');
@@ -77,7 +82,7 @@ describe('Auth Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(409);
-      const body = await res.json();
+      const body = await res.json() as { code: string; message?: string };
       expect(body.code).toBe('EMAIL_ALREADY_EXISTS');
     });
   });
@@ -104,7 +109,11 @@ describe('Auth Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as {
+        accessToken: string;
+        refreshToken: string;
+        user: { id: string; email: string; username: string };
+      };
       
       expect(body).toHaveProperty('accessToken');
       expect(body).toHaveProperty('refreshToken');
@@ -133,7 +142,7 @@ describe('Auth Routes Integration with Real Database', () => {
       }, env);
 
       expect(res.status).toBe(403);
-      const body = await res.json();
+      const body = await res.json() as { code: string; message?: string };
       expect(body.code).toBe('FORBIDDEN');
     });
   });

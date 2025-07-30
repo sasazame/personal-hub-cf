@@ -3,7 +3,7 @@
 export interface SpringBootError {
   code: string;
   message: string;
-  details: Record<string, any> | null;
+  details: Record<string, unknown> | null;
   timestamp: string;
 }
 
@@ -23,7 +23,7 @@ export interface SpringBootAuthResponse {
 export function createErrorResponse(
   code: string,
   message: string,
-  details: Record<string, any> | null = null
+  details: Record<string, unknown> | null = null
 ): SpringBootError {
   return {
     code,
@@ -34,7 +34,14 @@ export function createErrorResponse(
 }
 
 export function createAuthResponse(
-  user: any,
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    weekStartDay?: number | null;
+    createdAt: string;
+    updatedAt: string;
+  },
   accessToken: string,
   refreshToken: string
 ): SpringBootAuthResponse {

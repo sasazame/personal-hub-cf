@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq, and, desc, sql } from 'drizzle-orm';
@@ -64,7 +65,7 @@ app.get('/sessions', async (c) => {
   try {
     const sessions = await db.select()
       .from(pomodoroSessions)
-      .where(eq(pomodoroSessions.userId, userId))
+      .where(eq(pomodoroSessions.userId, userId as string))
       .orderBy(desc(pomodoroSessions.createdAt))
       .limit(limit)
       .offset(offset);
@@ -74,7 +75,7 @@ app.get('/sessions', async (c) => {
     console.error('Get sessions error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -88,7 +89,7 @@ app.get('/sessions/active', async (c) => {
     const session = await db.select()
       .from(pomodoroSessions)
       .where(and(
-        eq(pomodoroSessions.userId, userId),
+        eq(pomodoroSessions.userId, userId as string),
         eq(pomodoroSessions.status, 'ACTIVE')
       ))
       .get();
@@ -96,7 +97,7 @@ app.get('/sessions/active', async (c) => {
     if (!session) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'No active session'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -111,7 +112,7 @@ app.get('/sessions/active', async (c) => {
     console.error('Get active session error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -127,14 +128,14 @@ app.get('/sessions/:id', async (c) => {
       .from(pomodoroSessions)
       .where(and(
         eq(pomodoroSessions.id, sessionId),
-        eq(pomodoroSessions.userId, userId)
+        eq(pomodoroSessions.userId, userId as string)
       ))
       .get();
     
     if (!session) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Session not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -149,7 +150,7 @@ app.get('/sessions/:id', async (c) => {
     console.error('Get session error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -165,7 +166,7 @@ app.post('/sessions', zValidator('json', createSessionSchema, springBootValidato
     const activeSession = await db.select()
       .from(pomodoroSessions)
       .where(and(
-        eq(pomodoroSessions.userId, userId),
+        eq(pomodoroSessions.userId, userId as string),
         eq(pomodoroSessions.status, 'ACTIVE')
       ))
       .get();
@@ -173,7 +174,7 @@ app.post('/sessions', zValidator('json', createSessionSchema, springBootValidato
     if (activeSession) {
       return c.json(
         createErrorResponse(ErrorCodes.CONFLICT, 'Already have an active session'),
-        StatusCodes.CONFLICT
+        StatusCodes.CONFLICT as ContentfulStatusCode
       );
     }
     
@@ -183,7 +184,7 @@ app.post('/sessions', zValidator('json', createSessionSchema, springBootValidato
     // Create session
     const newSession = {
       id: sessionId,
-      userId,
+      userId: userId as string,
       startTime: null,
       workDuration: data.workDuration,
       breakDuration: data.breakDuration,
@@ -217,12 +218,12 @@ app.post('/sessions', zValidator('json', createSessionSchema, springBootValidato
       .where(eq(pomodoroTasks.sessionId, sessionId))
       .orderBy(pomodoroTasks.orderIndex);
     
-    return c.json({ ...newSession, tasks }, 201);
+    return c.json({ ...newSession, tasks }, 201 as ContentfulStatusCode);
   } catch (error) {
     console.error('Create session error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -239,16 +240,26 @@ app.put('/sessions/:id', zValidator('json', updateSessionSchema, springBootValid
       .from(pomodoroSessions)
       .where(and(
         eq(pomodoroSessions.id, sessionId),
-        eq(pomodoroSessions.userId, userId)
+        eq(pomodoroSessions.userId, userId as string)
       ))
       .get();
     
     if (!existing) {
-      return c.json({ error: 'Session not found' }, 404);
+      return c.json(
+        createErrorResponse(ErrorCodes.NOT_FOUND, 'Session not found'),
+        404 as ContentfulStatusCode
+      );
     }
     
     const now = new Date().toISOString();
-    let updateData: any = {
+    let updateData: {
+      updatedAt: string;
+      startTime?: string;
+      endTime?: string;
+      status?: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+      sessionType?: string;
+      completedCycles?: number;
+    } = {
       updatedAt: now,
     };
     
@@ -293,7 +304,7 @@ app.put('/sessions/:id', zValidator('json', updateSessionSchema, springBootValid
       .set(updateData)
       .where(and(
         eq(pomodoroSessions.id, sessionId),
-        eq(pomodoroSessions.userId, userId)
+        eq(pomodoroSessions.userId, userId as string)
       ))
       .returning();
     
@@ -302,7 +313,7 @@ app.put('/sessions/:id', zValidator('json', updateSessionSchema, springBootValid
     console.error('Update session error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -320,14 +331,14 @@ app.post('/sessions/:sessionId/tasks', zValidator('json', createTaskSchema, spri
       .from(pomodoroSessions)
       .where(and(
         eq(pomodoroSessions.id, sessionId),
-        eq(pomodoroSessions.userId, userId)
+        eq(pomodoroSessions.userId, userId as string)
       ))
       .get();
     
     if (!session) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Session not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -366,7 +377,7 @@ app.post('/sessions/:sessionId/tasks', zValidator('json', createTaskSchema, spri
     console.error('Create task error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -385,14 +396,14 @@ app.put('/sessions/:sessionId/tasks/:taskId', zValidator('json', updateTaskSchem
       .from(pomodoroSessions)
       .where(and(
         eq(pomodoroSessions.id, sessionId),
-        eq(pomodoroSessions.userId, userId)
+        eq(pomodoroSessions.userId, userId as string)
       ))
       .get();
     
     if (!session) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Session not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -410,7 +421,7 @@ app.put('/sessions/:sessionId/tasks/:taskId', zValidator('json', updateTaskSchem
     if (!result.length) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Task not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -419,7 +430,7 @@ app.put('/sessions/:sessionId/tasks/:taskId', zValidator('json', updateTaskSchem
     console.error('Update task error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -432,7 +443,7 @@ app.get('/config', async (c) => {
   try {
     const config = await db.select()
       .from(pomodoroConfigs)
-      .where(eq(pomodoroConfigs.userId, userId))
+      .where(eq(pomodoroConfigs.userId, userId as string))
       .get();
     
     if (!config) {
@@ -454,7 +465,7 @@ app.get('/config', async (c) => {
     console.error('Get config error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -468,7 +479,7 @@ app.put('/config', zValidator('json', configSchema, springBootValidator), async 
   try {
     const existing = await db.select()
       .from(pomodoroConfigs)
-      .where(eq(pomodoroConfigs.userId, userId))
+      .where(eq(pomodoroConfigs.userId, userId as string))
       .get();
     
     const now = new Date().toISOString();
@@ -480,7 +491,7 @@ app.put('/config', zValidator('json', configSchema, springBootValidator), async 
           ...data,
           updatedAt: now,
         })
-        .where(eq(pomodoroConfigs.userId, userId))
+        .where(eq(pomodoroConfigs.userId, userId as string))
         .returning();
       
       return c.json(result[0]);
@@ -488,7 +499,7 @@ app.put('/config', zValidator('json', configSchema, springBootValidator), async 
       // Create new config
       const newConfig = {
         id: nanoid(),
-        userId,
+        userId: userId as string,
         workDuration: data.workDuration ?? 25,
         shortBreakDuration: data.shortBreakDuration ?? 5,
         longBreakDuration: data.longBreakDuration ?? 15,
@@ -502,13 +513,13 @@ app.put('/config', zValidator('json', configSchema, springBootValidator), async 
       };
       
       const result = await db.insert(pomodoroConfigs).values(newConfig).returning();
-      return c.json(result[0], 201);
+      return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
     }
   } catch (error) {
     console.error('Update config error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -522,7 +533,7 @@ app.get('/stats', async (c) => {
   
   try {
     const conditions = [
-      eq(pomodoroSessions.userId, userId),
+      eq(pomodoroSessions.userId, userId as string),
       eq(pomodoroSessions.status, 'COMPLETED')
     ];
     
@@ -548,7 +559,7 @@ app.get('/stats', async (c) => {
     console.error('Get stats error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });

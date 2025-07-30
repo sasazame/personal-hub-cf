@@ -149,7 +149,7 @@ export interface CreateGoalAchievementBody {
 }
 
 // Pomodoro
-export interface PomodoroSessionQuery extends PaginationQuery {}
+export type PomodoroSessionQuery = PaginationQuery;
 
 export interface CreatePomodoroSessionBody {
   workDuration: number;

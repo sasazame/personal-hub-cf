@@ -6,14 +6,82 @@ import { createTestContext, createMockDbChain } from '../helpers/test-context';
 import { generateTokens } from '../../utils/auth';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
 
+// Response type interfaces
+interface AnalyticsOverviewResponse {
+  todos: {
+    total: number;
+    completed: number;
+    inProgress: number;
+    todo: number;
+    completionRate: number;
+  };
+  goals: {
+    total: number;
+    active: number;
+  };
+  pomodoro: {
+    totalSessions: number;
+    completedSessions: number;
+    totalCycles: number;
+  };
+  events: unknown;
+  notes: unknown;
+  moments: unknown;
+}
+
+interface ProductivityResponse {
+  completedTodosByDate: Array<{ date: string; count: number }>;
+  goalAchievementsByDate: Array<{ date: string; count: number }>;
+  pomodoroByDate: Array<{ date: string; sessions: number; cycles: number }>;
+}
+
+interface HabitsResponse {
+  currentStreak: number;
+  longestStreak: number;
+  mostProductiveHours: number[];
+  mostProductiveDays: number[];
+  activityDates: string[];
+}
+
+interface GoalProgress {
+  id: number;
+  title: string;
+  totalDays: number;
+  elapsedDays: number;
+  progressPercentage: number;
+  isOnTrack: boolean;
+  achievementCount?: number;
+}
+
+interface TagsResponse {
+  tags: Array<{ tag: string; notes: number; moments: number; total: number }>;
+  totalUniqueTags: number;
+  mostUsedTag: string | null;
+}
+
+interface TimeDistributionResponse {
+  hourlyDistribution: Array<{
+    hour: number;
+    todos: number;
+    pomodoro: number;
+    events: number;
+  }>;
+  weekdayDistribution: Array<{
+    weekday: number;
+    todos: number;
+    pomodoro: number;
+    events: number;
+  }>;
+}
+
 describe('Analytics Routes', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let ctx: any;
+  let ctx: ReturnType<typeof createTestContext>;
   let validToken: string;
   const userId = 'test-user';
 
   // Helper to setup database mock with auth
-  const setupDbMock = (dataReturns: any) => {
+  const setupDbMock = (dataReturns: unknown) => {
     let callCount = 0;
     ctx.db.select.mockImplementation(() => {
       callCount++;
@@ -32,7 +100,7 @@ describe('Analytics Routes', () => {
   };
 
   // Helper for complex query mocks (with joins, groupBy, etc)
-  const setupComplexDbMock = (mockChain: any) => {
+  const setupComplexDbMock = (mockChain: ReturnType<typeof createMockDbChain>) => {
     let callCount = 0;
     ctx.db.select.mockImplementation(() => {
       callCount++;
@@ -86,7 +154,7 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(401);
-      const body = await res.json();
+      const body = await res.json() as { code: string; message?: string };
       expect(body.code).toBe('UNAUTHORIZED');
     });
 
@@ -132,7 +200,7 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as AnalyticsOverviewResponse;
       
       expect(body).toHaveProperty('todos');
       expect(body.todos).toEqual({
@@ -172,7 +240,7 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as AnalyticsOverviewResponse;
       
       expect(body.todos.total).toBe(0);
       expect(body.todos.completionRate).toBe(0);
@@ -208,7 +276,7 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(500);
-      const body = await res.json();
+      const body = await res.json() as { code: string; message?: string };
       expect(body.code).toBe('INTERNAL_ERROR');
     });
   });
@@ -233,7 +301,7 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as ProductivityResponse;
       
       expect(body).toHaveProperty('completedTodosByDate');
       expect(body).toHaveProperty('goalAchievementsByDate');
@@ -250,7 +318,7 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as { code: string; message?: string; details?: unknown };
       expect(body.code).toBe('VALIDATION_ERROR');
     });
 
@@ -270,7 +338,7 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as ProductivityResponse;
       
       expect(body.completedTodosByDate).toEqual([]);
       expect(body.goalAchievementsByDate).toEqual([]);
@@ -301,7 +369,7 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as HabitsResponse;
       
       expect(body).toHaveProperty('currentStreak');
       expect(body).toHaveProperty('longestStreak');
@@ -329,7 +397,7 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as HabitsResponse;
       expect(body.currentStreak).toBe(0);
       expect(body.longestStreak).toBe(0);
     });
@@ -358,7 +426,7 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as HabitsResponse;
       expect(body.currentStreak).toBe(1);
       expect(body.longestStreak).toBeGreaterThanOrEqual(2);
     });
@@ -390,7 +458,7 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as GoalProgress[];
       
       expect(Array.isArray(body)).toBe(true);
       expect(body[0]).toHaveProperty('id');
@@ -422,7 +490,7 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as GoalProgress[];
       
       expect(body[0].progressPercentage).toBe(0);
       // For a goal starting today, it may expect 1 achievement already
@@ -475,14 +543,14 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as TagsResponse;
       
       expect(body).toHaveProperty('tags');
       expect(body).toHaveProperty('totalUniqueTags');
       expect(body).toHaveProperty('mostUsedTag');
       
       // Verify tag counting
-      const workTag = body.tags.find((t: any) => t.tag === 'work');
+      const workTag = body.tags.find((t) => t.tag === 'work');
       expect(workTag?.total).toBe(2);
     });
 
@@ -504,7 +572,7 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as TagsResponse;
       
       expect(body.tags).toEqual([]);
       expect(body.totalUniqueTags).toBe(0);
@@ -532,7 +600,7 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as TimeDistributionResponse;
       
       expect(body).toHaveProperty('hourlyDistribution');
       expect(body).toHaveProperty('weekdayDistribution');
@@ -561,10 +629,10 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as TimeDistributionResponse;
       
       // All hours should be 0 when no data
-      expect(body.hourlyDistribution.every((h: any) => h.todos === 0)).toBe(true);
+      expect(body.hourlyDistribution.every((h) => h.todos === 0)).toBe(true);
     });
   });
 
@@ -598,7 +666,7 @@ describe('Analytics Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(500);
-      const body = await res.json();
+      const body = await res.json() as { code: string; message?: string };
       expect(body.code).toBe('INTERNAL_ERROR');
     });
 

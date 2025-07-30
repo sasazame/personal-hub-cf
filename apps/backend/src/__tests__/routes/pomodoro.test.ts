@@ -2,8 +2,9 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Hono } from 'hono';
 import pomodoroRoutes from '../../routes/pomodoro';
 import type { Bindings, Variables } from '../../types';
-import { createTestContext, createMockDbChain } from '../helpers/test-context';
+import { createTestContext } from '../helpers/test-context';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
+import type { PomodoroTaskResponse, PomodoroConfigResponse } from '../helpers/response-types';
 
 vi.mock('../../utils/nanoid', () => ({
   nanoid: () => 'test-id-123',
@@ -11,12 +12,12 @@ vi.mock('../../utils/nanoid', () => ({
 
 describe('Pomodoro Routes', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let ctx: any;
+  let ctx: ReturnType<typeof createTestContext>;
   let validToken: string;
   const userId = 'test-user';
 
   // Helper to setup database mock with auth
-  const setupDbMock = (customReturns?: any) => {
+  const setupDbMock = (customReturns?: { user?: unknown; config?: unknown; sessions?: unknown[]; session?: unknown; sessionWithTasks?: unknown; tasks?: unknown[]; task?: unknown }) => {
     let callCount = 0;
     ctx.db.select.mockImplementation(() => ({
       from: vi.fn().mockReturnThis(),
@@ -74,7 +75,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(401);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.code).toBe('UNAUTHORIZED');
     });
 
@@ -129,7 +130,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       
       expect(Array.isArray(body)).toBe(true);
       expect(body).toEqual(mockSessions);
@@ -217,7 +218,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       
       expect(body.id).toBe(mockSession.id);
       expect(body.tasks).toEqual(mockTasks);
@@ -234,7 +235,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(404);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.code).toBe('NOT_FOUND');
     });
   });
@@ -279,7 +280,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       
       expect(body.id).toBe('session-123');
       expect(body.tasks).toEqual(mockTasks);
@@ -382,7 +383,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(201);
-      const body = await res.json();
+      const body = await res.json() as PomodoroConfigResponse;
       
       expect(body.id).toBe('test-id-123');
       expect(body.workDuration).toBe(25);
@@ -421,7 +422,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(409);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.code).toBe('CONFLICT');
     });
 
@@ -436,7 +437,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
   });
@@ -474,7 +475,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       
       expect(body.status).toBe('COMPLETED');
       expect(body.completedCycles).toBe(4);
@@ -520,7 +521,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as PomodoroTaskResponse;
       expect(body.completed).toBe(true);
     });
 
@@ -586,7 +587,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body).toEqual(mockConfig);
     });
 
@@ -601,7 +602,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as PomodoroConfigResponse;
       
       // Check default values
       expect(body.workDuration).toBe(25);
@@ -640,7 +641,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as PomodoroConfigResponse;
       expect(body.workDuration).toBe(30);
     });
 
@@ -671,7 +672,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(201);
-      const body = await res.json();
+      const body = await res.json() as PomodoroConfigResponse;
       expect(body.workDuration).toBe(20);
       expect(body.shortBreakDuration).toBe(5); // Default
     });
@@ -690,7 +691,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
   });
@@ -734,7 +735,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       
       expect(body.totalSessions).toBe(3);
       expect(body.totalCycles).toBe(9);
@@ -774,7 +775,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       
       expect(body.totalSessions).toBe(0);
       expect(body.totalCycles).toBe(0);
@@ -813,7 +814,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(500);
-      const body = await res.json();
+      const body = await res.json() as unknown;
       expect(body.code).toBe('INTERNAL_ERROR');
     });
   });

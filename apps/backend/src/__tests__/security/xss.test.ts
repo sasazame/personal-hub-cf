@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Hono } from 'hono';
 import type { Bindings, Variables } from '../../types';
-import { createTestContext, createMockDbChain } from '../helpers/test-context';
+import { createTestContext } from '../helpers/test-context';
 import { generateTokens } from '../../utils/auth';
 import todosRoutes from '../../routes/todos';
 import notesRoutes from '../../routes/notes';
@@ -9,18 +9,16 @@ import momentsRoutes from '../../routes/moments';
 
 describe('XSS (Cross-Site Scripting) Security Tests', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let ctx: any;
+  let ctx: ReturnType<typeof createTestContext>;
   let validToken: string;
   const userId = 'test-user';
 
   // Helper to setup database mock with auth
   const setupDbMock = () => {
-    let callCount = 0;
     ctx.db.select.mockImplementation(() => ({
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
       get: vi.fn().mockImplementation(() => {
-        callCount++;
         // Always return user for auth middleware
         return Promise.resolve({
           id: userId,
@@ -101,7 +99,7 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
         }, ctx.env);
 
         expect(res.status).toBe(201);
-        const body = await res.json();
+        const body = await res.json() as { title?: string; content?: string; description?: string };
         
         // Content should be stored as-is (not sanitized on input)
         expect(body.title).toBe(payload);
@@ -150,7 +148,7 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
         expect([201, 400].includes(res.status)).toBe(true);
         
         if (res.status === 201) {
-          const body = await res.json();
+          const body = await res.json() as unknown;
           // API should return data as-is, frontend responsible for escaping
           expect(body.content).toBe(payload);
         }
@@ -193,9 +191,9 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
         expect([201, 400, 500].includes(res.status)).toBe(true);
         
         // Verify prototype pollution didn't occur
-        const obj = {};
-        expect((obj as any).isAdmin).toBeUndefined();
-        expect((obj as any).polluted).toBeUndefined();
+        const obj: Record<string, unknown> = {};
+        expect(obj.isAdmin).toBeUndefined();
+        expect(obj.polluted).toBeUndefined();
       }
     });
 
@@ -406,7 +404,7 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
         }, ctx.env);
 
         if (res.status === 400) {
-          const body = await res.json();
+          const body = await res.json() as unknown;
           const bodyStr = JSON.stringify(body);
           
           // Error messages should not contain unescaped user input
@@ -448,7 +446,7 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
         }, ctx.env);
 
         expect(res.status).toBe(201);
-        const body = await res.json();
+        const body = await res.json() as unknown;
         expect(body.tags).toBe(tags); // Stored as-is, frontend escapes
       }
     });

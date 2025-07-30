@@ -4,10 +4,18 @@ import eventsRoutes from '../../routes/events';
 import { generateTokens } from '../../utils/auth';
 import { createMockDbChain } from '../helpers/test-context';
 import type { Bindings, Variables } from '../../types';
+import type { D1Database } from '@cloudflare/workers-types';
+import type { EventResponse } from '../helpers/response-types';
 
 describe('Events Routes', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let mockDb: any;
+  let mockDb: {
+    select: ReturnType<typeof vi.fn>;
+    insert: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+    delete: ReturnType<typeof vi.fn>;
+    selectDistinct: ReturnType<typeof vi.fn>;
+  };
   let env: Bindings;
   let validToken: string;
   let userId: string;
@@ -24,12 +32,13 @@ describe('Events Routes', () => {
     };
 
     env = {
-      DB: {} as any,
+      DB: {} as D1Database,
       JWT_SECRET: 'test-jwt-secret',
       OAUTH_GITHUB_CLIENT_ID: 'test-github-id',
       OAUTH_GITHUB_CLIENT_SECRET: 'test-github-secret',
       OAUTH_GOOGLE_CLIENT_ID: 'test-google-id',
       OAUTH_GOOGLE_CLIENT_SECRET: 'test-google-secret',
+    ENVIRONMENT: 'test',
     };
 
     const tokens = await generateTokens(userId, env.JWT_SECRET);
@@ -93,7 +102,7 @@ describe('Events Routes', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as EventResponse[];
       expect(body).toHaveLength(1);
       expect(body[0].title).toBe('Meeting');
     });
@@ -123,7 +132,7 @@ describe('Events Routes', () => {
 
       // The endpoint returns all events when no date range is specified
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as EventResponse[];
       expect(Array.isArray(body)).toBe(true);
       expect(body).toHaveLength(0);
     });
@@ -165,7 +174,7 @@ describe('Events Routes', () => {
       }, env);
 
       expect(res.status).toBe(201);
-      const body = await res.json();
+      const body = await res.json() as EventResponse;
       expect(body.title).toBe('New Event');
       expect(body.userId).toBe(userId);
     });
@@ -219,7 +228,7 @@ describe('Events Routes', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as EventResponse;
       expect(body.title).toBe('Updated Event');
     });
   });

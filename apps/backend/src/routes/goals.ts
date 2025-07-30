@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq, and, desc, between } from 'drizzle-orm';
@@ -32,11 +33,11 @@ const achievementSchema = z.object({
 // GET /goals
 app.get('/', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const isActive = c.req.query('isActive');
   
   try {
-    const conditions = [eq(goals.userId, userId)];
+    const conditions = [eq(goals.userId, userId as string)];
     
     if (isActive !== undefined) {
       conditions.push(eq(goals.isActive, isActive === 'true'));
@@ -52,7 +53,7 @@ app.get('/', async (c) => {
     console.error('Get goals error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -60,19 +61,19 @@ app.get('/', async (c) => {
 // GET /goals/:id
 app.get('/:id', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const id = parseInt(c.req.param('id'));
   
   try {
     const goal = await db.select()
       .from(goals)
-      .where(and(eq(goals.id, id), eq(goals.userId, userId)))
+      .where(and(eq(goals.id, id), eq(goals.userId, userId as string)))
       .get();
     
     if (!goal) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Goal not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -81,7 +82,7 @@ app.get('/:id', async (c) => {
     console.error('Get goal error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -89,7 +90,7 @@ app.get('/:id', async (c) => {
 // POST /goals
 app.post('/', zValidator('json', createGoalSchema, springBootValidator), async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const data = c.req.valid('json');
   
   try {
@@ -103,12 +104,12 @@ app.post('/', zValidator('json', createGoalSchema, springBootValidator), async (
     
     const result = await db.insert(goals).values(newGoal).returning();
     
-    return c.json(result[0], 201);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Create goal error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -116,20 +117,20 @@ app.post('/', zValidator('json', createGoalSchema, springBootValidator), async (
 // PUT /goals/:id
 app.put('/:id', zValidator('json', updateGoalSchema, springBootValidator), async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const id = parseInt(c.req.param('id'));
   const data = c.req.valid('json');
   
   try {
     const existing = await db.select()
       .from(goals)
-      .where(and(eq(goals.id, id), eq(goals.userId, userId)))
+      .where(and(eq(goals.id, id), eq(goals.userId, userId as string)))
       .get();
     
     if (!existing) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Goal not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -138,7 +139,7 @@ app.put('/:id', zValidator('json', updateGoalSchema, springBootValidator), async
         ...data,
         updatedAt: new Date().toISOString(),
       })
-      .where(and(eq(goals.id, id), eq(goals.userId, userId)))
+      .where(and(eq(goals.id, id), eq(goals.userId, userId as string)))
       .returning();
     
     return c.json(result[0]);
@@ -146,7 +147,7 @@ app.put('/:id', zValidator('json', updateGoalSchema, springBootValidator), async
     console.error('Update goal error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -154,31 +155,31 @@ app.put('/:id', zValidator('json', updateGoalSchema, springBootValidator), async
 // DELETE /goals/:id
 app.delete('/:id', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const id = parseInt(c.req.param('id'));
   
   try {
     const existing = await db.select()
       .from(goals)
-      .where(and(eq(goals.id, id), eq(goals.userId, userId)))
+      .where(and(eq(goals.id, id), eq(goals.userId, userId as string)))
       .get();
     
     if (!existing) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Goal not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
     await db.delete(goals)
-      .where(and(eq(goals.id, id), eq(goals.userId, userId)));
+      .where(and(eq(goals.id, id), eq(goals.userId, userId as string)));
     
     return new Response(null, { status: 204 });
   } catch (error) {
     console.error('Delete goal error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -186,7 +187,7 @@ app.delete('/:id', async (c) => {
 // GET /goals/:id/achievements
 app.get('/:id/achievements', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const goalId = parseInt(c.req.param('id'));
   const fromDate = c.req.query('fromDate');
   const toDate = c.req.query('toDate');
@@ -195,13 +196,13 @@ app.get('/:id/achievements', async (c) => {
     // Verify goal belongs to user
     const goal = await db.select()
       .from(goals)
-      .where(and(eq(goals.id, goalId), eq(goals.userId, userId)))
+      .where(and(eq(goals.id, goalId), eq(goals.userId, userId as string)))
       .get();
     
     if (!goal) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Goal not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -221,7 +222,7 @@ app.get('/:id/achievements', async (c) => {
     console.error('Get achievements error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -229,7 +230,7 @@ app.get('/:id/achievements', async (c) => {
 // POST /goals/:id/achievements
 app.post('/:id/achievements', zValidator('json', achievementSchema, springBootValidator), async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const goalId = parseInt(c.req.param('id'));
   const { achievedDate } = c.req.valid('json');
   
@@ -237,13 +238,13 @@ app.post('/:id/achievements', zValidator('json', achievementSchema, springBootVa
     // Verify goal belongs to user
     const goal = await db.select()
       .from(goals)
-      .where(and(eq(goals.id, goalId), eq(goals.userId, userId)))
+      .where(and(eq(goals.id, goalId), eq(goals.userId, userId as string)))
       .get();
     
     if (!goal) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Goal not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -259,7 +260,7 @@ app.post('/:id/achievements', zValidator('json', achievementSchema, springBootVa
     if (existing) {
       return c.json(
         createErrorResponse(ErrorCodes.CONFLICT, 'Achievement already recorded for this date'),
-        StatusCodes.CONFLICT
+        StatusCodes.CONFLICT as ContentfulStatusCode
       );
     }
     
@@ -271,12 +272,12 @@ app.post('/:id/achievements', zValidator('json', achievementSchema, springBootVa
       })
       .returning();
     
-    return c.json(result[0], 201);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Create achievement error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -284,7 +285,7 @@ app.post('/:id/achievements', zValidator('json', achievementSchema, springBootVa
 // DELETE /goals/:goalId/achievements/:id
 app.delete('/:goalId/achievements/:id', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const goalId = parseInt(c.req.param('goalId'));
   const achievementId = parseInt(c.req.param('id'));
   
@@ -292,13 +293,13 @@ app.delete('/:goalId/achievements/:id', async (c) => {
     // Verify goal belongs to user
     const goal = await db.select()
       .from(goals)
-      .where(and(eq(goals.id, goalId), eq(goals.userId, userId)))
+      .where(and(eq(goals.id, goalId), eq(goals.userId, userId as string)))
       .get();
     
     if (!goal) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Goal not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -312,7 +313,7 @@ app.delete('/:goalId/achievements/:id', async (c) => {
     if (!result.length) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Achievement not found'),
-        StatusCodes.NOT_FOUND
+        404
       );
     }
     
@@ -321,7 +322,7 @@ app.delete('/:goalId/achievements/:id', async (c) => {
     console.error('Delete achievement error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });

@@ -1,4 +1,5 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { CustomTooltip } from './CustomTooltip';
 
 interface CategoryBreakdownProps {
   data: Array<{
@@ -18,28 +19,19 @@ const COLORS = [
 ];
 
 export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-gray-900 text-white p-3 rounded shadow-lg border border-gray-700">
-          <p className="text-sm font-medium">{payload[0].name}</p>
-          <p className="text-sm">
-            {payload[0].value} ({payload[0].payload.percentage}%)
-          </p>
-        </div>
-      );
-    }
-    return null;
+  const CategoryTooltipContent = (props: any) => {
+    if (!props.active || !props.payload || props.payload.length === 0) return null;
+    
+    const item = props.payload[0];
+    const valueFormatter = (value: any) => `${value} (${(item.payload as any)?.percentage}%)`;
+    
+    return <CustomTooltip {...props} showLabel={false} valueFormatter={valueFormatter} />;
   };
 
-  const renderCustomizedLabel = ({
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    percent,
-  }: any) => {
+  const renderCustomizedLabel = (props: any) => {
+    const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props;
+    if (!cx || !cy || midAngle === undefined || !innerRadius || !outerRadius || !percent) return null;
+    
     const RADIAN = Math.PI / 180;
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -61,11 +53,22 @@ export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
     );
   };
 
-  const CustomLegend = (props: any) => {
+  interface LegendPayloadItem {
+    value: string;
+    color: string;
+    payload: {
+      category: string;
+      count: number;
+      percentage: number;
+    };
+  }
+
+  const CustomLegend = (props: { payload?: LegendPayloadItem[] }) => {
     const { payload } = props;
+    if (!payload) return null;
     return (
       <ul className="space-y-2">
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry: LegendPayloadItem, index: number) => (
           <li key={`item-${index}`} className="flex items-center gap-2 text-sm">
             <span
               className="w-3 h-3 rounded-full"
@@ -100,7 +103,7 @@ export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={CategoryTooltipContent} />
           <Legend
             verticalAlign="middle"
             align="right"

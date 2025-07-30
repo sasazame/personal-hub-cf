@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq, and, desc, or, like, between, gte, lte, isNotNull } from 'drizzle-orm';
@@ -24,7 +25,7 @@ const updateMomentSchema = createMomentSchema;
 // GET /moments
 app.get('/', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const search = c.req.query('search');
   const tags = c.req.query('tags');
   const fromDate = c.req.query('fromDate');
@@ -34,7 +35,7 @@ app.get('/', async (c) => {
   const offset = (page - 1) * limit;
   
   try {
-    const conditions = [eq(moments.userId, userId)];
+    const conditions = [eq(moments.userId, userId as string)];
     
     // Search filter
     if (search) {
@@ -86,7 +87,7 @@ app.get('/', async (c) => {
     console.error('Get moments error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -94,7 +95,7 @@ app.get('/', async (c) => {
 // GET /moments/today - MUST BE BEFORE /:id
 app.get('/today', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   
   try {
     const today = new Date();
@@ -105,7 +106,7 @@ app.get('/today', async (c) => {
     const todaysMoments = await db.select()
       .from(moments)
       .where(and(
-        eq(moments.userId, userId),
+        eq(moments.userId, userId as string),
         between(moments.createdAt, today.toISOString(), tomorrow.toISOString())
       ))
       .orderBy(desc(moments.createdAt));
@@ -115,7 +116,7 @@ app.get('/today', async (c) => {
     console.error('Get today moments error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -123,13 +124,13 @@ app.get('/today', async (c) => {
 // GET /moments/tags - MUST BE BEFORE /:id
 app.get('/tags', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   
   try {
     // Get all moments with tags
     const momentsWithTags = await db.select({ tags: moments.tags })
       .from(moments)
-      .where(and(eq(moments.userId, userId), isNotNull(moments.tags)));
+      .where(and(eq(moments.userId, userId as string), isNotNull(moments.tags)));
     
     // Extract and count unique tags
     const tagCounts: Record<string, number> = {};
@@ -153,7 +154,7 @@ app.get('/tags', async (c) => {
     console.error('Get tags error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -161,7 +162,7 @@ app.get('/tags', async (c) => {
 // GET /moments/tags/default - Get default tags
 app.get('/tags/default', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   
   try {
     // Default tags that are always suggested
@@ -176,7 +177,7 @@ app.get('/tags/default', async (c) => {
     // Get user's most used tags
     const momentsWithTags = await db.select({ tags: moments.tags })
       .from(moments)
-      .where(and(eq(moments.userId, userId), isNotNull(moments.tags)));
+      .where(and(eq(moments.userId, userId as string), isNotNull(moments.tags)));
     
     const tagCounts: Record<string, number> = {};
     
@@ -210,7 +211,7 @@ app.get('/tags/default', async (c) => {
     console.error('Get default tags error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -218,7 +219,7 @@ app.get('/tags/default', async (c) => {
 // GET /moments/stats - MUST BE BEFORE /:id
 app.get('/stats', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const days = parseInt(c.req.query('days') || '30');
   
   try {
@@ -228,7 +229,7 @@ app.get('/stats', async (c) => {
     const allMoments = await db.select()
       .from(moments)
       .where(and(
-        eq(moments.userId, userId),
+        eq(moments.userId, userId as string),
         gte(moments.createdAt, startDate.toISOString())
       ));
     
@@ -257,7 +258,7 @@ app.get('/stats', async (c) => {
     console.error('Get stats error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -265,19 +266,19 @@ app.get('/stats', async (c) => {
 // GET /moments/:id
 app.get('/:id', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const id = parseInt(c.req.param('id'));
   
   try {
     const moment = await db.select()
       .from(moments)
-      .where(and(eq(moments.id, id), eq(moments.userId, userId)))
+      .where(and(eq(moments.id, id), eq(moments.userId, userId as string)))
       .get();
     
     if (!moment) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Moment not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -286,7 +287,7 @@ app.get('/:id', async (c) => {
     console.error('Get moment error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -294,7 +295,7 @@ app.get('/:id', async (c) => {
 // POST /moments
 app.post('/', zValidator('json', createMomentSchema, springBootValidator), async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const data = c.req.valid('json');
   
   try {
@@ -307,12 +308,12 @@ app.post('/', zValidator('json', createMomentSchema, springBootValidator), async
     
     const result = await db.insert(moments).values(newMoment).returning();
     
-    return c.json(result[0], 201);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Create moment error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -320,20 +321,20 @@ app.post('/', zValidator('json', createMomentSchema, springBootValidator), async
 // PUT /moments/:id
 app.put('/:id', zValidator('json', updateMomentSchema, springBootValidator), async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const id = parseInt(c.req.param('id'));
   const data = c.req.valid('json');
   
   try {
     const existing = await db.select()
       .from(moments)
-      .where(and(eq(moments.id, id), eq(moments.userId, userId)))
+      .where(and(eq(moments.id, id), eq(moments.userId, userId as string)))
       .get();
     
     if (!existing) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Moment not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -342,7 +343,7 @@ app.put('/:id', zValidator('json', updateMomentSchema, springBootValidator), asy
         ...data,
         updatedAt: new Date().toISOString(),
       })
-      .where(and(eq(moments.id, id), eq(moments.userId, userId)))
+      .where(and(eq(moments.id, id), eq(moments.userId, userId as string)))
       .returning();
     
     return c.json(result[0]);
@@ -350,7 +351,7 @@ app.put('/:id', zValidator('json', updateMomentSchema, springBootValidator), asy
     console.error('Update moment error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -358,31 +359,31 @@ app.put('/:id', zValidator('json', updateMomentSchema, springBootValidator), asy
 // DELETE /moments/:id
 app.delete('/:id', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const id = parseInt(c.req.param('id'));
   
   try {
     const existing = await db.select()
       .from(moments)
-      .where(and(eq(moments.id, id), eq(moments.userId, userId)))
+      .where(and(eq(moments.id, id), eq(moments.userId, userId as string)))
       .get();
     
     if (!existing) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Moment not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
     await db.delete(moments)
-      .where(and(eq(moments.id, id), eq(moments.userId, userId)));
+      .where(and(eq(moments.id, id), eq(moments.userId, userId as string)));
     
     return new Response(null, { status: 204 });
   } catch (error) {
     console.error('Delete moment error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });

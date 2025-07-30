@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq, and, between, gte, lte, or, like } from 'drizzle-orm';
@@ -41,13 +42,13 @@ const syncSettingsSchema = z.object({
 // GET /events
 app.get('/', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const fromDate = c.req.query('fromDate');
   const toDate = c.req.query('toDate');
   const search = c.req.query('search');
   
   try {
-    const conditions = [eq(events.userId, userId)];
+    const conditions = [eq(events.userId, userId as string)];
     
     // Date range filter
     if (fromDate && toDate) {
@@ -88,7 +89,7 @@ app.get('/', async (c) => {
     console.error('Get events error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -96,12 +97,12 @@ app.get('/', async (c) => {
 // GET /events/range
 app.get('/range', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const fromDate = c.req.query('fromDate') || c.req.query('start');
   const toDate = c.req.query('toDate') || c.req.query('end');
   
   try {
-    const conditions = [eq(events.userId, userId)];
+    const conditions = [eq(events.userId, userId as string)];
     
     // Date range filter
     if (fromDate && toDate) {
@@ -124,7 +125,7 @@ app.get('/range', async (c) => {
     console.error('Get events range error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -132,19 +133,19 @@ app.get('/range', async (c) => {
 // GET /events/:id
 app.get('/:id', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const id = parseInt(c.req.param('id'));
   
   try {
     const event = await db.select()
       .from(events)
-      .where(and(eq(events.id, id), eq(events.userId, userId)))
+      .where(and(eq(events.id, id), eq(events.userId, userId as string)))
       .get();
     
     if (!event) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Event not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -153,7 +154,7 @@ app.get('/:id', async (c) => {
     console.error('Get event error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -161,7 +162,7 @@ app.get('/:id', async (c) => {
 // POST /events
 app.post('/', zValidator('json', createEventSchema, springBootValidator), async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const data = c.req.valid('json');
   
   try {
@@ -169,7 +170,7 @@ app.post('/', zValidator('json', createEventSchema, springBootValidator), async 
     if (new Date(data.endDateTime) <= new Date(data.startDateTime)) {
       return c.json(
         createValidationError({ endDateTime: 'End time must be after start time' }),
-        StatusCodes.VALIDATION_ERROR
+        400
       );
     }
     
@@ -183,12 +184,12 @@ app.post('/', zValidator('json', createEventSchema, springBootValidator), async 
     
     const result = await db.insert(events).values(newEvent).returning();
     
-    return c.json(result[0], 201);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Create event error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -196,20 +197,20 @@ app.post('/', zValidator('json', createEventSchema, springBootValidator), async 
 // PUT /events/:id
 app.put('/:id', zValidator('json', updateEventSchema, springBootValidator), async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const id = parseInt(c.req.param('id'));
   const data = c.req.valid('json');
   
   try {
     const existing = await db.select()
       .from(events)
-      .where(and(eq(events.id, id), eq(events.userId, userId)))
+      .where(and(eq(events.id, id), eq(events.userId, userId as string)))
       .get();
     
     if (!existing) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Event not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -218,7 +219,7 @@ app.put('/:id', zValidator('json', updateEventSchema, springBootValidator), asyn
       if (new Date(data.endDateTime) <= new Date(data.startDateTime)) {
         return c.json(
           createValidationError({ endDateTime: 'End time must be after start time' }),
-          StatusCodes.VALIDATION_ERROR
+          400
         );
       }
     }
@@ -228,7 +229,7 @@ app.put('/:id', zValidator('json', updateEventSchema, springBootValidator), asyn
         ...data,
         updatedAt: new Date().toISOString(),
       })
-      .where(and(eq(events.id, id), eq(events.userId, userId)))
+      .where(and(eq(events.id, id), eq(events.userId, userId as string)))
       .returning();
     
     return c.json(result[0]);
@@ -236,7 +237,7 @@ app.put('/:id', zValidator('json', updateEventSchema, springBootValidator), asyn
     console.error('Update event error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -244,31 +245,31 @@ app.put('/:id', zValidator('json', updateEventSchema, springBootValidator), asyn
 // DELETE /events/:id
 app.delete('/:id', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const id = parseInt(c.req.param('id'));
   
   try {
     const existing = await db.select()
       .from(events)
-      .where(and(eq(events.id, id), eq(events.userId, userId)))
+      .where(and(eq(events.id, id), eq(events.userId, userId as string)))
       .get();
     
     if (!existing) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Event not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
     await db.delete(events)
-      .where(and(eq(events.id, id), eq(events.userId, userId)));
+      .where(and(eq(events.id, id), eq(events.userId, userId as string)));
     
     return new Response(null, { status: 204 });
   } catch (error) {
     console.error('Delete event error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -276,19 +277,19 @@ app.delete('/:id', async (c) => {
 // GET /events/sync/settings
 app.get('/sync/settings', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   
   try {
     const settings = await db.select()
       .from(calendarSyncSettings)
-      .where(eq(calendarSyncSettings.userId, userId));
+      .where(eq(calendarSyncSettings.userId, userId as string));
     
     return c.json(settings);
   } catch (error) {
     console.error('Get sync settings error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -296,7 +297,7 @@ app.get('/sync/settings', async (c) => {
 // POST /events/sync/settings
 app.post('/sync/settings', zValidator('json', syncSettingsSchema, springBootValidator), async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const data = c.req.valid('json');
   
   try {
@@ -304,7 +305,7 @@ app.post('/sync/settings', zValidator('json', syncSettingsSchema, springBootVali
     const existing = await db.select()
       .from(calendarSyncSettings)
       .where(and(
-        eq(calendarSyncSettings.userId, userId),
+        eq(calendarSyncSettings.userId, userId as string),
         eq(calendarSyncSettings.googleCalendarId, data.googleCalendarId)
       ))
       .get();
@@ -312,7 +313,7 @@ app.post('/sync/settings', zValidator('json', syncSettingsSchema, springBootVali
     if (existing) {
       return c.json(
         createErrorResponse(ErrorCodes.CONFLICT, 'Settings already exist for this calendar'),
-        StatusCodes.CONFLICT
+        StatusCodes.CONFLICT as ContentfulStatusCode
       );
     }
     
@@ -329,12 +330,12 @@ app.post('/sync/settings', zValidator('json', syncSettingsSchema, springBootVali
     
     const result = await db.insert(calendarSyncSettings).values(newSettings).returning();
     
-    return c.json(result[0], 201);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Create sync settings error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -342,7 +343,7 @@ app.post('/sync/settings', zValidator('json', syncSettingsSchema, springBootVali
 // PUT /events/sync/settings/:id
 app.put('/sync/settings/:id', zValidator('json', syncSettingsSchema.partial(), springBootValidator), async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const id = parseInt(c.req.param('id'));
   const data = c.req.valid('json');
   
@@ -354,14 +355,14 @@ app.put('/sync/settings/:id', zValidator('json', syncSettingsSchema.partial(), s
       })
       .where(and(
         eq(calendarSyncSettings.id, id),
-        eq(calendarSyncSettings.userId, userId)
+        eq(calendarSyncSettings.userId, userId as string)
       ))
       .returning();
     
     if (!result.length) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Settings not found'),
-        StatusCodes.NOT_FOUND
+        404
       );
     }
     
@@ -370,7 +371,7 @@ app.put('/sync/settings/:id', zValidator('json', syncSettingsSchema.partial(), s
     console.error('Update sync settings error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -378,21 +379,21 @@ app.put('/sync/settings/:id', zValidator('json', syncSettingsSchema.partial(), s
 // DELETE /events/sync/settings/:id
 app.delete('/sync/settings/:id', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const id = parseInt(c.req.param('id'));
   
   try {
     const result = await db.delete(calendarSyncSettings)
       .where(and(
         eq(calendarSyncSettings.id, id),
-        eq(calendarSyncSettings.userId, userId)
+        eq(calendarSyncSettings.userId, userId as string)
       ))
       .returning();
     
     if (!result.length) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Settings not found'),
-        StatusCodes.NOT_FOUND
+        404
       );
     }
     
@@ -401,7 +402,7 @@ app.delete('/sync/settings/:id', async (c) => {
     console.error('Delete sync settings error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -409,7 +410,7 @@ app.delete('/sync/settings/:id', async (c) => {
 // POST /events/sync
 app.post('/sync', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const calendarId = c.req.query('calendarId');
   
   try {
@@ -417,14 +418,14 @@ app.post('/sync', async (c) => {
     const settings = await db.select()
       .from(calendarSyncSettings)
       .where(and(
-        eq(calendarSyncSettings.userId, userId),
+        eq(calendarSyncSettings.userId, userId as string),
         calendarId ? eq(calendarSyncSettings.googleCalendarId, calendarId) : undefined
       ));
     
     if (!settings.length) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'No sync settings found'),
-        StatusCodes.NOT_FOUND
+        404
       );
     }
     
@@ -449,7 +450,7 @@ app.post('/sync', async (c) => {
     console.error('Sync error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });

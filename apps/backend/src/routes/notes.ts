@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq, and, desc, or, like, isNotNull } from 'drizzle-orm';
@@ -25,7 +26,7 @@ const updateNoteSchema = createNoteSchema.partial();
 // GET /notes
 app.get('/', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const search = c.req.query('search');
   const tags = c.req.query('tags');
   const page = parseInt(c.req.query('page') || '1');
@@ -33,7 +34,7 @@ app.get('/', async (c) => {
   const offset = (page - 1) * limit;
   
   try {
-    const conditions = [eq(notes.userId, userId)];
+    const conditions = [eq(notes.userId, userId as string)];
     
     // Search filter
     if (search) {
@@ -81,7 +82,7 @@ app.get('/', async (c) => {
     console.error('Get notes error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -89,13 +90,13 @@ app.get('/', async (c) => {
 // GET /notes/tags - MUST BE BEFORE /:id
 app.get('/tags', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   
   try {
     // Get all notes with tags
     const notesWithTags = await db.select({ tags: notes.tags })
       .from(notes)
-      .where(and(eq(notes.userId, userId), isNotNull(notes.tags)));
+      .where(and(eq(notes.userId, userId as string), isNotNull(notes.tags)));
     
     // Extract and count unique tags
     const tagCounts: Record<string, number> = {};
@@ -119,7 +120,7 @@ app.get('/tags', async (c) => {
     console.error('Get tags error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -127,19 +128,19 @@ app.get('/tags', async (c) => {
 // GET /notes/:id
 app.get('/:id', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const id = parseInt(c.req.param('id'));
   
   try {
     const note = await db.select()
       .from(notes)
-      .where(and(eq(notes.id, id), eq(notes.userId, userId)))
+      .where(and(eq(notes.id, id), eq(notes.userId, userId as string)))
       .get();
     
     if (!note) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Note not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -148,7 +149,7 @@ app.get('/:id', async (c) => {
     console.error('Get note error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -156,7 +157,7 @@ app.get('/:id', async (c) => {
 // POST /notes
 app.post('/', zValidator('json', createNoteSchema, springBootValidator), async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const data = c.req.valid('json');
   
   try {
@@ -169,12 +170,12 @@ app.post('/', zValidator('json', createNoteSchema, springBootValidator), async (
     
     const result = await db.insert(notes).values(newNote).returning();
     
-    return c.json(result[0], 201);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Create note error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -182,20 +183,20 @@ app.post('/', zValidator('json', createNoteSchema, springBootValidator), async (
 // PUT /notes/:id
 app.put('/:id', zValidator('json', updateNoteSchema, springBootValidator), async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const id = parseInt(c.req.param('id'));
   const data = c.req.valid('json');
   
   try {
     const existing = await db.select()
       .from(notes)
-      .where(and(eq(notes.id, id), eq(notes.userId, userId)))
+      .where(and(eq(notes.id, id), eq(notes.userId, userId as string)))
       .get();
     
     if (!existing) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Note not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
@@ -204,7 +205,7 @@ app.put('/:id', zValidator('json', updateNoteSchema, springBootValidator), async
         ...data,
         updatedAt: new Date().toISOString(),
       })
-      .where(and(eq(notes.id, id), eq(notes.userId, userId)))
+      .where(and(eq(notes.id, id), eq(notes.userId, userId as string)))
       .returning();
     
     return c.json(result[0]);
@@ -212,7 +213,7 @@ app.put('/:id', zValidator('json', updateNoteSchema, springBootValidator), async
     console.error('Update note error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });
@@ -220,31 +221,31 @@ app.put('/:id', zValidator('json', updateNoteSchema, springBootValidator), async
 // DELETE /notes/:id
 app.delete('/:id', async (c) => {
   const db = c.get('db');
-  const userId = c.get('userId');
+  const userId = c.get('userId') as string;
   const id = parseInt(c.req.param('id'));
   
   try {
     const existing = await db.select()
       .from(notes)
-      .where(and(eq(notes.id, id), eq(notes.userId, userId)))
+      .where(and(eq(notes.id, id), eq(notes.userId, userId as string)))
       .get();
     
     if (!existing) {
       return c.json(
         createErrorResponse(ErrorCodes.NOT_FOUND, 'Note not found'),
-        StatusCodes.NOT_FOUND
+        404 as ContentfulStatusCode
       );
     }
     
     await db.delete(notes)
-      .where(and(eq(notes.id, id), eq(notes.userId, userId)));
+      .where(and(eq(notes.id, id), eq(notes.userId, userId as string)));
     
     return new Response(null, { status: 204 });
   } catch (error) {
     console.error('Delete note error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
-      StatusCodes.INTERNAL_ERROR
+      500 as ContentfulStatusCode
     );
   }
 });

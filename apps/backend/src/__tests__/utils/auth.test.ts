@@ -110,7 +110,7 @@ describe('Auth Utils', () => {
       
       // Check expiration time (should be ~15 minutes)
       const now = Math.floor(Date.now() / 1000);
-      const expiry = payload.exp - now;
+      const expiry = payload.exp! - now;
       expect(expiry).toBeGreaterThan(0);
       expect(expiry).toBeLessThanOrEqual(15 * 60);
     });
@@ -128,7 +128,7 @@ describe('Auth Utils', () => {
       
       // Check expiration time (should be ~7 days)
       const now = Math.floor(Date.now() / 1000);
-      const expiry = payload.exp - now;
+      const expiry = payload.exp! - now;
       expect(expiry).toBeGreaterThan(0);
       expect(expiry).toBeLessThanOrEqual(7 * 24 * 60 * 60);
     });
@@ -140,7 +140,7 @@ describe('Auth Utils', () => {
       const accessPayload = await verifyToken(tokens.accessToken, mockSecret);
       const refreshPayload = await verifyToken(tokens.refreshToken, mockSecret);
       
-      expect(refreshPayload.exp).toBeGreaterThan(accessPayload.exp);
+      expect(refreshPayload.exp!).toBeGreaterThan(accessPayload.exp!);
     });
   });
 });

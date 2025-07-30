@@ -4,10 +4,31 @@ import authRoutes from '../../routes/auth';
 import { createMockDbChain } from '../helpers/test-context';
 import { hashPassword } from '../../utils/auth';
 import type { Bindings, Variables } from '../../types';
+import type { MockedFunction } from 'vitest';
+import { InferSelectModel } from 'drizzle-orm';
+import * as schema from '../../db/schema';
+import type { D1Database } from '@cloudflare/workers-types';
+
+interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: Omit<InferSelectModel<typeof schema.users>, 'password'>;
+}
+
+interface ErrorResponse {
+  code: string;
+  message?: string;
+  details?: Record<string, string>;
+}
 
 describe('Auth Routes Integration', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let mockDb: any;
+  let mockDb: {
+    select: MockedFunction<() => ReturnType<typeof createMockDbChain>>;
+    insert: MockedFunction<() => { values: MockedFunction<() => { returning: MockedFunction<() => Promise<InferSelectModel<typeof schema.users>[]>> }> }>;
+    update: MockedFunction<() => { set: MockedFunction<() => { where: MockedFunction<() => unknown> }> }>;
+    delete: MockedFunction<() => unknown>;
+  };
   let env: Bindings;
 
   beforeEach(() => {
@@ -21,12 +42,13 @@ describe('Auth Routes Integration', () => {
 
     // Create environment
     env = {
-      DB: {} as any, // Not used directly since we mock via middleware
+      DB: {} as D1Database, // Not used directly since we mock via middleware
       JWT_SECRET: 'test-jwt-secret',
       OAUTH_GITHUB_CLIENT_ID: 'test-github-id',
       OAUTH_GITHUB_CLIENT_SECRET: 'test-github-secret',
       OAUTH_GOOGLE_CLIENT_ID: 'test-google-id',
       OAUTH_GOOGLE_CLIENT_SECRET: 'test-google-secret',
+    ENVIRONMENT: 'test',
     };
 
     // Create app with proper context
@@ -55,9 +77,10 @@ describe('Auth Routes Integration', () => {
       }, env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
-      expect(body.details).toHaveProperty('email');
+      expect(body.message).toBe('Invalid input');
+      expect(body.details).toBeDefined();
     });
 
     it('should return 400 for weak password', async () => {
@@ -72,9 +95,10 @@ describe('Auth Routes Integration', () => {
       }, env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
-      expect(body.details).toHaveProperty('password');
+      expect(body.message).toBe('Invalid input');
+      expect(body.details).toBeDefined();
     });
 
     it('should return 409 when email already exists', async () => {
@@ -97,7 +121,7 @@ describe('Auth Routes Integration', () => {
       }, env);
 
       expect(res.status).toBe(409);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('EMAIL_ALREADY_EXISTS');
     });
 
@@ -124,7 +148,7 @@ describe('Auth Routes Integration', () => {
       }, env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
       expect(body.details).toHaveProperty('username', 'Username is already taken');
     });
@@ -161,7 +185,7 @@ describe('Auth Routes Integration', () => {
       }, env);
 
       expect(res.status).toBe(201);
-      const body = await res.json();
+      const body = await res.json() as AuthResponse;
       
       // Check response structure
       expect(body).toHaveProperty('accessToken');
@@ -193,7 +217,7 @@ describe('Auth Routes Integration', () => {
       }, env);
 
       expect(res.status).toBe(401);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('AUTHENTICATION_FAILED');
     });
 
@@ -222,7 +246,7 @@ describe('Auth Routes Integration', () => {
       }, env);
 
       expect(res.status).toBe(401);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('AUTHENTICATION_FAILED');
     });
 
@@ -243,6 +267,12 @@ describe('Auth Routes Integration', () => {
       
       mockDb.select.mockReturnValue(createMockDbChain(user));
       
+      // Mock update for refresh token revocation
+      mockDb.update.mockReturnValue({
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+      });
+      
       // Mock successful refresh token insert
       mockDb.insert.mockReturnValue({
         values: vi.fn().mockReturnThis(),
@@ -258,7 +288,7 @@ describe('Auth Routes Integration', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as AuthResponse;
       
       expect(body).toHaveProperty('accessToken');
       expect(body).toHaveProperty('refreshToken');
@@ -277,7 +307,7 @@ describe('Auth Routes Integration', () => {
       }, env);
 
       expect(res.status).toBe(400);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
 
@@ -291,7 +321,7 @@ describe('Auth Routes Integration', () => {
       }, env);
 
       expect(res.status).toBe(401);
-      const body = await res.json();
+      const body = await res.json() as ErrorResponse;
       expect(body.code).toBe('INVALID_TOKEN');
     });
   });

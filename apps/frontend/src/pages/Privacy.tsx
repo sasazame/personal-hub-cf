@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 export function Privacy() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a1b3a] via-[#2d2b5f] to-[#16213e] text-white p-8">
+    <div className="min-h-screen bg-linear-to-br from-[#1a1b3a] via-[#2d2b5f] to-[#16213e] text-white p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
         <p className="text-white/60 mb-4">Last updated: {new Date().toLocaleDateString()}</p>
