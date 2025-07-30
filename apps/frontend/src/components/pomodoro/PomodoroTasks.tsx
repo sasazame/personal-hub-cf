@@ -118,7 +118,7 @@ export function PomodoroTasks({
             <button
               onClick={() => handleToggleTask(task)}
               className={cn(
-                "flex-shrink-0 transition-colors",
+                "shrink-0 transition-colors",
                 task.completed 
                   ? "text-green-600 dark:text-green-400" 
                   : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
@@ -144,7 +144,7 @@ export function PomodoroTasks({
             <button
               onClick={() => handleDeleteTask(task.id)}
               className={cn(
-                "flex-shrink-0 opacity-0 group-hover:opacity-100",
+                "shrink-0 opacity-0 group-hover:opacity-100",
                 "text-gray-400 hover:text-red-600",
                 "dark:text-gray-500 dark:hover:text-red-400",
                 "transition-all"

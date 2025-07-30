@@ -109,12 +109,12 @@ export function MomentList({
                   onClick={() => onMomentClick(moment)}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 text-sm text-gray-500 flex items-center gap-1 min-w-[80px]">
+                    <div className="shrink-0 text-sm text-gray-500 flex items-center gap-1 min-w-[80px]">
                       <Clock className="w-3 h-3" />
                       {moment.createdAt && formatTime(moment.createdAt)}
                     </div>
                     
-                    <div className="flex-grow">
+                    <div className="grow">
                       <div className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words mb-2">
                         {moment.content}
                       </div>
@@ -135,7 +135,7 @@ export function MomentList({
                       )}
                     </div>
                     
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
