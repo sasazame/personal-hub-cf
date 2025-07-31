@@ -24,7 +24,7 @@ export async function fetchNotes(filters?: NoteFilters): Promise<Note[]> {
   }
 
   const data = await response.json();
-  return data.data || [];
+  return data.items || [];
 }
 
 export async function fetchNoteTags(): Promise<string[]> {
@@ -36,8 +36,9 @@ export async function fetchNoteTags(): Promise<string[]> {
     throw new Error('Failed to fetch tags');
   }
 
-  const data = await response.json();
-  return data.data || [];
+  const tagData = await response.json();
+  // Extract just the tag names from the array of {tag, count} objects
+  return tagData.map((item: { tag: string; count: number }) => item.tag);
 }
 
 export async function createNote(note: CreateNoteDto): Promise<Note> {
@@ -59,7 +60,7 @@ export async function createNote(note: CreateNoteDto): Promise<Note> {
   }
 
   const data = await response.json();
-  return data.data || data; // Handle both wrapped and unwrapped responses
+  return data; // Backend returns the note object directly
 }
 
 export async function updateNote(id: string, updates: UpdateNoteDto): Promise<Note> {
@@ -81,7 +82,7 @@ export async function updateNote(id: string, updates: UpdateNoteDto): Promise<No
   }
 
   const data = await response.json();
-  return data.data || data; // Handle both wrapped and unwrapped responses
+  return data; // Backend returns the note object directly
 }
 
 export async function deleteNote(id: string): Promise<void> {

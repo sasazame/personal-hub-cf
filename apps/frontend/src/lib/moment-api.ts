@@ -125,7 +125,9 @@ export async function fetchMomentTags(): Promise<string[]> {
     throw new Error(`Failed to fetch moment tags: ${response.statusText}`);
   }
   
-  return response.json();
+  const tagData = await response.json();
+  // Extract just the tag names from the array of {tag, count} objects
+  return tagData.map((item: { tag: string; count: number }) => item.tag);
 }
 
 export async function fetchDefaultMomentTags(): Promise<string[]> {
@@ -137,7 +139,9 @@ export async function fetchDefaultMomentTags(): Promise<string[]> {
     throw new Error(`Failed to fetch default moment tags: ${response.statusText}`);
   }
   
-  return response.json();
+  const tagData = await response.json();
+  // Extract just the tag names from the array of {tag, count} objects
+  return tagData.map((item: { tag: string; count: number }) => item.tag);
 }
 
 export async function createMoment(data: CreateMomentDto): Promise<Moment> {
