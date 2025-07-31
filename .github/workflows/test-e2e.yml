@@ -1,6 +1,6 @@
 name: Test E2E Simple
 
-on: 
+on:
   workflow_dispatch:
 
 jobs:
@@ -8,23 +8,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          
+
       - uses: pnpm/action-setup@v4
-        
+
       - run: pnpm install --frozen-lockfile
-      
+
       - name: Install Playwright
         run: pnpm playwright install chromium --with-deps
-        
+
       - name: Build frontend
         run: |
           cd apps/frontend
           VITE_API_BASE_URL=http://localhost:8788 pnpm build
-          
+
       - name: Setup backend
         run: |
           cd apps/backend
@@ -35,7 +35,7 @@ jobs:
           # Wait for backend
           sleep 10
           curl http://localhost:8788/health || exit 1
-          
+
       - name: Run single test
         run: |
           cd apps/frontend
