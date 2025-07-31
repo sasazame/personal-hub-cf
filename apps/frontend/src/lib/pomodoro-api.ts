@@ -25,6 +25,7 @@ export async function getActiveSession(): Promise<PomodoroSession | null> {
     return response.data;
   } catch (error: unknown) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
+      // No active session is a normal state, not an error
       return null;
     }
     throw error;
