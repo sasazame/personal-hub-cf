@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Todo, CreateTodoDto } from '@/types/todo'
 import { todoApi } from '@/lib/todo-api'
@@ -17,7 +17,7 @@ interface TodoItemProps {
   level?: number
 }
 
-export function TodoItem({ todo, onUpdate, onDelete, onAddChild, level = 0 }: TodoItemProps) {
+export const TodoItem = memo(function TodoItem({ todo, onUpdate, onDelete, onAddChild, level = 0 }: TodoItemProps) {
   const [showChildren, setShowChildren] = useState(false)
   const [isHoveringCheckbox, setIsHoveringCheckbox] = useState(false)
   const queryClient = useQueryClient()
@@ -276,4 +276,4 @@ export function TodoItem({ todo, onUpdate, onDelete, onAddChild, level = 0 }: To
       )}
     </div>
   )
-}
+})

@@ -77,7 +77,7 @@ export function MomentList({
     return (
       <div className="text-center py-12">
         <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
-        <p className="text-gray-500 mt-2">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400 mt-2">Loading...</p>
       </div>
     )
   }
@@ -85,8 +85,8 @@ export function MomentList({
   if (!moments || moments.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500 text-lg">No moments yet</div>
-        <p className="text-sm text-gray-400 mt-2">
+        <div className="text-gray-500 dark:text-gray-400 text-lg">No moments yet</div>
+        <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
           Start recording your thoughts and experiences
         </p>
       </div>
@@ -109,7 +109,7 @@ export function MomentList({
                   onClick={() => onMomentClick(moment)}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="shrink-0 text-sm text-gray-500 flex items-center gap-1 min-w-[80px]">
+                    <div className="shrink-0 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 min-w-[80px]">
                       <Clock className="w-3 h-3" />
                       {moment.createdAt && formatTime(moment.createdAt)}
                     </div>

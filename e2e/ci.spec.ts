@@ -199,8 +199,8 @@ test.describe('CI Critical Path Tests', () => {
     // Wait for status update
     await page.waitForTimeout(1000);
     
-    // Verify completion - check for Done status
-    await expect(page.locator('text=Done')).toBeVisible();
+    // Verify completion - check for Done status badge specifically
+    await expect(page.locator('span:has-text("Done")')).toBeVisible();
   });
 
   test('should create a note', async ({ page }) => {

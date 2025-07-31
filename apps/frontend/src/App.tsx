@@ -1,22 +1,25 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './contexts/AuthContext'
-import { Login } from './pages/Login'
-import { Register } from './pages/Register'
-import { Dashboard } from './pages/Dashboard'
-import { Terms } from './pages/Terms'
-import { Privacy } from './pages/Privacy'
-import { Todos } from './pages/Todos'
-import { Calendar } from './pages/Calendar'
-import { Notes } from './pages/Notes'
-import { Goals } from './pages/Goals'
-import { Moments } from './pages/Moments'
-import { Pomodoro } from './pages/Pomodoro'
-import { Analytics } from './pages/Analytics'
-import { Settings } from './pages/Settings'
-import { Profile } from './pages/Profile'
 import { ProtectedRoute } from './components/ProtectedRoute'
+
+// Lazy load all pages for better performance
+const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })))
+const Register = lazy(() => import('./pages/Register').then(m => ({ default: m.Register })))
+const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })))
+const Terms = lazy(() => import('./pages/Terms').then(m => ({ default: m.Terms })))
+const Privacy = lazy(() => import('./pages/Privacy').then(m => ({ default: m.Privacy })))
+const Todos = lazy(() => import('./pages/Todos').then(m => ({ default: m.Todos })))
+const Calendar = lazy(() => import('./pages/Calendar').then(m => ({ default: m.Calendar })))
+const Notes = lazy(() => import('./pages/Notes').then(m => ({ default: m.Notes })))
+const Goals = lazy(() => import('./pages/Goals').then(m => ({ default: m.Goals })))
+const Moments = lazy(() => import('./pages/Moments').then(m => ({ default: m.Moments })))
+const Pomodoro = lazy(() => import('./pages/Pomodoro').then(m => ({ default: m.Pomodoro })))
+const Analytics = lazy(() => import('./pages/Analytics').then(m => ({ default: m.Analytics })))
+const Settings = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })))
+const Profile = lazy(() => import('./pages/Profile').then(m => ({ default: m.Profile })))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,12 +30,20 @@ const queryClient = new QueryClient({
   },
 })
 
+// Loading component for Suspense fallback
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="text-lg text-muted-foreground">Loading...</div>
+  </div>
+)
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
         <AuthProvider>
-          <Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/terms" element={<Terms />} />
@@ -125,7 +136,8 @@ function App() {
                 </ProtectedRoute>
               }
             />
-          </Routes>
+            </Routes>
+          </Suspense>
           <Toaster position="top-right" />
         </AuthProvider>
       </Router>

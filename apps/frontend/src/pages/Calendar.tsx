@@ -82,6 +82,11 @@ export function Calendar() {
       await calendarApi.deleteEvent(eventToDelete.id);
       toast.success('Event deleted successfully');
       setEventToDelete(null);
+      // Close the event form modal if it's open with the deleted event
+      if (selectedEvent?.id === eventToDelete.id) {
+        setIsEventFormOpen(false);
+        setSelectedEvent(null);
+      }
       loadEvents();
     } catch (error) {
       toast.error('Failed to delete event');
