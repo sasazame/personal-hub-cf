@@ -18,9 +18,16 @@ export function PomodoroTimer({ session, onComplete, onUpdate }: PomodoroTimerPr
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Initialize audio
-    audioRef.current = new Audio('/sounds/alarm.mp3');
-    audioRef.current.volume = 0.5;
+    // Initialize audio - silently fail if sound file doesn't exist
+    try {
+      audioRef.current = new Audio('/sounds/alarm.mp3');
+      audioRef.current.volume = 0.5;
+      // Preload the audio to check if it exists
+      audioRef.current.load();
+    } catch {
+      console.warn('Audio file not found, alarm will be silent');
+      audioRef.current = null;
+    }
     
     return () => {
       if (intervalRef.current) {
@@ -74,9 +81,13 @@ export function PomodoroTimer({ session, onComplete, onUpdate }: PomodoroTimerPr
   const handleComplete = async () => {
     setIsRunning(false);
     
-    // Play alarm sound
+    // Play alarm sound if available
     if (audioRef.current) {
-      audioRef.current.play().catch(console.error);
+      audioRef.current.play().catch((error) => {
+        if (error.name !== 'NotSupportedError') {
+          console.error('Error playing alarm:', error);
+        }
+      });
     }
     
     try {

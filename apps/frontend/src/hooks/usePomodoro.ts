@@ -10,7 +10,9 @@ export function useActiveSession() {
   return useQuery({
     queryKey: ['pomodoro-session-active'],
     queryFn: () => pomodoroApi.getActiveSession(),
-    refetchInterval: 1000 // Refetch every second to update timer
+    refetchInterval: 1000, // Refetch every second to update timer
+    retry: false, // Don't retry 404 errors
+    gcTime: 0 // Don't cache null results
   });
 }
 
