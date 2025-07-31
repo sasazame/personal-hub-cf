@@ -148,11 +148,15 @@ jobs:
       - name: Run E2E tests
         run: |
           cd apps/frontend
-          pnpm vite preview --port 5173 &
+          # Start preview server and capture the actual port
+          pnpm vite preview --port 5173 > /tmp/vite.log 2>&1 &
           echo "FRONTEND_PID=$!" >> $GITHUB_ENV
           cd ../..
           sleep 5
-          SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:5173 pnpm playwright test e2e/ci.spec.ts --reporter=html
+          # Extract the actual port from vite output
+          ACTUAL_PORT=$(grep -oP 'localhost:\K\d+' /tmp/vite.log | head -1)
+          echo "Frontend running on port: $ACTUAL_PORT"
+          SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:$ACTUAL_PORT pnpm playwright test --config=playwright.ci.config.ts --reporter=html
 
       - name: Upload test results
         if: always()

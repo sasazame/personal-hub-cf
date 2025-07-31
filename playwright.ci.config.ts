@@ -16,6 +16,8 @@ export default defineConfig({
   retries: 1,
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? 'github' : 'html',
+  // Disable global setup in CI to avoid browser launch issues
+  globalSetup: undefined,
   use: {
     actionTimeout: 0,
     baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
