@@ -6,7 +6,7 @@ This document outlines the best practices and standards for maintaining document
 
 Documentation follows a numbered hierarchy for clear navigation:
 
-```
+```text
 docs/
 ├── README.md                    # Main documentation index
 ├── DOCUMENTATION_STANDARDS.md   # This file

@@ -28,7 +28,7 @@ pnpm format
 
 ## Project Structure
 
-```
+```text
 personal-hub-cf/
 ├── apps/
 │   ├── backend/     # Cloudflare Workers API

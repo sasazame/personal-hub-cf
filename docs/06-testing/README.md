@@ -39,7 +39,7 @@ All tests run automatically on:
 ## Best Practices
 
 1. Write tests for all new features
-2. Maintain test coverage above 80%
+2. Maintain test coverage above 90%
 3. Use meaningful test descriptions
 4. Mock external dependencies
 5. Keep tests fast and isolated

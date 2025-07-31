@@ -54,11 +54,16 @@ migrations/meta/
 # Turbo
 .turbo/
 
+# TypeScript
+*.tsbuildinfo
+
 # Temporary files
 tmp/
 temp/
 *.tmp
 *.temp
+
+# Lint artifacts
 lint-errors.txt
 fix_imports.txt
 lint-report.json
