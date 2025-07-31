@@ -129,30 +129,38 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright browsers
-        run: pnpm test:e2e:install
+      - name: Install Playwright browsers and dependencies
+        run: |
+          pnpm playwright install --with-deps chromium
+          # Install additional system dependencies if needed
+          sudo apt-get update || true
+          sudo apt-get install -y libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libatspi2.0-0 || true
 
       - name: Build frontend
         run: |
           cd apps/frontend
-          VITE_API_BASE_URL=http://localhost:8787 pnpm build
+          VITE_API_BASE_URL=http://localhost:8788 pnpm build
 
-      - name: Setup CI backend
+      - name: Initialize database
         run: |
-          ./scripts/setup-ci-backend.sh &
+          cd apps/backend
+          pnpm wrangler d1 migrations apply personal-hub-local --local || echo "Some migrations already applied"
+      
+      - name: Start backend server
+        run: |
+          cd apps/backend
+          pnpm wrangler dev --local --test-scheduled --port 8788 &
+          BACKEND_PID=$!
+          echo "BACKEND_PID=$BACKEND_PID" >> $GITHUB_ENV
           # Wait for backend to be ready
           for i in {1..30}; do
-            if curl -f http://localhost:8787/health > /dev/null 2>&1; then
+            if curl -f http://localhost:8788/health > /dev/null 2>&1; then
               echo "Backend is ready!"
               break
             fi
             echo "Waiting for backend... ($i/30)"
             sleep 1
           done
-          # Save PID for cleanup
-          if [ -f /tmp/backend.pid ]; then
-            echo "BACKEND_PID=$(cat /tmp/backend.pid)" >> $GITHUB_ENV
-          fi
 
       - name: Run E2E tests
         run: |
@@ -193,7 +201,7 @@ jobs:
           curl -f http://localhost:$ACTUAL_PORT || (echo "Frontend server not accessible" && exit 1)
           
           # Run E2E tests
-          SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:$ACTUAL_PORT pnpm playwright test --config=playwright.ci.config.ts --reporter=html
+          SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:$ACTUAL_PORT VITE_API_BASE_URL=http://localhost:8788 pnpm playwright test --config=playwright.ci.config.ts --reporter=html
 
       - name: Upload test results
         if: always()
