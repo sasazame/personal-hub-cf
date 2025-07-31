@@ -122,9 +122,32 @@ test.describe('CI Critical Path Tests', () => {
     const titleInput = page.locator('input[name="title"], input#title').first();
     await titleInput.fill('CI Test Task');
     
-    // Submit form
+    // Submit form - try different approaches
     const submitButton = page.locator('button[type="submit"]').first();
+    
+    // Set up response listener before clicking
+    const responsePromise = page.waitForResponse(
+      resp => resp.url().includes('/todos'),
+      { timeout: 5000 }
+    ).catch(() => null);
+    
+    // Click the submit button
     await submitButton.click();
+    
+    // Wait a bit for any response
+    const response = await responsePromise;
+    
+    if (response) {
+      console.log('Todo API response:', response.url(), response.status());
+      if (!response.ok()) {
+        const body = await response.text();
+        console.error('Todo creation failed:', body);
+      }
+    } else {
+      console.log('No API response detected - checking if form submitted differently');
+      // Maybe the form uses a different submission method
+      await page.waitForTimeout(2000);
+    }
     
     // Wait for todo to appear
     await page.waitForSelector('text=CI Test Task', { timeout: 5000 });
@@ -169,7 +192,19 @@ test.describe('CI Critical Path Tests', () => {
     
     await page.fill('input[name="title"]', 'CI Test Note');
     await page.fill('textarea[name="content"]', 'This is a test note content');
-    await page.click('button[type="submit"]');
+    
+    // Submit form and wait for API response
+    const [noteResponse] = await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/notes') && resp.request().method() === 'POST'),
+      page.click('button[type="submit"]')
+    ]);
+    
+    // Check response status
+    console.log('Note creation response status:', noteResponse.status());
+    if (!noteResponse.ok()) {
+      const body = await noteResponse.text();
+      console.error('Note creation failed:', body);
+    }
     
     // Wait for note to appear
     await page.waitForSelector('text=CI Test Note');
@@ -201,7 +236,19 @@ test.describe('CI Critical Path Tests', () => {
     // Create moment (handle both languages)
     const momentTextarea = await page.locator('textarea').first();
     await momentTextarea.fill('CI Test Moment');
-    await momentTextarea.press('Control+Enter');
+    
+    // Submit with Control+Enter and wait for API response
+    const [momentResponse] = await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/moments') && resp.request().method() === 'POST'),
+      momentTextarea.press('Control+Enter')
+    ]);
+    
+    // Check response status
+    console.log('Moment creation response status:', momentResponse.status());
+    if (!momentResponse.ok()) {
+      const body = await momentResponse.text();
+      console.error('Moment creation failed:', body);
+    }
     
     // Wait for moment to appear
     await page.waitForSelector('text=CI Test Moment');

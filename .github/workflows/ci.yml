@@ -137,6 +137,13 @@ jobs:
           cd apps/frontend
           VITE_API_BASE_URL=http://localhost:8787 pnpm build
 
+      - name: Initialize local database
+        run: |
+          cd apps/backend
+          # Run migrations to create tables
+          pnpm wrangler d1 execute personal-hub-local --local --file migrations/0001_init_schema.sql
+          echo "Database initialized successfully"
+
       - name: Start backend server
         run: |
           cd apps/backend
