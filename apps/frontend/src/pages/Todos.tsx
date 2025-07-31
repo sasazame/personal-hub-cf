@@ -120,7 +120,11 @@ export function Todos() {
   })
 
   const handleCreate = (data: CreateTodoDto) => {
-    createMutation.mutate({ ...data, parentId: parentIdForNewTodo })
+    const payload = { ...data }
+    if (parentIdForNewTodo !== null) {
+      payload.parentId = parentIdForNewTodo
+    }
+    createMutation.mutate(payload)
   }
 
   const handleUpdate = (_id: number, todo: Todo) => {

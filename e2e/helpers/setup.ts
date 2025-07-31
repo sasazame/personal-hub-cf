@@ -20,16 +20,22 @@ export async function createUniqueTestUser(page: Page) {
   await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
   
   try {
-    // Ensure MSW is ready
-    await page.waitForTimeout(2000);
+    // Small delay to ensure page is ready
+    await page.waitForTimeout(500);
     
     await page.goto('/register');
-    await page.waitForSelector('input[name="username"]', { timeout: 10000 });
+    // Wait for the form to be ready with more flexible selectors
+    await page.waitForSelector('input[type="text"]', { timeout: 10000 });
     
-    await page.fill('input[name="username"]', uniqueUser.username);
-    await page.fill('input[type="email"]', uniqueUser.email);
-    await page.fill('input[name="password"]', uniqueUser.password);
-    await page.fill('input[name="confirmPassword"]', uniqueUser.password);
+    // Use more robust selectors - find inputs by their position and type
+    const usernameInput = page.locator('input[type="text"]').first();
+    const emailInput = page.locator('input[type="email"]');
+    const passwordInputs = page.locator('input[type="password"]');
+    
+    await usernameInput.fill(uniqueUser.username);
+    await emailInput.fill(uniqueUser.email);
+    await passwordInputs.first().fill(uniqueUser.password);
+    await passwordInputs.nth(1).fill(uniqueUser.password);
     
     await page.click('button[type="submit"]');
     
@@ -39,11 +45,14 @@ export async function createUniqueTestUser(page: Page) {
     // Wait a bit for the page to stabilize
     await page.waitForTimeout(2000);
     
-    // Try to find and click logout button - be more flexible
-    const logoutButton = page.locator('button:has-text("Logout")').first();
-    const logoutVisible = await logoutButton.isVisible({ timeout: 5000 }).catch(() => false);
+    // Try to find and click user menu to show logout button
+    const userMenu = page.locator('button').filter({ has: page.locator('.rounded-full') });
+    const menuVisible = await userMenu.isVisible({ timeout: 5000 }).catch(() => false);
     
-    if (logoutVisible) {
+    if (menuVisible) {
+      await userMenu.click();
+      // Now click logout button in dropdown
+      const logoutButton = page.locator('button:has-text("Logout")');
       await logoutButton.click();
       await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 10000 });
     }
@@ -60,8 +69,8 @@ export async function createUniqueTestUser(page: Page) {
  * Only use this for tests that specifically need the TEST_USER
  */
 export async function setupTestUser(page: Page) {
-  // Always use MSW in test environment
-  await page.waitForTimeout(2000); // Ensure MSW is ready
+  // Small delay to ensure page is ready
+  await page.waitForTimeout(500);
   
   // Set English locale
   await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
@@ -81,11 +90,14 @@ export async function setupTestUser(page: Page) {
     // Wait for page to stabilize
     await page.waitForTimeout(1000);
     
-    // Find and click logout button
-    const logoutButton = page.locator('button:has-text("Logout")').first();
-    const logoutVisible = await logoutButton.isVisible({ timeout: 5000 }).catch(() => false);
+    // Find and click user menu to show logout button
+    const userMenu = page.locator('button').filter({ has: page.locator('.rounded-full') });
+    const menuVisible = await userMenu.isVisible({ timeout: 5000 }).catch(() => false);
     
-    if (logoutVisible) {
+    if (menuVisible) {
+      await userMenu.click();
+      // Now click logout button in dropdown
+      const logoutButton = page.locator('button:has-text("Logout")');
       await logoutButton.click();
       await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 10000 });
       console.log('TEST_USER exists and is ready');
@@ -98,12 +110,18 @@ export async function setupTestUser(page: Page) {
   // Try to register user
   try {
     await page.goto('/register');
-    await page.waitForSelector('input[name="username"]', { timeout: 10000 });
+    // Wait for the form to be ready with more flexible selectors
+    await page.waitForSelector('input[type="text"]', { timeout: 10000 });
     
-    await page.fill('input[name="username"]', TEST_USER.username);
-    await page.fill('input[type="email"]', TEST_USER.email);
-    await page.fill('input[name="password"]', TEST_USER.password);
-    await page.fill('input[name="confirmPassword"]', TEST_USER.password);
+    // Use more robust selectors - find inputs by their position and type
+    const usernameInput = page.locator('input[type="text"]').first();
+    const emailInput = page.locator('input[type="email"]');
+    const passwordInputs = page.locator('input[type="password"]');
+    
+    await usernameInput.fill(TEST_USER.username);
+    await emailInput.fill(TEST_USER.email);
+    await passwordInputs.first().fill(TEST_USER.password);
+    await passwordInputs.nth(1).fill(TEST_USER.password);
     
     await page.click('button[type="submit"]');
     
@@ -113,11 +131,14 @@ export async function setupTestUser(page: Page) {
     // Wait for page to stabilize
     await page.waitForTimeout(1000);
     
-    // Find and click logout button
-    const logoutButton = page.locator('button:has-text("Logout")').first();
-    const logoutVisible = await logoutButton.isVisible({ timeout: 5000 }).catch(() => false);
+    // Find and click user menu to show logout button
+    const userMenu = page.locator('button').filter({ has: page.locator('.rounded-full') });
+    const menuVisible = await userMenu.isVisible({ timeout: 5000 }).catch(() => false);
     
-    if (logoutVisible) {
+    if (menuVisible) {
+      await userMenu.click();
+      // Now click logout button in dropdown
+      const logoutButton = page.locator('button:has-text("Logout")');
       await logoutButton.click();
       await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 10000 });
     }

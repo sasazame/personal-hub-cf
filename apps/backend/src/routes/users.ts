@@ -98,7 +98,7 @@ app.put('/profile', zValidator('json', updateProfileSchema, springBootValidator)
       if (existing && existing.id !== userId) {
         return c.json(
           createValidationError({ username: 'Username already taken' }),
-          StatusCodes.CONFLICT as ContentfulStatusCode
+          StatusCodes.CONFLICT as ContentfulStatusCode as ContentfulStatusCode
         );
       }
     }
@@ -216,7 +216,7 @@ app.put('/email', zValidator('json', updateEmailSchema, springBootValidator), as
     if (existing) {
       return c.json(
         createErrorResponse(ErrorCodes.CONFLICT, 'Email already in use'),
-        StatusCodes.CONFLICT as ContentfulStatusCode
+        StatusCodes.CONFLICT as ContentfulStatusCode as ContentfulStatusCode
       );
     }
     
@@ -375,7 +375,7 @@ app.delete('/account', zValidator('json', z.object({ password: z.string() }), sp
       if (!valid) {
         return c.json(
           createValidationError({ password: 'Password is incorrect' }),
-          StatusCodes.UNAUTHORIZED as ContentfulStatusCode
+          StatusCodes.UNAUTHORIZED as ContentfulStatusCode as ContentfulStatusCode
         );
       }
     }

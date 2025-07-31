@@ -41,10 +41,16 @@ export async function fetchNoteTags(): Promise<string[]> {
 }
 
 export async function createNote(note: CreateNoteDto): Promise<Note> {
+  // Convert tags array to comma-separated string
+  const payload = {
+    ...note,
+    tags: note.tags ? note.tags.join(',') : undefined
+  };
+  
   const response = await fetch(`${API_BASE_URL}/api/v1/notes`, {
     method: 'POST',
     headers: getAuthHeaders(),
-    body: JSON.stringify(note)
+    body: JSON.stringify(payload)
   });
 
   if (!response.ok) {
@@ -53,14 +59,20 @@ export async function createNote(note: CreateNoteDto): Promise<Note> {
   }
 
   const data = await response.json();
-  return data.data;
+  return data.data || data; // Handle both wrapped and unwrapped responses
 }
 
 export async function updateNote(id: string, updates: UpdateNoteDto): Promise<Note> {
+  // Convert tags array to comma-separated string
+  const payload = {
+    ...updates,
+    tags: updates.tags ? updates.tags.join(',') : undefined
+  };
+  
   const response = await fetch(`${API_BASE_URL}/api/v1/notes/${id}`, {
     method: 'PUT',
     headers: getAuthHeaders(),
-    body: JSON.stringify(updates)
+    body: JSON.stringify(payload)
   });
 
   if (!response.ok) {
@@ -69,7 +81,7 @@ export async function updateNote(id: string, updates: UpdateNoteDto): Promise<No
   }
 
   const data = await response.json();
-  return data.data;
+  return data.data || data; // Handle both wrapped and unwrapped responses
 }
 
 export async function deleteNote(id: string): Promise<void> {

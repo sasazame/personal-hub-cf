@@ -148,9 +148,9 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
         expect([201, 400].includes(res.status)).toBe(true);
         
         if (res.status === 201) {
-          const body = await res.json() as unknown;
+          const body = await res.json();
           // API should return data as-is, frontend responsible for escaping
-          expect(body.content).toBe(payload);
+          expect((body as any).content).toBe(payload);
         }
       }
     });
@@ -446,8 +446,8 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
         }, ctx.env);
 
         expect(res.status).toBe(201);
-        const body = await res.json() as unknown;
-        expect(body.tags).toBe(tags); // Stored as-is, frontend escapes
+        const body = await res.json();
+        expect((body as any).tags).toBe(tags); // Stored as-is, frontend escapes
       }
     });
   });

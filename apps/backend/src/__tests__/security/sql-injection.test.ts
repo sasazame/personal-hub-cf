@@ -26,8 +26,8 @@ describe('SQL Injection Security Tests', () => {
 
     // Create test user
     const userData = await createTestUserData();
-    testUser = await db.insert(schema.users).values(userData).returning();
-    testUser = testUser[0];
+    const users = await db.insert(schema.users).values(userData).returning();
+    testUser = users[0];
     
     // Generate access token
     accessToken = await jwt.sign(
@@ -97,8 +97,8 @@ describe('SQL Injection Security Tests', () => {
 
         // Should not cause error, should handle gracefully
         expect(res.status).toBe(200);
-        const body = await res.json() as unknown;
-        expect(body.items).toBeDefined();
+        const body = await res.json();
+        expect((body as any).items).toBeDefined();
         
         // Verify tables still exist
         const tables = await db.select().from(schema.todos).limit(1);
@@ -112,7 +112,6 @@ describe('SQL Injection Security Tests', () => {
         title: 'Test Note',
         content: 'Content',
         tags: 'work,important',
-        isArchived: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -132,8 +131,8 @@ describe('SQL Injection Security Tests', () => {
         }, env);
 
         expect(res.status).toBe(200);
-        const body = await res.json() as unknown;
-        expect(body.items).toBeDefined();
+        const body = await res.json();
+        expect((body as any).items).toBeDefined();
       }
     });
 
@@ -251,8 +250,8 @@ describe('SQL Injection Security Tests', () => {
         
         // Should never return other users' data
         if (res.status === 200) {
-          const body = await res.json() as unknown;
-          expect(body.userId).toBe(testUser.id);
+          const body = await res.json();
+          expect((body as any).userId).toBe(testUser.id);
         }
       }
     });
@@ -318,7 +317,6 @@ describe('SQL Injection Security Tests', () => {
         title: "Note with 'quotes' and \"double quotes\"",
         content: "Content with backslash \\ and semicolon ;",
         tags: "tag1,tag-with-dash,tag_with_underscore",
-        isArchived: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });

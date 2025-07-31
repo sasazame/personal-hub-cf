@@ -6,7 +6,8 @@
     "module": "ES2022",
     "moduleResolution": "node",
     "types": ["@cloudflare/workers-types", "node"],
-    "noEmit": true,
+    "outDir": "./dist",
+    "noEmit": false,
     "isolatedModules": true
   },
   "include": ["src/**/*"],

@@ -14,14 +14,14 @@ describe('Auth Routes Integration with Real Database', () => {
   beforeEach(async () => {
     // Setup test database
     const setup = await setupTestDatabase();
-    db = setup.db;
+    db = setup.db as any;
     env = setup.env as Bindings;
 
     app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
     
     // Add database middleware
     app.use('*', async (c, next) => {
-      c.set('db', db);
+      c.set('db', db as any);
       await next();
     });
     
@@ -66,7 +66,7 @@ describe('Auth Routes Integration with Real Database', () => {
 
     it('should reject duplicate email', async () => {
       // Create existing user
-      await createTestUser(db, {
+      await createTestUser(db as any, {
         email: 'existing@example.com',
         username: 'existing',
       });
@@ -93,7 +93,7 @@ describe('Auth Routes Integration with Real Database', () => {
       const hashedPassword = await hashPassword(password);
       
       // Create user
-      const user = await createTestUser(db, {
+      const user = await createTestUser(db as any, {
         email: 'user@example.com',
         username: 'testuser',
         password: hashedPassword,
@@ -125,7 +125,7 @@ describe('Auth Routes Integration with Real Database', () => {
       const hashedPassword = await hashPassword(password);
       
       // Create disabled user
-      await createTestUser(db, {
+      await createTestUser(db as any, {
         email: 'disabled@example.com',
         username: 'disabled',
         password: hashedPassword,

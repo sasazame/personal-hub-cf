@@ -2,9 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Hono } from 'hono';
 import { authMiddleware } from '../../middleware/auth';
 import { generateTokens } from '../../utils/auth';
-import { createMockDbChain } from '../helpers/test-context';
+import { createMockDbChain, createTestContext } from '../helpers/test-context';
 import type { Bindings, Variables } from '../../types';
-import type { D1Database } from '@cloudflare/workers-types';
 
 describe('Auth Middleware', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
@@ -17,30 +16,11 @@ describe('Auth Middleware', () => {
   };
 
   beforeEach(() => {
-    mockDb = {
-      select: vi.fn(),
-      insert: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    };
-    
-    env = {
-      DB: {} as D1Database,
-      JWT_SECRET: 'test-jwt-secret',
-      OAUTH_GITHUB_CLIENT_ID: 'test',
-      OAUTH_GITHUB_CLIENT_SECRET: 'test',
-      OAUTH_GOOGLE_CLIENT_ID: 'test',
-      OAUTH_GOOGLE_CLIENT_SECRET: 'test',
-      ENVIRONMENT: 'test',
-    };
-
-    app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
-    
-    // Add database middleware
-    app.use('*', async (c, next) => {
-      c.set('db', mockDb);
-      await next();
-    });
+    // Use createTestContext helper
+    const testContext = createTestContext();
+    app = testContext.app;
+    mockDb = testContext.db;
+    env = testContext.env;
     
     // Add test route with auth middleware
     app.use('/protected/*', authMiddleware);

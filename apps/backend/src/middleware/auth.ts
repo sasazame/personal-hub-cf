@@ -1,4 +1,5 @@
 import { Context, Next } from 'hono';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { eq } from 'drizzle-orm';
 import { users } from '../db/schema';
 import type { Bindings, Variables } from '../types';
@@ -14,7 +15,7 @@ export async function authMiddleware(
   if (!authHeader?.startsWith('Bearer ')) {
     return c.json(
       createErrorResponse(ErrorCodes.UNAUTHORIZED, 'Missing or invalid authorization header'),
-      StatusCodes.UNAUTHORIZED
+      StatusCodes.UNAUTHORIZED as ContentfulStatusCode
     );
   }
   
@@ -51,7 +52,7 @@ export async function authMiddleware(
     console.error('Auth middleware error:', error);
     return c.json(
       createErrorResponse(ErrorCodes.UNAUTHORIZED, 'Invalid or expired token'),
-      StatusCodes.UNAUTHORIZED
+      StatusCodes.UNAUTHORIZED as ContentfulStatusCode
     );
   }
 }

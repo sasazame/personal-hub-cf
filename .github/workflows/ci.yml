@@ -129,28 +129,79 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright browsers
-        run: pnpm test:e2e:install
+      - name: Install Playwright browsers and dependencies
+        run: |
+          pnpm playwright install --with-deps chromium
+          # Install additional system dependencies if needed
+          sudo apt-get update || true
+          sudo apt-get install -y libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libatspi2.0-0 || true
 
       - name: Build frontend
-        run: pnpm --filter @personal-hub/frontend build
+        run: |
+          cd apps/frontend
+          VITE_API_BASE_URL=http://localhost:8788 pnpm build
 
+      - name: Initialize database
+        run: |
+          cd apps/backend
+          pnpm wrangler d1 migrations apply personal-hub-local --local || echo "Some migrations already applied"
+      
       - name: Start backend server
         run: |
           cd apps/backend
-          pnpm wrangler dev --local --test-scheduled --port 8787 &
-          echo "BACKEND_PID=$!" >> $GITHUB_ENV
-          sleep 10
-          curl -f http://localhost:8787/health || exit 1
+          pnpm wrangler dev --local --test-scheduled --port 8788 &
+          BACKEND_PID=$!
+          echo "BACKEND_PID=$BACKEND_PID" >> $GITHUB_ENV
+          # Wait for backend to be ready
+          for i in {1..30}; do
+            if curl -f http://localhost:8788/health > /dev/null 2>&1; then
+              echo "Backend is ready!"
+              break
+            fi
+            echo "Waiting for backend... ($i/30)"
+            sleep 1
+          done
 
       - name: Run E2E tests
         run: |
           cd apps/frontend
-          pnpm vite preview --port 5173 &
-          echo "FRONTEND_PID=$!" >> $GITHUB_ENV
+          # Start preview server and capture the actual port
+          pnpm vite preview --port 5173 > /tmp/vite.log 2>&1 &
+          FRONTEND_PID=$!
+          echo "FRONTEND_PID=$FRONTEND_PID" >> $GITHUB_ENV
           cd ../..
-          sleep 5
-          SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:5173 pnpm playwright test e2e/ci.spec.ts --reporter=html
+          
+          # Wait for vite to start and output the URL
+          echo "Waiting for vite preview server to start..."
+          for i in {1..10}; do
+            if grep -q "Local:" /tmp/vite.log; then
+              echo "Vite server started"
+              break
+            fi
+            echo "Waiting... ($i/10)"
+            sleep 1
+          done
+          
+          # Debug: Show vite output
+          echo "Vite output:"
+          cat /tmp/vite.log
+          
+          # Extract the actual port from vite output - updated pattern to match actual format
+          ACTUAL_PORT=$(grep -oP 'http://localhost:\K\d+' /tmp/vite.log | head -1)
+          
+          # Fallback to default port if extraction fails
+          if [ -z "$ACTUAL_PORT" ]; then
+            echo "Port extraction failed, using default port 5173"
+            ACTUAL_PORT=5173
+          fi
+          
+          echo "Frontend running on port: $ACTUAL_PORT"
+          
+          # Verify the server is accessible
+          curl -f http://localhost:$ACTUAL_PORT || (echo "Frontend server not accessible" && exit 1)
+          
+          # Run E2E tests
+          SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:$ACTUAL_PORT VITE_API_BASE_URL=http://localhost:8788 pnpm playwright test --config=playwright.ci.config.ts --reporter=html
 
       - name: Upload test results
         if: always()

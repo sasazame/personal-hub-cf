@@ -5,7 +5,7 @@ import { generateTokens } from '../../utils/auth';
 import { createMockDbChain } from '../helpers/test-context';
 import type { Bindings, Variables } from '../../types';
 import type { D1Database } from '@cloudflare/workers-types';
-import type { GoalResponse } from '../helpers/response-types';
+import type { GoalResponse, APIErrorResponse } from '../helpers/response-types';
 
 describe('Goals Routes', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
@@ -51,7 +51,7 @@ describe('Goals Routes', () => {
     
     // Add database middleware
     app.use('*', async (c, next) => {
-      c.set('db', mockDb);
+      c.set('db', mockDb as any);
       await next();
     });
     
@@ -96,7 +96,7 @@ describe('Goals Routes', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as GoalResponse[];
       expect(body).toEqual([]);
     });
 
@@ -183,7 +183,7 @@ describe('Goals Routes', () => {
       }, env);
 
       expect(res.status).toBe(201);
-      const body = await res.json() as unknown;
+      const body = await res.json() as GoalResponse;
       expect(body.title).toBe('New Goal');
       expect(body.userId).toBe(userId);
     });
@@ -202,7 +202,7 @@ describe('Goals Routes', () => {
       }, env);
 
       expect(res.status).toBe(400);
-      const body = await res.json() as unknown;
+      const body = await res.json() as APIErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
   });
@@ -260,7 +260,7 @@ describe('Goals Routes', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as unknown;
+      const body = await res.json() as GoalResponse;
       expect(body.description).toBe('Updated description');
     });
   });

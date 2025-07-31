@@ -3,8 +3,8 @@ import { hashPassword } from '../../utils/auth';
 
 export const testUserDefaults = {
   password: 'TestPass123!',
-  enabled: 1,
-  emailVerified: 0,
+  enabled: true,
+  emailVerified: false,
   weekStartDay: 1,
 };
 
@@ -30,13 +30,22 @@ export async function createTestUserData(overrides = {}) {
   };
 }
 
-export function createTestTodoData(userId: string, overrides = {}) {
+export function createTestTodoData(userId: string, overrides: Partial<{
+  title: string;
+  description: string;
+  status: 'TODO' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  dueDate?: string;
+  tags?: string;
+  createdAt: string;
+  updatedAt: string;
+}> = {}) {
   return {
     userId,
     title: 'Test Todo',
     description: 'Test Description',
-    status: 'TODO',
-    priority: 'MEDIUM',
+    status: 'TODO' as const,
+    priority: 'MEDIUM' as const,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...overrides,
@@ -51,7 +60,7 @@ export function createTestGoalData(userId: string, overrides = {}) {
     goalType: 'PERSONAL',
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    isActive: 1,
+    isActive: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...overrides,
@@ -69,7 +78,7 @@ export function createTestEventData(userId: string, overrides = {}) {
     startDateTime: startDateTime.toISOString(),
     endDateTime: endDateTime.toISOString(),
     location: 'Test Location',
-    allDay: 0,
+    allDay: false,
     reminderMinutes: 15,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -83,7 +92,7 @@ export function createTestNoteData(userId: string, overrides = {}) {
     title: 'Test Note',
     content: 'Test Note Content',
     tags: 'test,sample',
-    isArchived: 0,
+    isArchived: false,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...overrides,

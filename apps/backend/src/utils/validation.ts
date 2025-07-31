@@ -17,7 +17,7 @@ export const springBootValidator = (result: any, c: Context) => {
     
     return c.json(
       createValidationError(fieldErrors),
-      StatusCodes.VALIDATION_ERROR as ContentfulStatusCode
+      StatusCodes.VALIDATION_ERROR as ContentfulStatusCode as ContentfulStatusCode
     );
   }
   

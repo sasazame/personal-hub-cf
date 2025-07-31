@@ -5,7 +5,7 @@ import { generateTokens } from '../../utils/auth';
 import { createMockDbChain } from '../helpers/test-context';
 import type { Bindings, Variables } from '../../types';
 import type { D1Database } from '@cloudflare/workers-types';
-import type { TodoResponse, PaginatedResponse } from '../helpers/response-types';
+import type { TodoResponse, PaginatedResponse, APIErrorResponse } from '../helpers/response-types';
 
 describe('Todos Routes', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
@@ -62,7 +62,7 @@ describe('Todos Routes', () => {
     
     // Add database middleware
     app.use('*', async (c, next) => {
-      c.set('db', mockDb);
+      c.set('db', mockDb as any);
       await next();
     });
     
@@ -82,7 +82,7 @@ describe('Todos Routes', () => {
       }, env);
 
       expect(res.status).toBe(401);
-      const body = await res.json() as unknown;
+      const body = await res.json() as APIErrorResponse;
       expect(body.code).toBe('UNAUTHORIZED');
     });
 
@@ -95,7 +95,7 @@ describe('Todos Routes', () => {
       }, env);
 
       expect(res.status).toBe(401);
-      const body = await res.json() as unknown;
+      const body = await res.json() as APIErrorResponse;
       expect(body.code).toBe('UNAUTHORIZED');
     });
   });
@@ -225,7 +225,7 @@ describe('Todos Routes', () => {
       }, env);
 
       expect(res.status).toBe(400);
-      const body = await res.json() as unknown;
+      const body = await res.json() as APIErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
       expect(body.message).toBe('Invalid input');
       // The details should contain validation errors - for now accept empty object
@@ -268,7 +268,7 @@ describe('Todos Routes', () => {
       }, env);
 
       expect(res.status).toBe(201);
-      const body = await res.json() as unknown;
+      const body = await res.json() as TodoResponse;
       expect(body.title).toBe('New Todo');
       expect(body.userId).toBe(userId);
     });
@@ -301,7 +301,7 @@ describe('Todos Routes', () => {
       }, env);
 
       expect(res.status).toBe(404);
-      const body = await res.json() as unknown;
+      const body = await res.json() as APIErrorResponse;
       expect(body.code).toBe('NOT_FOUND');
     });
 

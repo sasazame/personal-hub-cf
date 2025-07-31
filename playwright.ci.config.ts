@@ -16,9 +16,11 @@ export default defineConfig({
   retries: 1,
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? 'github' : 'html',
+  // Disable global setup in CI to avoid browser launch issues
+  globalSetup: undefined,
   use: {
     actionTimeout: 0,
-    baseURL: 'http://localhost:5173',
+    baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -29,11 +31,13 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+    // Other browsers disabled for CI stability
   ],
 
-  webServer: {
-    command: 'npm run dev',
-    port: 5173,
+  // Disable webServer in CI since we manually start servers
+  webServer: process.env.SKIP_WEBSERVER ? undefined : {
+    command: 'pnpm dev',
+    port: 3000,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

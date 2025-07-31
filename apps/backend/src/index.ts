@@ -78,7 +78,7 @@ app.onError((err, c) => {
   if (err instanceof ZodError) {
     const fieldErrors: Record<string, string> = {};
     
-    err.errors.forEach((error) => {
+    err.issues.forEach((error) => {
       const field = error.path.join('.');
       fieldErrors[field] = error.message;
     });

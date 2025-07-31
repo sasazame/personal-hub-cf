@@ -64,9 +64,9 @@ export async function login(page: Page, email: string, password: string) {
     if (page.url().includes('/login')) {
       console.log('Still on login page after attempt. URL:', page.url());
       
-      // In test environment with MSW, don't check backend directly
-      if (process.env.CI || process.env.NEXT_PUBLIC_CI || process.env.NEXT_PUBLIC_USE_MSW) {
-        throw new Error('Login failed - check test user credentials and MSW handlers');
+      // In CI environment, don't check backend directly
+      if (process.env.CI) {
+        throw new Error('Login failed - check test user credentials');
       }
       
       // Only check backend in non-CI environments
@@ -94,10 +94,13 @@ export async function login(page: Page, email: string, password: string) {
 }
 
 export async function logout(page: Page) {
-  // Click logout button if visible (prefer header logout button)
-  const headerLogoutButton = page.getByRole('button', { name: 'Logout' }).first();
-  if (await headerLogoutButton.isVisible()) {
-    await headerLogoutButton.click();
+  // First click the user menu dropdown
+  const userMenu = page.locator('button').filter({ has: page.locator('.rounded-full') });
+  if (await userMenu.isVisible()) {
+    await userMenu.click();
+    // Now click logout button in dropdown
+    const logoutButton = page.getByRole('button', { name: 'Logout' });
+    await logoutButton.click();
     await page.waitForURL(/.*\/login/, { timeout: 5000 });
   }
 }
@@ -157,21 +160,6 @@ export const TEST_USER = {
   username: 'testuser'
 };
 
-// Helper to setup MSW if in CI environment
-export async function setupMockIfNeeded(page: Page) {
-  // Ensure MSW is ready
-  await page.waitForTimeout(2000); // Give MSW time to initialize
-  
-  // Wait for MSW to be active
-  try {
-    await page.waitForFunction(() => {
-      // Check if MSW is active by looking for the service worker
-      return navigator.serviceWorker?.controller?.scriptURL?.includes('mockServiceWorker.js');
-    }, { timeout: 5000 });
-  } catch {
-    console.log('MSW service worker not detected, continuing anyway');
-  }
-}
 
 // Alternative test user for multi-user scenarios
 export const TEST_USER_2 = {

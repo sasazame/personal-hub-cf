@@ -49,7 +49,10 @@ app.get('/', async (c) => {
         like(moments.tags, `%${tag}%`)
       );
       if (tagConditions.length > 0) {
-        conditions.push(or(...tagConditions));
+        const orCondition = or(...tagConditions);
+        if (orCondition) {
+          conditions.push(orCondition);
+        }
       }
     }
     
@@ -308,7 +311,7 @@ app.post('/', zValidator('json', createMomentSchema, springBootValidator), async
     
     const result = await db.insert(moments).values(newMoment).returning();
     
-    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode as ContentfulStatusCode);
   } catch (error) {
     console.error('Create moment error:', error);
     return c.json(
