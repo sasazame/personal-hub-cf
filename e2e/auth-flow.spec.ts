@@ -45,7 +45,8 @@ test.describe('Authentication Flow', () => {
     
     // Should see app header with Personal Hub text - using flexible selector
     await expect(page.locator('header').filter({ hasText: 'Personal Hub' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Logout' }).first()).toBeVisible();
+    // Logout button is in dropdown menu, so check for user menu instead
+    await expect(page.locator('button').filter({ has: page.locator('.rounded-full') })).toBeVisible();
   });
   
   test('should login successfully with unique user', async ({ page }) => {
@@ -74,7 +75,8 @@ test.describe('Authentication Flow', () => {
     
     // Should see app header with Personal Hub text - using flexible selector
     await expect(page.locator('header').filter({ hasText: 'Personal Hub' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Logout' }).first()).toBeVisible();
+    // Logout button is in dropdown menu, so check for user menu instead
+    await expect(page.locator('button').filter({ has: page.locator('.rounded-full') })).toBeVisible();
   });
 
   test('should logout successfully', async ({ page }) => {
@@ -122,6 +124,7 @@ test.describe('Authentication Flow', () => {
     // Should still be logged in
     await page.waitForSelector('header', { timeout: 10000 });
     await expect(page.locator('header').filter({ hasText: 'Personal Hub' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Logout' }).first()).toBeVisible();
+    // Logout button is in dropdown menu, so check for user menu instead
+    await expect(page.locator('button').filter({ has: page.locator('.rounded-full') })).toBeVisible();
   });
 });

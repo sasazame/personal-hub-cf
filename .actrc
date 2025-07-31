@@ -1,0 +1,17 @@
+# Act configuration for running GitHub Actions locally
+# https://github.com/nektos/act
+
+# Use medium size runner image (includes more tools)
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+
+# Set default job to run
+-j test
+
+# Enable verbose output for debugging
+# -v
+
+# Reuse containers between runs for faster execution
+--reuse
+
+# Use Docker container architecture for M1 Macs
+--container-architecture linux/amd64

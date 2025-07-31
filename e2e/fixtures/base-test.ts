@@ -1,5 +1,4 @@
 import { test as base, Page, BrowserContext } from '@playwright/test';
-import { ensureMSW } from '../helpers/ensure-msw';
 
 // Define custom fixtures type
 type CustomFixtures = {
@@ -10,30 +9,7 @@ type CustomFixtures = {
 export const test = base.extend<CustomFixtures>({
   // Auto-fixture that runs before each test
   autoSetup: [async ({ page, context }: { page: Page; context: BrowserContext }, use: () => Promise<void>) => {
-    // Force MSW to be enabled via environment
-    await context.addInitScript(() => {
-      (window as Window & { process?: { env: Record<string, string> } }).process = {
-        env: {
-          NEXT_PUBLIC_USE_MSW: 'true',
-          NEXT_PUBLIC_CI: 'true'
-        }
-      };
-    });
-    
-    // Ensure MSW is initialized
-    await ensureMSW(page);
-    
-    // Clear all storage to ensure test isolation
-    await page.evaluate(() => {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.clear();
-      }
-      if (typeof sessionStorage !== 'undefined') {
-        sessionStorage.clear();
-      }
-    });
-    
-    // Clear cookies
+    // Clear cookies first
     await context.clearCookies();
     
     // Set default locale
@@ -43,6 +19,25 @@ export const test = base.extend<CustomFixtures>({
       domain: 'localhost', 
       path: '/' 
     }]);
+    
+    // Navigate to a page before trying to clear storage
+    page.on('load', async () => {
+      // Clear storage after page loads
+      await page.evaluate(() => {
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.clear();
+          }
+          if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.clear();
+          }
+        } catch (e) {
+          // Ignore errors if storage is not accessible
+        }
+      }).catch(() => {
+        // Ignore errors
+      });
+    });
     
     // Use the fixture
     await use();

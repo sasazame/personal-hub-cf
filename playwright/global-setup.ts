@@ -1,9 +1,9 @@
 import { chromium } from '@playwright/test';
 
 async function globalSetup() {
-  // Set up MSW for CI environment
+  // Log CI environment if detected
   if (process.env.CI) {
-    console.log('CI environment detected - MSW will be used for API mocking');
+    console.log('CI environment detected');
   }
   
   // Get the base URL from environment or use default
