@@ -59,7 +59,7 @@ pnpm lint
 
 ## 🌐 Deployment
 
-See [Deployment Guide](./docs/DEPLOYMENT.md) for detailed deployment instructions.
+See [Deployment Guide](./docs/04-deployment/DEPLOYMENT.md) for detailed deployment instructions.
 
 ### Quick Links
 - **Backend API**: https://personal-hub-backend-prod.zametech.workers.dev
@@ -92,13 +92,15 @@ personal-hub-cf/
 │       │   └── lib/         # API clients
 │       └── vite.config.ts   # Vite configuration
 ├── e2e/                     # E2E test suite (Playwright)
-├── docs/
-│   ├── api/                 # API documentation
-│   │   ├── README.md        # Quick API reference
-│   │   ├── openapi.yaml     # OpenAPI 3.0 specification
-│   │   ├── types.ts         # TypeScript definitions
-│   │   └── client-example.ts # API client implementation
-│   └── guides/              # Development guides
+├── docs/                    # Organized documentation
+│   ├── 01-getting-started/  # Quick start guides
+│   ├── 02-architecture/     # System design docs
+│   ├── 03-development/      # Development guides
+│   ├── 04-deployment/       # Deployment instructions
+│   ├── 05-api/              # API documentation
+│   ├── 06-testing/          # Testing guides
+│   ├── 07-migration/        # Migration documentation
+│   └── 99-archive/          # Historical docs
 └── packages/                # Shared packages (future)
 ```
 
@@ -149,16 +151,11 @@ pnpm test:e2e:ui
 
 ## 📚 Documentation
 
-### API Documentation
-- [API Quick Reference](./docs/api/README.md) - Concise API endpoint reference
-- [OpenAPI Specification](./docs/api/openapi.yaml) - Complete API specification
-- [TypeScript Types](./docs/api/types.ts) - Type definitions for frontend use
-- [API Client Example](./docs/api/client-example.ts) - Implementation example
-
-### Development Guides
-- [Migration Guide V2](./MIGRATION_GUIDE_V2.md) - Detailed migration strategy
-- [Migration Progress](./MIGRATION_PROGRESS.md) - Current migration status
-- [Backend Documentation](./apps/backend/README.md) - Workers backend details
+- [Documentation Index](./docs/README.md) - Complete documentation overview
+- [Quick Start Guide](./docs/01-getting-started/QUICK_START.md) - Get started quickly
+- [API Reference](./docs/05-api/README.md) - Complete API documentation
+- [Testing Guide](./docs/06-testing/README.md) - Testing strategies and guides
+- [Migration Guide](./docs/07-migration/MIGRATION_GUIDE_V2.md) - Migration documentation
 
 ## 🌟 Features
 

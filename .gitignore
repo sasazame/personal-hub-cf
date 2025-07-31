@@ -59,6 +59,9 @@ tmp/
 temp/
 *.tmp
 *.temp
+lint-errors.txt
+fix_imports.txt
+lint-report.json
 
 # OS files
 Thumbs.db
