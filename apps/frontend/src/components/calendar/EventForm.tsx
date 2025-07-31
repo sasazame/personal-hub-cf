@@ -129,8 +129,16 @@ export function EventForm({
       const start = new Date(startDateTime);
       const end = new Date(endDateTime);
       
-      if (end <= start) {
-        newErrors.endDateTime = 'End time must be after start time';
+      if (allDay) {
+        // For all-day events, allow same date
+        if (end < start) {
+          newErrors.endDateTime = 'End date must be on or after start date';
+        }
+      } else {
+        // For timed events, end must be after start
+        if (end <= start) {
+          newErrors.endDateTime = 'End time must be after start time';
+        }
       }
     }
     

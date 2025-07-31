@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Todo } from '@/types/todo'
 import { TodoItem } from './TodoItem'
 
@@ -8,7 +9,7 @@ interface TodoListProps {
   onAddChild?: (parentId: number) => void
 }
 
-export function TodoList({ todos, onUpdate, onDelete, onAddChild }: TodoListProps) {
+export const TodoList = memo(function TodoList({ todos, onUpdate, onDelete, onAddChild }: TodoListProps) {
   return (
     <div className="space-y-4">
       {todos.map((todo) => (
@@ -23,4 +24,4 @@ export function TodoList({ todos, onUpdate, onDelete, onAddChild }: TodoListProp
       ))}
     </div>
   )
-}
+})

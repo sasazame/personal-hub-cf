@@ -23,8 +23,10 @@ export const todoApi = {
   },
 
   async getByStatus(status: TodoStatus): Promise<Todo[]> {
-    const response = await apiClient.get(`/api/v1/todos/status/${status}`)
-    return response.data
+    const response = await apiClient.get('/api/v1/todos', {
+      params: { status, limit: 100 }
+    })
+    return response.data.items || []
   },
 
   async getById(id: number): Promise<Todo> {
@@ -33,7 +35,7 @@ export const todoApi = {
   },
 
   async getChildren(parentId: number): Promise<Todo[]> {
-    const response = await apiClient.get(`/api/v1/todos/${parentId}/children`)
+    const response = await apiClient.get(`/api/v1/todos/${parentId}/subtasks`)
     return response.data
   },
 
@@ -67,20 +69,34 @@ export const todoApi = {
   },
 
   async toggleStatus(id: number): Promise<Todo> {
-    const response = await apiClient.put(`/api/v1/todos/${id}/toggle-status`)
-    return response.data
+    // First get the current todo to know its status
+    const todo = await this.getById(id)
+    
+    if (todo.status === 'DONE') {
+      // If completed, set back to TODO
+      const response = await apiClient.put(`/api/v1/todos/${id}`, { status: 'TODO' })
+      return response.data
+    } else {
+      // If not completed, mark as complete
+      const response = await apiClient.post(`/api/v1/todos/${id}/complete`)
+      return response.data
+    }
   },
 
   async delete(id: number): Promise<void> {
     await apiClient.delete(`/api/v1/todos/${id}`)
   },
 
+  // TODO: These endpoints are not implemented in the backend yet
   async generateInstances(): Promise<void> {
-    await apiClient.post('/api/v1/todos/generate-instances')
+    // await apiClient.post('/api/v1/todos/generate-instances')
+    console.warn('generateInstances endpoint not implemented')
   },
 
   async getRecurringTasks(): Promise<Todo[]> {
-    const response = await apiClient.get('/api/v1/todos/recurring')
-    return response.data
+    // const response = await apiClient.get('/api/v1/todos/recurring')
+    // return response.data
+    console.warn('getRecurringTasks endpoint not implemented')
+    return []
   }
 }
