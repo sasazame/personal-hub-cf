@@ -104,4 +104,4 @@ jobs:
           projectName: personal-hub
           directory: apps/frontend/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          production: true
+          branch: main
