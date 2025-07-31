@@ -133,7 +133,9 @@ jobs:
         run: pnpm test:e2e:install
 
       - name: Build frontend
-        run: pnpm --filter @personal-hub/frontend build
+        run: |
+          cd apps/frontend
+          VITE_API_BASE_URL=http://localhost:8787 pnpm build
 
       - name: Start backend server
         run: |

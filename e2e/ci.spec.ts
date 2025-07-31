@@ -56,13 +56,33 @@ test.describe('CI Critical Path Tests', () => {
     await page.waitForLoadState('networkidle');
     
     const timestamp = Date.now().toString().slice(-6);
-    await page.fill('input[name="username"]', `ciuser${timestamp}`);
-    await page.fill('input[name="email"]', `ci${timestamp}@test.com`);
-    await page.fill('input[name="password"]', 'Test123456!');
-    await page.fill('input[name="confirmPassword"]', 'Test123456!');
+    const email = `ci${timestamp}@test.com`;
+    const password = 'Test123456!';
     
-    // Click submit
-    await page.click('button[type="submit"]');
+    console.log(`Registering user: ${email}`);
+    
+    await page.fill('input[name="username"]', `ciuser${timestamp}`);
+    await page.fill('input[name="email"]', email);
+    await page.fill('input[name="password"]', password);
+    await page.fill('input[name="confirmPassword"]', password);
+    
+    // Click submit and wait for response
+    const [response] = await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/auth/register')),
+      page.click('button[type="submit"]')
+    ]);
+    
+    console.log(`Registration response status: ${response.status()}`);
+    if (!response.ok()) {
+      const body = await response.text();
+      console.error(`Registration failed: ${body}`);
+    }
+    
+    // Check for any error messages on the page
+    const errorMessages = await page.locator('.text-red-500, .text-red-600, [role="alert"]').allTextContents();
+    if (errorMessages.length > 0) {
+      console.error('Error messages found:', errorMessages);
+    }
     
     // Use the helper function to handle post-registration flow
     await handlePostRegistrationFlow(page, timestamp, 'ci');
