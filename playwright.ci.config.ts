@@ -34,7 +34,8 @@ export default defineConfig({
     // Other browsers disabled for CI stability
   ],
 
-  webServer: {
+  // Disable webServer in CI since we manually start servers
+  webServer: process.env.SKIP_WEBSERVER ? undefined : {
     command: 'pnpm dev',
     port: 3000,
     reuseExistingServer: !process.env.CI,
