@@ -141,10 +141,16 @@ export async function fetchDefaultMomentTags(): Promise<string[]> {
 }
 
 export async function createMoment(data: CreateMomentDto): Promise<Moment> {
+  // Convert tags array to comma-separated string for backend
+  const payload = {
+    content: data.content,
+    tags: data.tags ? data.tags.join(',') : undefined
+  };
+  
   const response = await fetch(`${API_BASE_URL}/api/v1/moments`, {
     method: 'POST',
     headers: getAuthHeaders(),
-    body: JSON.stringify(data)
+    body: JSON.stringify(payload)
   });
   
   if (!response.ok) {
@@ -156,10 +162,16 @@ export async function createMoment(data: CreateMomentDto): Promise<Moment> {
 }
 
 export async function updateMoment(id: number, data: UpdateMomentDto): Promise<Moment> {
+  // Convert tags array to comma-separated string for backend
+  const payload = {
+    content: data.content,
+    tags: data.tags ? data.tags.join(',') : undefined
+  };
+  
   const response = await fetch(`${API_BASE_URL}/api/v1/moments/${id}`, {
     method: 'PUT',
     headers: getAuthHeaders(),
-    body: JSON.stringify(data)
+    body: JSON.stringify(payload)
   });
   
   if (!response.ok) {

@@ -137,20 +137,22 @@ jobs:
           cd apps/frontend
           VITE_API_BASE_URL=http://localhost:8787 pnpm build
 
-      - name: Initialize local database
+      - name: Setup CI backend
         run: |
-          cd apps/backend
-          # Run migrations to create tables
-          pnpm wrangler d1 execute personal-hub-local --local --file migrations/0001_init_schema.sql
-          echo "Database initialized successfully"
-
-      - name: Start backend server
-        run: |
-          cd apps/backend
-          pnpm wrangler dev --local --test-scheduled --port 8787 &
-          echo "BACKEND_PID=$!" >> $GITHUB_ENV
-          sleep 10
-          curl -f http://localhost:8787/health || exit 1
+          ./scripts/setup-ci-backend.sh &
+          # Wait for backend to be ready
+          for i in {1..30}; do
+            if curl -f http://localhost:8787/health > /dev/null 2>&1; then
+              echo "Backend is ready!"
+              break
+            fi
+            echo "Waiting for backend... ($i/30)"
+            sleep 1
+          done
+          # Save PID for cleanup
+          if [ -f /tmp/backend.pid ]; then
+            echo "BACKEND_PID=$(cat /tmp/backend.pid)" >> $GITHUB_ENV
+          fi
 
       - name: Run E2E tests
         run: |

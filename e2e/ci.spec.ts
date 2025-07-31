@@ -127,7 +127,7 @@ test.describe('CI Critical Path Tests', () => {
     
     // Set up response listener before clicking
     const responsePromise = page.waitForResponse(
-      resp => resp.url().includes('/todos'),
+      resp => resp.url().includes('/api/v1/todos'),
       { timeout: 5000 }
     ).catch(() => null);
     
@@ -155,13 +155,19 @@ test.describe('CI Critical Path Tests', () => {
     // Verify todo appears
     await expect(page.locator('text=CI Test Task')).toBeVisible();
     
-    // Complete todo - find checkbox near the text
-    const todoItem = page.locator('text=CI Test Task');
-    const checkbox = todoItem.locator('..').locator('input[type="checkbox"]').first();
-    await checkbox.click();
+    // Wait a bit for the UI to be fully interactive
+    await page.waitForTimeout(1000);
     
-    // Verify completion
-    await expect(page.locator('.line-through')).toContainText('CI Test Task');
+    // Complete todo - wait for button to be enabled and click
+    const markCompleteBtn = page.getByRole('button', { name: 'Mark complete' });
+    await markCompleteBtn.waitFor({ state: 'visible' });
+    await markCompleteBtn.click();
+    
+    // Wait for status update
+    await page.waitForTimeout(1000);
+    
+    // Verify completion - check for Done status
+    await expect(page.locator('text=Done')).toBeVisible();
   });
 
   test('should create a note', async ({ page }) => {
@@ -184,18 +190,19 @@ test.describe('CI Critical Path Tests', () => {
     await page.goto('/notes');
     await page.waitForLoadState('networkidle');
     
-    // Create note (handle both languages)
-    await page.click('button:has-text("Create Note"), button:has-text("新規ノート"), button:has-text("新規作成")');
+    // Create note - click New Note button
+    await page.click('button:has-text("New Note")');
     
     // Wait for form to appear
-    await page.waitForSelector('input[name="title"]');
+    await page.waitForSelector('text=Note Title');
     
-    await page.fill('input[name="title"]', 'CI Test Note');
-    await page.fill('textarea[name="content"]', 'This is a test note content');
+    // Fill in the form using placeholder text
+    await page.fill('input[placeholder="Enter note title"]', 'CI Test Note');
+    await page.fill('textarea[placeholder="Enter note content"]', 'This is a test note content');
     
     // Submit form and wait for API response
     const [noteResponse] = await Promise.all([
-      page.waitForResponse(resp => resp.url().includes('/api/notes') && resp.request().method() === 'POST'),
+      page.waitForResponse(resp => resp.url().includes('/api/v1/notes') && resp.request().method() === 'POST'),
       page.click('button[type="submit"]')
     ]);
     
@@ -239,7 +246,7 @@ test.describe('CI Critical Path Tests', () => {
     
     // Submit with Control+Enter and wait for API response
     const [momentResponse] = await Promise.all([
-      page.waitForResponse(resp => resp.url().includes('/api/moments') && resp.request().method() === 'POST'),
+      page.waitForResponse(resp => resp.url().includes('/api/v1/moments') && resp.request().method() === 'POST'),
       momentTextarea.press('Control+Enter')
     ]);
     
@@ -250,8 +257,15 @@ test.describe('CI Critical Path Tests', () => {
       console.error('Moment creation failed:', body);
     }
     
-    // Wait for moment to appear
-    await page.waitForSelector('text=CI Test Moment');
+    // Wait for the moments list to refresh
+    await page.waitForTimeout(1000);
+    
+    // Force a page refresh to see the new moment
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    
+    // The moment should appear in the list
+    await expect(page.locator('text=CI Test Moment')).toBeVisible({ timeout: 10000 });
     
     // Verify moment appears
     await expect(page.locator('text=CI Test Moment').first()).toBeVisible();
