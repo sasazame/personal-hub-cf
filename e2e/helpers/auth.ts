@@ -13,7 +13,7 @@ export async function login(page: Page, email: string, password: string) {
   }
   
   // Wait for login form to be visible
-  await page.waitForSelector('input[type="email"]', { timeout: 10000 });
+  await page.waitForSelector('input[type="email"]', { timeout: 5000 });
   
   // Fill in login form
   await page.fill('input[type="email"]', email);
@@ -25,9 +25,9 @@ export async function login(page: Page, email: string, password: string) {
   // Wait for either redirect or error message
   await Promise.race([
     // Wait for successful redirect
-    page.waitForURL((url) => !url.href.includes('/login'), { timeout: 10000 }),
+    page.waitForURL((url) => !url.href.includes('/login'), { timeout: 5000 }),
     // Or wait for error message
-    page.waitForSelector('[data-sonner-toast][data-type="error"], .text-red-500, .text-red-600', { timeout: 10000 }).then(() => {
+    page.waitForSelector('[data-sonner-toast][data-type="error"], .text-red-500, .text-red-600', { timeout: 5000 }).then(() => {
       throw new Error('Login error detected');
     })
   ]).catch(async () => {

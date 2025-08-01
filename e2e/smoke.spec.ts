@@ -19,14 +19,14 @@ test.describe('Smoke Tests', () => {
     await page.waitForFunction(() => {
       const loadingElements = document.body.innerText.includes('Loading...');
       return !loadingElements;
-    }, { timeout: 10000 });
+    }, { timeout: 5000 });
     
     // Check basic page properties
     await expect(page).toHaveTitle(/Personal Hub/);
     
     // Since we're not authenticated, we should be redirected to login
     // Wait for the URL to change to login page
-    await page.waitForURL(/\/login/, { timeout: 15000 });
+    await page.waitForURL(/\/login/, { timeout: 5000 });
     
     // Verify we're on the login page
     await expect(page).toHaveURL(/\/login/);

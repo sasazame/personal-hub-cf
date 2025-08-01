@@ -43,7 +43,7 @@ test.describe('Todo Checkbox Functionality', () => {
     await checkbox.click();
     
     // Wait for the status to change - look for Done status badge
-    await expect(todoContainer.locator('span').filter({ hasText: 'Done' })).toBeVisible({ timeout: 10000 });
+    await expect(todoContainer.locator('span').filter({ hasText: 'Done' })).toBeVisible({ timeout: 5000 });
     
     // Verify the checkbox now shows as completed
     await expect(todoContainer.locator('button[type="button"]').first()).toBeVisible();
@@ -68,7 +68,7 @@ test.describe('Todo Checkbox Functionality', () => {
     await checkbox.click();
     
     // Wait for the status to change
-    await expect(todoContainer.locator('span').filter({ hasText: 'Todo' })).toBeVisible({ timeout: 10000 });
+    await expect(todoContainer.locator('span').filter({ hasText: 'Todo' })).toBeVisible({ timeout: 5000 });
     
     // Verify checkbox is now unchecked
     await expect(todoContainer.locator('button[type="button"]').first()).toBeVisible();
@@ -105,7 +105,7 @@ test.describe('Todo Checkbox Functionality', () => {
     await expect(checkbox).toHaveClass(/animate-pulse/);
     
     // Wait for completion
-    await expect(todoContainer.locator('span').filter({ hasText: 'Done' })).toBeVisible({ timeout: 10000 });
+    await expect(todoContainer.locator('span').filter({ hasText: 'Done' })).toBeVisible({ timeout: 5000 });
     await expect(checkbox).toBeEnabled();
   });
 });

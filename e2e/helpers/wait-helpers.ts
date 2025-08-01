@@ -9,7 +9,7 @@ export async function waitForAuthState(page: Page) {
   await page.waitForTimeout(500);
   
   // Wait for any navigation to complete
-  await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
+  await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {
     // Ignore timeout - networkidle might not happen, especially on mobile
   });
   
