@@ -91,8 +91,7 @@ test.describe('CI Critical Path Tests', () => {
     await expect(page.locator('span.rounded-full:has-text("Done")')).toBeVisible({ timeout: 10000 });
   });
 
-  // TODO: Fix flaky notes test - API works (201 Created) but UI doesn't update reliably
-  test.skip('should create a note', async ({ page }) => {
+  test('should create a note', async ({ page }) => {
     // Register and login
     const timestamp = Date.now().toString().slice(-6);
     await registerAndLogin(page, timestamp);
@@ -100,7 +99,7 @@ test.describe('CI Critical Path Tests', () => {
     // Navigate to notes
     await page.goto('/notes');
     
-    // Wait for the notes API to be called
+    // Wait for initial notes load
     await page.waitForResponse(response => 
       response.url().includes('/api/v1/notes') && response.status() === 200,
       { timeout: 10000 }
@@ -118,14 +117,42 @@ test.describe('CI Critical Path Tests', () => {
     // Submit - wait for button to be enabled
     const createButton = page.locator('button:has-text("Create")');
     await expect(createButton).toBeEnabled({ timeout: 5000 });
+    
+    // Set up response listeners before clicking create
+    const createResponsePromise = page.waitForResponse(response => 
+      response.url().includes('/api/v1/notes') && response.status() === 201,
+      { timeout: 10000 }
+    );
+    
+    // Click create button
     await createButton.click();
     
-    // Wait for note to appear
-    await page.waitForSelector('text=CI Test Note', { timeout: 5000 });
+    // Wait for the create response
+    await createResponsePromise;
     
-    // Verify note
-    await expect(page.locator('text=CI Test Note')).toBeVisible();
-    await expect(page.locator('text=test')).toBeVisible();
+    // Now wait for the refresh response after creation
+    const refreshResponsePromise = page.waitForResponse(response => 
+      response.url().includes('/api/v1/notes') && response.status() === 200,
+      { timeout: 10000 }
+    );
+    await refreshResponsePromise;
+    
+    // Wait for modal to close
+    await page.waitForSelector('input[placeholder="Enter note title"]', { state: 'hidden', timeout: 10000 });
+    
+    // Wait a bit for React to update the DOM after modal closes
+    await page.waitForTimeout(1000);
+    
+    // Wait for note to appear with more specific selector
+    await page.waitForSelector('h3:has-text("CI Test Note")', { timeout: 10000 });
+    
+    // Verify note appears in the list
+    const noteTitle = page.locator('h3:has-text("CI Test Note")');
+    await expect(noteTitle).toBeVisible();
+    
+    // Verify the note content preview is visible - use more specific selector
+    const noteContent = page.locator('.text-sm.text-gray-600.dark\\:text-gray-400:has-text("This is test content for CI")');
+    await expect(noteContent).toBeVisible();
   });
 
   test('should navigate between sections', async ({ page }) => {
