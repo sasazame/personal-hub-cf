@@ -86,8 +86,9 @@ test.describe('CI Critical Path Tests', () => {
     // Wait for status update with longer timeout
     await page.waitForTimeout(2000);
     
-    // Verify completion - check for Done status
-    await expect(page.locator('text=Done')).toBeVisible({ timeout: 10000 });
+    // Verify completion - check for Done status badge with more specific selector
+    // The status is inside a span with rounded-full class
+    await expect(page.locator('span.rounded-full:has-text("Done")')).toBeVisible({ timeout: 10000 });
   });
 
   // TODO: Fix flaky notes test - API works (201 Created) but UI doesn't update reliably
