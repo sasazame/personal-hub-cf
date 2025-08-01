@@ -8,7 +8,11 @@
 
 
 ## not implemented feature
-- [ ] Goals: Creating Goals
+- [x] ~~Goals: Creating Goals~~ - IMPLEMENTED in current branch
+  - Added GoalForm component with full create/edit functionality
+  - Form includes goal type, metric type, target values, and date selection
+  - Auto-calculates end dates based on goal type
+  - Integrated with existing Goals page
 
 
 ## enhancement
