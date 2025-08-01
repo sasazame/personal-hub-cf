@@ -10,8 +10,16 @@ export function getAuthHeaders() {
   };
 }
 
+// Transform backend moment to frontend format
+function transformMoment(backendMoment: Omit<Moment, 'tags'> & { tags?: string | null }): Moment {
+  return {
+    ...backendMoment,
+    tags: backendMoment.tags ? backendMoment.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t) : []
+  };
+}
+
 export async function fetchMoments(page = 0, size = 20): Promise<MomentPage> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments?page=${page}&size=${size}`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/moments?page=${page + 1}&limit=${size}`, {
     headers: getAuthHeaders()
   });
   
@@ -19,11 +27,25 @@ export async function fetchMoments(page = 0, size = 20): Promise<MomentPage> {
     throw new Error(`Failed to fetch moments: ${response.statusText}`);
   }
   
-  return response.json();
+  const data = await response.json();
+  
+  // Transform backend response to match frontend expectations
+  return {
+    content: (data.items || []).map(transformMoment),
+    totalElements: data.total || 0,
+    totalPages: data.totalPages || 0,
+    first: page === 0,
+    last: (page + 1) >= data.totalPages,
+    pageable: {
+      pageNumber: page,
+      pageSize: size,
+      sort: { sorted: false, direction: 'desc', properties: [] }
+    }
+  };
 }
 
 export async function fetchAllMoments(): Promise<Moment[]> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments/all`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/moments?limit=1000`, {
     headers: getAuthHeaders()
   });
   
@@ -31,7 +53,8 @@ export async function fetchAllMoments(): Promise<Moment[]> {
     throw new Error(`Failed to fetch all moments: ${response.statusText}`);
   }
   
-  return response.json();
+  const data = await response.json();
+  return (data.items || []).map(transformMoment);
 }
 
 export async function fetchMomentById(id: number): Promise<Moment> {
@@ -43,14 +66,15 @@ export async function fetchMomentById(id: number): Promise<Moment> {
     throw new Error(`Failed to fetch moment: ${response.statusText}`);
   }
   
-  return response.json();
+  const moment = await response.json();
+  return transformMoment(moment);
 }
 
 export async function searchMoments(query: string, tag?: string): Promise<Moment[]> {
-  const params = new URLSearchParams({ query });
-  if (tag) params.append('tag', tag);
+  const params = new URLSearchParams({ search: query });
+  if (tag) params.append('tags', tag);
   
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments/search?${params}`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/moments?${params}`, {
     headers: getAuthHeaders()
   });
   
@@ -58,11 +82,13 @@ export async function searchMoments(query: string, tag?: string): Promise<Moment
     throw new Error(`Failed to search moments: ${response.statusText}`);
   }
   
-  return response.json();
+  const data = await response.json();
+  return (data.items || []).map(transformMoment);
 }
 
 export async function fetchMomentsByTag(tag: string): Promise<Moment[]> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments/tag/${encodeURIComponent(tag)}`, {
+  const params = new URLSearchParams({ tags: tag });
+  const response = await fetch(`${API_BASE_URL}/api/v1/moments?${params}`, {
     headers: getAuthHeaders()
   });
   
@@ -70,18 +96,19 @@ export async function fetchMomentsByTag(tag: string): Promise<Moment[]> {
     throw new Error(`Failed to fetch moments by tag: ${response.statusText}`);
   }
   
-  return response.json();
+  const data = await response.json();
+  return (data.items || []).map(transformMoment);
 }
 
 export async function fetchMomentsByDateRange(startDate: string, endDate: string, page = 0, size = 20): Promise<MomentPage> {
   const params = new URLSearchParams({
-    startDate,
-    endDate,
-    page: page.toString(),
-    size: size.toString()
+    fromDate: startDate,
+    toDate: endDate,
+    page: (page + 1).toString(),
+    limit: size.toString()
   });
   
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments/range?${params}`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/moments?${params}`, {
     headers: getAuthHeaders()
   });
   
@@ -89,11 +116,25 @@ export async function fetchMomentsByDateRange(startDate: string, endDate: string
     throw new Error(`Failed to fetch moments by date range: ${response.statusText}`);
   }
   
-  return response.json();
+  const data = await response.json();
+  
+  // Transform backend response to match frontend expectations
+  return {
+    content: (data.items || []).map(transformMoment),
+    totalElements: data.total || 0,
+    totalPages: data.totalPages || 0,
+    first: page === 0,
+    last: (page + 1) >= data.totalPages,
+    pageable: {
+      pageNumber: page,
+      pageSize: size,
+      sort: { sorted: false, direction: 'desc', properties: [] }
+    }
+  };
 }
 
 export async function fetchRecentMoments(limit = 10): Promise<Moment[]> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments/recent?limit=${limit}`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/moments?limit=${limit}`, {
     headers: getAuthHeaders()
   });
   
@@ -101,7 +142,8 @@ export async function fetchRecentMoments(limit = 10): Promise<Moment[]> {
     throw new Error(`Failed to fetch recent moments: ${response.statusText}`);
   }
   
-  return response.json();
+  const data = await response.json();
+  return (data.items || []).map(transformMoment);
 }
 
 export async function fetchTodaysMoments(): Promise<Moment[]> {
@@ -113,7 +155,8 @@ export async function fetchTodaysMoments(): Promise<Moment[]> {
     throw new Error(`Failed to fetch today's moments: ${response.statusText}`);
   }
   
-  return response.json();
+  const moments = await response.json();
+  return moments.map(transformMoment);
 }
 
 export async function fetchMomentTags(): Promise<string[]> {
@@ -162,7 +205,10 @@ export async function createMoment(data: CreateMomentDto): Promise<Moment> {
     throw new Error(error.error || `Failed to create moment: ${response.statusText}`);
   }
   
-  return response.json();
+  const result = await response.json();
+  // Backend returns an array with the created moment
+  const moment = Array.isArray(result) ? result[0] : result;
+  return transformMoment(moment);
 }
 
 export async function updateMoment(id: number, data: UpdateMomentDto): Promise<Moment> {
@@ -183,7 +229,10 @@ export async function updateMoment(id: number, data: UpdateMomentDto): Promise<M
     throw new Error(error.error || `Failed to update moment: ${response.statusText}`);
   }
   
-  return response.json();
+  const result = await response.json();
+  // Backend returns an array with the updated moment
+  const moment = Array.isArray(result) ? result[0] : result;
+  return transformMoment(moment);
 }
 
 export async function deleteMoment(id: number): Promise<void> {

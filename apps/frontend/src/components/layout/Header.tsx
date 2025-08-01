@@ -4,7 +4,11 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Menu, User, LogOut, Settings, ChevronDown, Sun, Moon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export function Header() {
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
+
+export function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -15,7 +19,11 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo/Brand */}
           <div className="flex items-center">
-            <button className="md:hidden p-2 rounded-md text-foreground hover:bg-muted">
+            <button 
+              onClick={onMenuClick}
+              className="md:hidden p-2 rounded-md text-foreground hover:bg-muted"
+              aria-label="Toggle menu"
+            >
               <Menu className="h-6 w-6" />
             </button>
             <Link to="/dashboard" className="ml-2 flex items-center gap-2">
