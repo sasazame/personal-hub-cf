@@ -124,11 +124,11 @@ export function CalendarGrid({
 
   const getEventColor = (color?: string) => {
     const colorMap = {
-      blue: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border-blue-300 dark:border-blue-700',
-      green: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 border-green-300 dark:border-green-700',
-      red: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 border-red-300 dark:border-red-700',
-      purple: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 border-purple-300 dark:border-purple-700',
-      orange: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 border-orange-300 dark:border-orange-700',
+      blue: 'event-blue',
+      green: 'event-green',
+      red: 'event-red',
+      purple: 'event-purple',
+      orange: 'event-orange',
     };
     return colorMap[color as keyof typeof colorMap] || colorMap.blue;
   };
@@ -136,7 +136,7 @@ export function CalendarGrid({
   return (
     <div 
       data-testid="calendar-grid"
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+      className="bg-card rounded-lg shadow-sm border border-border overflow-hidden"
     >
       {/* Header */}
       <div className="grid grid-cols-7">
@@ -144,10 +144,10 @@ export function CalendarGrid({
           <div
             key={day}
             className={cn(
-              "p-3 text-center text-sm font-medium border-b border-r dark:border-gray-700",
-              index === 0 && "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400",
-              index === 6 && "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400",
-              index > 0 && index < 6 && "bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400"
+              "p-3 text-center text-sm font-medium border-b border-r border-border",
+              index === 0 && "bg-destructive/10 text-destructive",
+              index === 6 && "bg-primary/10 text-primary",
+              index > 0 && index < 6 && "bg-muted text-muted-foreground"
             )}
           >
             {day}
@@ -167,11 +167,11 @@ export function CalendarGrid({
             <div
               key={day.toISOString()}
               className={cn(
-                "min-h-[120px] p-2 cursor-pointer transition-all border-r border-b dark:border-gray-700",
+                "min-h-[120px] p-2 cursor-pointer transition-all border-r border-b border-border",
                 isCurrentMonth 
-                  ? "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50" 
-                  : "bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-600",
-                dragOverDate && isSameDay(dragOverDate, day) && "bg-blue-50 dark:bg-blue-900/20 border-blue-500"
+                  ? "bg-card hover:bg-accent" 
+                  : "bg-muted text-muted-foreground",
+                dragOverDate && isSameDay(dragOverDate, day) && "bg-primary/10 border-primary"
               )}
               onClick={() => onDateClick(day)}
               onDragOver={(e) => handleDragOver(e, day)}
@@ -180,13 +180,13 @@ export function CalendarGrid({
             >
               <div className="mb-1">
                 {isDayToday ? (
-                  <div className="w-7 h-7 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  <div className="w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
                     {format(day, 'd')}
                   </div>
                 ) : (
                   <div className={cn(
                     "text-sm font-medium",
-                    isCurrentMonth ? "text-gray-900 dark:text-gray-100" : "text-gray-400 dark:text-gray-600"
+                    isCurrentMonth ? "text-foreground" : "text-muted-foreground"
                   )}>
                     {format(day, 'd')}
                   </div>
@@ -216,7 +216,7 @@ export function CalendarGrid({
                 ))}
                 {dayEvents.length > 3 && !isExpanded && (
                   <button
-                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                    className="text-xs text-primary hover:underline font-medium"
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleDateExpansion(day);
@@ -227,7 +227,7 @@ export function CalendarGrid({
                 )}
                 {isExpanded && dayEvents.length > 3 && (
                   <button
-                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                    className="text-xs text-primary hover:underline font-medium"
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleDateExpansion(day);

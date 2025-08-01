@@ -1,12 +1,13 @@
 import toast from 'react-hot-toast'
+import { getCSSVariable } from '@/utils/cssVariables'
 
 export const showSuccess = (message: string) => {
   toast.success(message, {
     duration: 4000,
     position: 'top-right',
     style: {
-      background: '#10b981',
-      color: '#fff',
+      background: getCSSVariable('--success', true),
+      color: getCSSVariable('--success-foreground', true),
     },
   })
 }
@@ -16,8 +17,8 @@ export const showError = (message: string) => {
     duration: 4000,
     position: 'top-right',
     style: {
-      background: '#ef4444',
-      color: '#fff',
+      background: getCSSVariable('--destructive', true),
+      color: getCSSVariable('--destructive-foreground', true),
     },
   })
 }
@@ -27,8 +28,8 @@ export const showInfo = (message: string) => {
     duration: 4000,
     position: 'top-right',
     style: {
-      background: '#3b82f6',
-      color: '#fff',
+      background: getCSSVariable('--info', true),
+      color: getCSSVariable('--info-foreground', true),
     },
   })
 }

@@ -2,7 +2,7 @@ import { useEffect, useRef, useMemo } from 'react'
 import { Moment } from '../types/moment'
 import { Card } from './ui'
 import { Edit, Trash2, Tag, Clock, Loader2 } from 'lucide-react'
-import { groupMomentsByDate, getSortedDateKeys, formatDateHeader, formatTime, getTagColorStyle } from '../utils/momentUtils'
+import { groupMomentsByDate, getSortedDateKeys, formatDateHeader, formatTime, getTagColorClasses } from '../utils/momentUtils'
 
 interface MomentListProps {
   pages?: Array<{
@@ -77,7 +77,7 @@ export function MomentList({
     return (
       <div className="text-center py-12">
         <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
-        <p className="text-gray-500 dark:text-gray-400 mt-2">Loading...</p>
+        <p className="text-muted-foreground mt-2">Loading...</p>
       </div>
     )
   }
@@ -85,8 +85,8 @@ export function MomentList({
   if (!moments || moments.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500 dark:text-gray-400 text-lg">No moments yet</div>
-        <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+        <div className="text-muted-foreground text-lg">No moments yet</div>
+        <p className="text-sm text-muted-foreground mt-2">
           Start recording your thoughts and experiences
         </p>
       </div>
@@ -97,7 +97,7 @@ export function MomentList({
     <div className="space-y-6">
       {sortedDates.map((dateKey) => (
         <div key={dateKey}>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sticky top-0 bg-white dark:bg-gray-900 z-10 py-2">
+          <h3 className="text-lg font-semibold text-foreground mb-3 sticky top-0 bg-background z-10 py-2">
             {formatDateHeader(dateKey)}
           </h3>
           
@@ -109,13 +109,13 @@ export function MomentList({
                   onClick={() => onMomentClick(moment)}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="shrink-0 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 min-w-[80px]">
+                    <div className="shrink-0 text-sm text-muted-foreground flex items-center gap-1 min-w-[80px]">
                       <Clock className="w-3 h-3" />
                       {moment.createdAt && formatTime(moment.createdAt)}
                     </div>
                     
                     <div className="grow">
-                      <div className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words mb-2">
+                      <div className="text-foreground whitespace-pre-wrap break-words mb-2">
                         {moment.content}
                       </div>
                       
@@ -124,8 +124,7 @@ export function MomentList({
                           {moment.tags.map((tag) => (
                             <span
                               key={tag}
-                              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs"
-                              style={getTagColorStyle(tag)}
+                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${getTagColorClasses(tag)}`}
                             >
                               <Tag className="w-3 h-3" />
                               {tag}
@@ -141,7 +140,7 @@ export function MomentList({
                           e.stopPropagation()
                           onEditMoment(moment)
                         }}
-                        className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 hover:text-blue-600"
+                        className="p-1 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-primary"
                         title="Edit"
                         aria-label="Edit"
                       >
@@ -153,7 +152,7 @@ export function MomentList({
                           e.stopPropagation()
                           onDeleteMoment(moment)
                         }}
-                        className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 hover:text-red-600"
+                        className="p-1 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-destructive"
                         title="Delete"
                         aria-label="Delete"
                       >
@@ -170,12 +169,12 @@ export function MomentList({
       <div ref={observerTarget} className="h-10 flex items-center justify-center">
         {isFetchingNextPage && (
           <div className="flex items-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-            <span className="text-sm text-gray-500">Loading more...</span>
+            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+            <span className="text-sm text-muted-foreground">Loading more...</span>
           </div>
         )}
         {!hasNextPage && moments.length > 20 && (
-          <p className="text-sm text-gray-500">No more moments</p>
+          <p className="text-sm text-muted-foreground">No more moments</p>
         )}
       </div>
     </div>

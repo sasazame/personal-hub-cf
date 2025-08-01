@@ -39,15 +39,15 @@ export function ProductivityChart({ data, title = 'タスク完了率', height =
           data={chartData}
           margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
           <XAxis
             dataKey="name"
-            stroke="#6b7280"
+            className="stroke-muted-foreground"
             fontSize={12}
             tickLine={false}
           />
           <YAxis
-            stroke="#6b7280"
+            className="stroke-muted-foreground"
             fontSize={12}
             tickLine={false}
             domain={[0, 100]}

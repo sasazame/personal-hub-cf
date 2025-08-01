@@ -1,5 +1,6 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { CustomTooltip } from './CustomTooltip';
+import { getCSSVariable } from '@/utils/cssVariables';
 
 interface CategoryBreakdownProps {
   data: Array<{
@@ -9,16 +10,15 @@ interface CategoryBreakdownProps {
   }>;
 }
 
-const COLORS = [
-  '#3b82f6', // blue
-  '#10b981', // green
-  '#f59e0b', // yellow
-  '#ef4444', // red
-  '#8b5cf6', // purple
-  '#ec4899', // pink
-];
-
 export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
+  const COLORS = [
+    getCSSVariable('--primary', true),
+    getCSSVariable('--success', true),
+    getCSSVariable('--warning', true),
+    getCSSVariable('--destructive', true),
+    getCSSVariable('--info', true),
+    getCSSVariable('--accent', true),
+  ];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const CategoryTooltipContent = (props: any) => {
     if (!props.active || !props.payload || props.payload.length === 0) return null;
