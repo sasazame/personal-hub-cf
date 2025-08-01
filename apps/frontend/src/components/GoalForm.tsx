@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -56,16 +56,15 @@ export function GoalForm({ goal, onSubmit, onCancel }: GoalFormProps) {
 
   const metricType = watch('metricType');
   const startDate = watch('startDate');
+  const goalType = watch('goalType');
 
   // Auto-calculate end date based on goal type
-  const handleGoalTypeChange = (type: GoalType) => {
-    setValue('goalType', type);
-    
-    if (!isEditing && startDate) {
+  useEffect(() => {
+    if (!isEditing && startDate && goalType) {
       const start = new Date(startDate);
       let endDate: Date;
       
-      switch (type) {
+      switch (goalType) {
         case GoalType.DAILY:
           endDate = addDays(start, 30); // 30 days for daily goals
           break;
@@ -82,7 +81,7 @@ export function GoalForm({ goal, onSubmit, onCancel }: GoalFormProps) {
       
       setValue('endDate', format(endDate, 'yyyy-MM-dd'));
     }
-  };
+  }, [goalType, startDate, isEditing, setValue]);
 
   const handleFormSubmit = async (data: GoalFormData) => {
     setIsSubmitting(true);
@@ -166,7 +165,6 @@ export function GoalForm({ goal, onSubmit, onCancel }: GoalFormProps) {
           </label>
           <select
             {...register('goalType')}
-            onChange={(e) => handleGoalTypeChange(e.target.value as GoalType)}
             className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
             disabled={isEditing}
           >
