@@ -1,17 +1,13 @@
 import toast from 'react-hot-toast'
-
-// Get CSS variable values at runtime
-const getCSSVariable = (variable: string) => {
-  return window.getComputedStyle(document.documentElement).getPropertyValue(variable).trim()
-}
+import { getCSSVariable } from '@/utils/cssVariables'
 
 export const showSuccess = (message: string) => {
   toast.success(message, {
     duration: 4000,
     position: 'top-right',
     style: {
-      background: `hsl(${getCSSVariable('--success')})`,
-      color: `hsl(${getCSSVariable('--success-foreground')})`,
+      background: getCSSVariable('--success', true),
+      color: getCSSVariable('--success-foreground', true),
     },
   })
 }
@@ -21,8 +17,8 @@ export const showError = (message: string) => {
     duration: 4000,
     position: 'top-right',
     style: {
-      background: `hsl(${getCSSVariable('--destructive')})`,
-      color: `hsl(${getCSSVariable('--destructive-foreground')})`,
+      background: getCSSVariable('--destructive', true),
+      color: getCSSVariable('--destructive-foreground', true),
     },
   })
 }
@@ -32,8 +28,8 @@ export const showInfo = (message: string) => {
     duration: 4000,
     position: 'top-right',
     style: {
-      background: `hsl(${getCSSVariable('--info')})`,
-      color: `hsl(${getCSSVariable('--info-foreground')})`,
+      background: getCSSVariable('--info', true),
+      color: getCSSVariable('--info-foreground', true),
     },
   })
 }

@@ -26,8 +26,8 @@ export function StatsCard({
   icon,
   color = 'blue' 
 }: StatsCardProps) {
-  const isPositive = change && change > 0;
-  const isNegative = change && change < 0;
+  const isPositive = typeof change === 'number' && change > 0;
+  const isNegative = typeof change === 'number' && change < 0;
 
   return (
     <div className="bg-card rounded-lg p-6 shadow-sm">

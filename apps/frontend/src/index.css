@@ -22,6 +22,10 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
   
+  /* Stroke colors for charts */
+  --color-stroke-border: hsl(var(--border));
+  --color-stroke-muted-foreground: hsl(var(--muted-foreground));
+  
   /* Border radius */
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
@@ -266,6 +270,15 @@
   }
   .tag-gray:hover {
     background-color: hsl(var(--muted) / 0.8);
+  }
+
+  /* dark-mode override */
+  .dark .tag-gray {
+    background-color: hsl(var(--muted) / 0.15);
+    color: hsl(var(--muted-foreground));
+  }
+  .dark .tag-gray:hover {
+    background-color: hsl(var(--muted) / 0.25);
   }
   
   /* Calendar event colors - theme aware */
