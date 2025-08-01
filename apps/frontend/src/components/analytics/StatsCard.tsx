@@ -14,7 +14,7 @@ interface StatsCardProps {
 const colorVariants = {
   blue: 'bg-primary/10 text-primary',
   green: 'bg-success/10 text-success',
-  purple: 'bg-primary/10 text-primary',
+  purple: 'bg-purple-500/10 text-purple-500 dark:bg-purple-400/10 dark:text-purple-400',
   orange: 'bg-warning/10 text-warning',
 };
 

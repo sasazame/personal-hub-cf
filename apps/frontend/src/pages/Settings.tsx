@@ -5,6 +5,37 @@ import { Sun, Moon, Monitor, Bell, Globe, Clock, Palette, Save } from 'lucide-re
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 
+interface SettingsSwitchProps {
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  label: string;
+  description: string;
+}
+
+function SettingsSwitch({ checked, onCheckedChange, label, description }: SettingsSwitchProps) {
+  return (
+    <div className="flex items-center justify-between">
+      <div>
+        <label className="text-sm font-medium text-foreground">{label}</label>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      <Switch
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+          checked ? 'bg-primary' : 'bg-input'
+        }`}
+      >
+        <span
+          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+            checked ? 'translate-x-6' : 'translate-x-1'
+          }`}
+        />
+      </Switch>
+    </div>
+  );
+}
+
 export function Settings() {
   const { theme, setTheme } = useTheme();
   const [notifications, setNotifications] = useState({
@@ -18,6 +49,7 @@ export function Settings() {
     showSeconds: true,
     use24Hour: true,
   });
+  const [language, setLanguage] = useState('en');
 
   const handleSaveSettings = () => {
     // In a real app, this would save to the backend
@@ -78,25 +110,12 @@ export function Settings() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-medium text-foreground">Compact Mode</label>
-                <p className="text-sm text-muted-foreground">Reduce spacing between elements</p>
-              </div>
-              <Switch
-                checked={display.compactMode}
-                onCheckedChange={(checked) => setDisplay({ ...display, compactMode: checked })}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  display.compactMode ? 'bg-primary' : 'bg-input'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    display.compactMode ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </Switch>
-            </div>
+            <SettingsSwitch
+              checked={display.compactMode}
+              onCheckedChange={(checked) => setDisplay({ ...display, compactMode: checked })}
+              label="Compact Mode"
+              description="Reduce spacing between elements"
+            />
           </div>
         </div>
 
@@ -108,85 +127,33 @@ export function Settings() {
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-medium text-foreground">Email Notifications</label>
-                <p className="text-sm text-muted-foreground">Receive updates via email</p>
-              </div>
-              <Switch
-                checked={notifications.email}
-                onCheckedChange={(checked) => setNotifications({ ...notifications, email: checked })}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  notifications.email ? 'bg-primary' : 'bg-input'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    notifications.email ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </Switch>
-            </div>
+            <SettingsSwitch
+              checked={notifications.email}
+              onCheckedChange={(checked) => setNotifications({ ...notifications, email: checked })}
+              label="Email Notifications"
+              description="Receive updates via email"
+            />
 
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-medium text-foreground">Push Notifications</label>
-                <p className="text-sm text-muted-foreground">Receive browser notifications</p>
-              </div>
-              <Switch
-                checked={notifications.push}
-                onCheckedChange={(checked) => setNotifications({ ...notifications, push: checked })}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  notifications.push ? 'bg-primary' : 'bg-input'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    notifications.push ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </Switch>
-            </div>
+            <SettingsSwitch
+              checked={notifications.push}
+              onCheckedChange={(checked) => setNotifications({ ...notifications, push: checked })}
+              label="Push Notifications"
+              description="Receive browser notifications"
+            />
 
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-medium text-foreground">Task Reminders</label>
-                <p className="text-sm text-muted-foreground">Get reminded about upcoming tasks</p>
-              </div>
-              <Switch
-                checked={notifications.reminders}
-                onCheckedChange={(checked) => setNotifications({ ...notifications, reminders: checked })}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  notifications.reminders ? 'bg-primary' : 'bg-input'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    notifications.reminders ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </Switch>
-            </div>
+            <SettingsSwitch
+              checked={notifications.reminders}
+              onCheckedChange={(checked) => setNotifications({ ...notifications, reminders: checked })}
+              label="Task Reminders"
+              description="Get reminded about upcoming tasks"
+            />
 
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-medium text-foreground">Product Updates</label>
-                <p className="text-sm text-muted-foreground">Learn about new features</p>
-              </div>
-              <Switch
-                checked={notifications.updates}
-                onCheckedChange={(checked) => setNotifications({ ...notifications, updates: checked })}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  notifications.updates ? 'bg-primary' : 'bg-input'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    notifications.updates ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </Switch>
-            </div>
+            <SettingsSwitch
+              checked={notifications.updates}
+              onCheckedChange={(checked) => setNotifications({ ...notifications, updates: checked })}
+              label="Product Updates"
+              description="Learn about new features"
+            />
           </div>
         </div>
 
@@ -198,53 +165,29 @@ export function Settings() {
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-medium text-foreground">24-Hour Time</label>
-                <p className="text-sm text-muted-foreground">Use 24-hour time format</p>
-              </div>
-              <Switch
-                checked={display.use24Hour}
-                onCheckedChange={(checked) => setDisplay({ ...display, use24Hour: checked })}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  display.use24Hour ? 'bg-primary' : 'bg-input'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    display.use24Hour ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </Switch>
-            </div>
+            <SettingsSwitch
+              checked={display.use24Hour}
+              onCheckedChange={(checked) => setDisplay({ ...display, use24Hour: checked })}
+              label="24-Hour Time"
+              description="Use 24-hour time format"
+            />
 
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-medium text-foreground">Show Seconds</label>
-                <p className="text-sm text-muted-foreground">Display seconds in time fields</p>
-              </div>
-              <Switch
-                checked={display.showSeconds}
-                onCheckedChange={(checked) => setDisplay({ ...display, showSeconds: checked })}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  display.showSeconds ? 'bg-primary' : 'bg-input'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    display.showSeconds ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </Switch>
-            </div>
+            <SettingsSwitch
+              checked={display.showSeconds}
+              onCheckedChange={(checked) => setDisplay({ ...display, showSeconds: checked })}
+              label="Show Seconds"
+              description="Display seconds in time fields"
+            />
 
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">Language</label>
               <div className="flex items-center gap-2">
                 <Globe className="h-4 w-4 text-muted-foreground" />
                 <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
                   className="flex-1 px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  defaultValue="en"
+                  aria-label="Select language"
                 >
                   <option value="en">English</option>
                   <option value="ja" disabled>日本語 (Coming soon)</option>
