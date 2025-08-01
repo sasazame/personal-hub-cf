@@ -14,11 +14,11 @@ async function globalSetup() {
   const page = await browser.newPage();
   
   try {
-    await page.goto(baseUrl);
-    await page.waitForTimeout(2000);
+    await page.goto(baseUrl, { timeout: 10000 });
     console.log(`Application is accessible at ${baseUrl}`);
   } catch (error) {
     console.error('Failed to access application:', error);
+    // Don't throw - just log the error
   } finally {
     await browser.close();
   }
