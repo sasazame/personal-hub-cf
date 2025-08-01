@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 
 // Lazy load all pages for better performance
@@ -40,10 +41,11 @@ const PageLoader = () => (
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <AuthProvider>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
+      <ThemeProvider>
+        <Router>
+          <AuthProvider>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/terms" element={<Terms />} />
@@ -141,6 +143,7 @@ function App() {
           <Toaster position="top-right" />
         </AuthProvider>
       </Router>
+    </ThemeProvider>
     </QueryClientProvider>
   )
 }

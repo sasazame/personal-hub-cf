@@ -12,10 +12,10 @@ interface StatsCardProps {
 }
 
 const colorVariants = {
-  blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
-  green: 'bg-green-500/10 text-green-600 dark:text-green-400',
-  purple: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
-  orange: 'bg-orange-500/10 text-orange-600 dark:text-orange-400',
+  blue: 'bg-primary/10 text-primary',
+  green: 'bg-success/10 text-success',
+  purple: 'bg-primary/10 text-primary',
+  orange: 'bg-warning/10 text-warning',
 };
 
 export function StatsCard({ 
@@ -30,7 +30,7 @@ export function StatsCard({
   const isNegative = change && change < 0;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+    <div className="bg-card rounded-lg p-6 shadow-sm">
       <div className="flex items-start justify-between mb-4">
         <div className={cn(
           "p-3 rounded-lg",
@@ -41,8 +41,8 @@ export function StatsCard({
         {change !== undefined && (
           <div className={cn(
             "flex items-center gap-1 text-sm",
-            isPositive && "text-green-600 dark:text-green-400",
-            isNegative && "text-red-600 dark:text-red-400",
+            isPositive && "text-success",
+            isNegative && "text-destructive",
             !isPositive && !isNegative && "text-gray-500 dark:text-gray-400"
           )}>
             {isPositive && <TrendingUp className="w-4 h-4" />}
@@ -53,14 +53,14 @@ export function StatsCard({
       </div>
       
       <div>
-        <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <p className="text-2xl font-bold text-foreground">
           {value}
         </p>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           {title}
         </p>
         {changeLabel && (
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+          <p className="text-xs text-muted-foreground mt-2">
             {changeLabel}
           </p>
         )}

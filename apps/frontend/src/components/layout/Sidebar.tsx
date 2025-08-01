@@ -79,7 +79,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-16 bottom-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 hidden md:block">
+    <aside className="fixed left-0 top-16 bottom-0 w-64 bg-card border-r border-border hidden md:block">
       <nav className="flex flex-col h-full">
         {/* Main Navigation */}
         <div className="flex-1 px-3 py-4 space-y-1">
@@ -90,8 +90,8 @@ export function Sidebar() {
               className={`
                 flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
                 ${isActive(item.href)
-                  ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-foreground hover:bg-muted'
                 }
               `}
             >
@@ -102,7 +102,7 @@ export function Sidebar() {
         </div>
 
         {/* Bottom Navigation */}
-        <div className="px-3 py-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="px-3 py-4 border-t border-border">
           {bottomNavItems.map((item) => (
             <Link
               key={item.href}
@@ -110,8 +110,8 @@ export function Sidebar() {
               className={`
                 flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
                 ${isActive(item.href)
-                  ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-foreground hover:bg-muted'
                 }
               `}
             >

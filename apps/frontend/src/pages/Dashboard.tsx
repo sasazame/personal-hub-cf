@@ -21,7 +21,7 @@ export function Dashboard() {
       description: 'Manage your tasks and stay organized',
       icon: CheckSquare,
       href: '/todos',
-      color: 'bg-blue-500',
+      color: 'bg-primary',
       stats: '5 incomplete tasks'
     },
     {
@@ -29,7 +29,7 @@ export function Dashboard() {
       description: 'Track your goals and achievements',
       icon: Target,
       href: '/goals',
-      color: 'bg-indigo-500',
+      color: 'bg-primary/90',
       stats: '3 active goals'
     },
     {
@@ -37,7 +37,7 @@ export function Dashboard() {
       description: 'Boost productivity with time management',
       icon: Timer,
       href: '/pomodoro',
-      color: 'bg-red-500',
+      color: 'bg-destructive',
       stats: '0 sessions today'
     },
     {
@@ -45,7 +45,7 @@ export function Dashboard() {
       description: 'Schedule and manage your events',
       icon: Calendar,
       href: '/calendar',
-      color: 'bg-green-500',
+      color: 'bg-success',
       stats: '2 events today'
     },
     {
@@ -53,7 +53,7 @@ export function Dashboard() {
       description: 'Create and organize your thoughts',
       icon: FileText,
       href: '/notes',
-      color: 'bg-purple-500',
+      color: 'bg-primary/80',
       stats: '12 notes'
     },
     {
@@ -61,7 +61,7 @@ export function Dashboard() {
       description: 'Visualize your productivity',
       icon: BarChart3,
       href: '/analytics',
-      color: 'bg-orange-500',
+      color: 'bg-warning',
       stats: '85% completion rate'
     }
   ];
@@ -83,7 +83,7 @@ export function Dashboard() {
         <div className="flex justify-center">
           <Link 
             to="/todos"
-            className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-md hover:shadow-lg transition-all"
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-medium rounded-lg hover:from-primary/90 hover:to-primary/70 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 shadow-md hover:shadow-lg transition-all"
           >
             <Plus className="w-5 h-5" />
             New TODO
@@ -96,10 +96,10 @@ export function Dashboard() {
             const IconComponent = feature.icon;
             return (
               <Link key={feature.title} to={feature.href}>
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer group h-full p-6">
+                <div className="bg-card rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer group h-full p-6">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className={`w-12 h-12 rounded-lg ${feature.color} flex items-center justify-center text-white`}>
+                      <div className={`w-12 h-12 rounded-lg ${feature.color} flex items-center justify-center ${feature.color === 'bg-destructive' || feature.color === 'bg-warning' ? 'text-destructive-foreground' : 'text-primary-foreground'}`}>
                         <IconComponent className="w-6 h-6" />
                       </div>
                       <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300 transition-colors" />
@@ -126,24 +126,24 @@ export function Dashboard() {
 
         {/* Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div className="bg-card rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 Today's Events
               </h2>
-              <Link to="/calendar" className="text-green-600 hover:text-green-700 text-sm">
+              <Link to="/calendar" className="text-success hover:text-success/80 text-sm">
                 View all →
               </Link>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm">No events scheduled for today</p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div className="bg-card rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 Recent Notes
               </h2>
-              <Link to="/notes" className="text-purple-600 hover:text-purple-700 text-sm">
+              <Link to="/notes" className="text-primary hover:text-primary/80 text-sm">
                 View all →
               </Link>
             </div>
