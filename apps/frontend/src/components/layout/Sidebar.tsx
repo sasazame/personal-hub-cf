@@ -32,7 +32,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     if (isOpen && onClose) {
       onClose();
     }
-  }, [location.pathname]);
+  }, [location.pathname, isOpen, onClose]);
 
   const navItems: NavItem[] = [
     {
