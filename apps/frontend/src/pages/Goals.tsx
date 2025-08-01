@@ -3,9 +3,10 @@ import { AppLayout } from '@/components/layout';
 import { Button, Modal } from '@/components/ui';
 import { goalApi } from '@/lib/goal-api';
 import { toast } from '@/components/ui/toast';
-import { Goal, GoalType, GoalWithStatus, CreateGoalDto, UpdateGoalDto, GoalFilter, MetricType } from '@/types/goal';
+import { Goal, GoalType, GoalWithStatus, CreateGoalDto, UpdateGoalDto, GoalFilter } from '@/types/goal';
 import { format, addDays, subDays } from 'date-fns';
 import { Plus, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Zap, Target, TrendingUp } from 'lucide-react';
+import { GoalForm } from '@/components/GoalForm';
 
 export function Goals() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -307,46 +308,33 @@ export function Goals() {
           })}
         </div>
 
-        {/* Placeholder for Goal Form */}
+        {/* Goal Form Modal */}
         {isFormOpen && (
-          <Modal open={isFormOpen} onClose={() => {
-            setIsFormOpen(false);
-            setSelectedGoal(null);
-          }}>
+          <Modal 
+            open={isFormOpen} 
+            onClose={() => {
+              setIsFormOpen(false);
+              setSelectedGoal(null);
+            }}
+          >
             <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">
+              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
                 {selectedGoal ? 'Edit Goal' : 'New Goal'}
               </h2>
-              <p className="text-gray-500">Goal form will be implemented here</p>
-              <div className="flex gap-2 mt-4">
-                <Button variant="secondary" onClick={() => {
+              <GoalForm
+                goal={selectedGoal}
+                onSubmit={async (data) => {
+                  if (selectedGoal) {
+                    await handleUpdateGoal(selectedGoal.id, data as UpdateGoalDto);
+                  } else {
+                    await handleCreateGoal(data as CreateGoalDto);
+                  }
+                }}
+                onCancel={() => {
                   setIsFormOpen(false);
                   setSelectedGoal(null);
-                }}>
-                  Cancel
-                </Button>
-                <Button variant="primary" onClick={() => {
-                  // Placeholder for form submission
-                  if (selectedGoal) {
-                    handleUpdateGoal(selectedGoal.id, {
-                      title: selectedGoal.title,
-                      targetValue: selectedGoal.targetValue,
-                      endDate: selectedGoal.endDate
-                    });
-                  } else {
-                    handleCreateGoal({
-                      title: 'New Goal',
-                      goalType: GoalType.DAILY,
-                      metricType: MetricType.COUNT,
-                      targetValue: 1,
-                      startDate: new Date().toISOString(),
-                      endDate: new Date().toISOString()
-                    });
-                  }
-                }}>
-                  Save
-                </Button>
-              </div>
+                }}
+              />
             </div>
           </Modal>
         )}
