@@ -15,14 +15,14 @@ interface MomentFormProps {
 }
 
 const TAG_COLOR_MAP = {
-  Ideas: 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50',
-  Discoveries: 'bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50',
-  Emotions: 'bg-pink-100 text-pink-700 hover:bg-pink-200 dark:bg-pink-900/30 dark:text-pink-400 dark:hover:bg-pink-900/50',
-  Log: 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50',
-  Other: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+  Ideas: 'tag-blue',
+  Discoveries: 'tag-purple',
+  Emotions: 'tag-pink',
+  Log: 'tag-green',
+  Other: 'tag-gray'
 };
 
-const DEFAULT_TAG_COLOR = 'bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:hover:bg-orange-900/50';
+const DEFAULT_TAG_COLOR = 'tag-orange';
 
 function getTagColorClasses(tag: string): string {
   return TAG_COLOR_MAP[tag as keyof typeof TAG_COLOR_MAP] || DEFAULT_TAG_COLOR;
@@ -111,7 +111,7 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
         <h3 className="text-lg font-medium mb-4">{moment ? 'Edit Moment' : 'Add Moment'}</h3>
         <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Moment Content *
           </label>
           <TextArea
@@ -124,7 +124,7 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+          <label className="block text-sm font-medium text-foreground mb-3">
             Tags
           </label>
           
@@ -138,7 +138,7 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
                   'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm transition-colors',
                   tags.includes(tag)
                     ? `${getTagColorClasses(tag)} ring-2 ring-offset-1 ring-blue-500`
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 )}
               >
                 <Tag className="w-3 h-3" />
@@ -179,7 +179,7 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
                 onChange={(e) => setCurrentTag(e.target.value)}
                 onKeyPress={handleTagKeyPress}
                 placeholder="Enter custom tag"
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                className="flex-1 px-3 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
                 autoFocus
               />
               <Button
@@ -207,7 +207,7 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
             <button
               type="button"
               onClick={() => setShowCustomTagInput(true)}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
             >
               <Plus className="w-3 h-3" />
               Add Custom Tag

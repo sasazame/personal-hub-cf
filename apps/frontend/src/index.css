@@ -168,4 +168,159 @@
   .text-success { color: hsl(var(--success)); }
   .text-warning { color: hsl(var(--warning)); }
   .text-info { color: hsl(var(--info)); }
+  
+  /* Tag color variants - theme aware */
+  .tag-blue {
+    background-color: hsl(217 91% 60% / 0.1);
+    color: hsl(217 91% 45%);
+  }
+  .tag-blue:hover {
+    background-color: hsl(217 91% 60% / 0.2);
+  }
+  .dark .tag-blue {
+    background-color: hsl(217 91% 60% / 0.15);
+    color: hsl(217 91% 65%);
+  }
+  .dark .tag-blue:hover {
+    background-color: hsl(217 91% 60% / 0.25);
+  }
+  
+  .tag-purple {
+    background-color: hsl(271 91% 65% / 0.1);
+    color: hsl(271 91% 45%);
+  }
+  .tag-purple:hover {
+    background-color: hsl(271 91% 65% / 0.2);
+  }
+  .dark .tag-purple {
+    background-color: hsl(271 91% 65% / 0.15);
+    color: hsl(271 91% 70%);
+  }
+  .dark .tag-purple:hover {
+    background-color: hsl(271 91% 65% / 0.25);
+  }
+  
+  .tag-pink {
+    background-color: hsl(330 87% 67% / 0.1);
+    color: hsl(330 87% 45%);
+  }
+  .tag-pink:hover {
+    background-color: hsl(330 87% 67% / 0.2);
+  }
+  .dark .tag-pink {
+    background-color: hsl(330 87% 67% / 0.15);
+    color: hsl(330 87% 70%);
+  }
+  .dark .tag-pink:hover {
+    background-color: hsl(330 87% 67% / 0.25);
+  }
+  
+  .tag-green {
+    background-color: hsl(142 71% 45% / 0.1);
+    color: hsl(142 71% 35%);
+  }
+  .tag-green:hover {
+    background-color: hsl(142 71% 45% / 0.2);
+  }
+  .dark .tag-green {
+    background-color: hsl(142 71% 45% / 0.15);
+    color: hsl(142 71% 60%);
+  }
+  .dark .tag-green:hover {
+    background-color: hsl(142 71% 45% / 0.25);
+  }
+  
+  .tag-orange {
+    background-color: hsl(38 92% 50% / 0.1);
+    color: hsl(38 92% 40%);
+  }
+  .tag-orange:hover {
+    background-color: hsl(38 92% 50% / 0.2);
+  }
+  .dark .tag-orange {
+    background-color: hsl(38 92% 50% / 0.15);
+    color: hsl(38 92% 65%);
+  }
+  .dark .tag-orange:hover {
+    background-color: hsl(38 92% 50% / 0.25);
+  }
+  
+  .tag-red {
+    background-color: hsl(0 84% 60% / 0.1);
+    color: hsl(0 84% 45%);
+  }
+  .tag-red:hover {
+    background-color: hsl(0 84% 60% / 0.2);
+  }
+  .dark .tag-red {
+    background-color: hsl(0 84% 60% / 0.15);
+    color: hsl(0 84% 65%);
+  }
+  .dark .tag-red:hover {
+    background-color: hsl(0 84% 60% / 0.25);
+  }
+  
+  .tag-gray {
+    background-color: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+  }
+  .tag-gray:hover {
+    background-color: hsl(var(--muted) / 0.8);
+  }
+  
+  /* Calendar event colors - theme aware */
+  .event-blue {
+    background-color: hsl(217 91% 60% / 0.1);
+    color: hsl(217 91% 45%);
+    border-color: hsl(217 91% 60% / 0.3);
+  }
+  .dark .event-blue {
+    background-color: hsl(217 91% 60% / 0.2);
+    color: hsl(217 91% 70%);
+    border-color: hsl(217 91% 60% / 0.4);
+  }
+  
+  .event-green {
+    background-color: hsl(142 71% 45% / 0.1);
+    color: hsl(142 71% 35%);
+    border-color: hsl(142 71% 45% / 0.3);
+  }
+  .dark .event-green {
+    background-color: hsl(142 71% 45% / 0.2);
+    color: hsl(142 71% 65%);
+    border-color: hsl(142 71% 45% / 0.4);
+  }
+  
+  .event-red {
+    background-color: hsl(0 84% 60% / 0.1);
+    color: hsl(0 84% 45%);
+    border-color: hsl(0 84% 60% / 0.3);
+  }
+  .dark .event-red {
+    background-color: hsl(0 84% 60% / 0.2);
+    color: hsl(0 84% 65%);
+    border-color: hsl(0 84% 60% / 0.4);
+  }
+  
+  .event-purple {
+    background-color: hsl(271 91% 65% / 0.1);
+    color: hsl(271 91% 45%);
+    border-color: hsl(271 91% 65% / 0.3);
+  }
+  .dark .event-purple {
+    background-color: hsl(271 91% 65% / 0.2);
+    color: hsl(271 91% 70%);
+    border-color: hsl(271 91% 65% / 0.4);
+  }
+  
+  .event-orange {
+    background-color: hsl(38 92% 50% / 0.1);
+    color: hsl(38 92% 40%);
+    border-color: hsl(38 92% 50% / 0.3);
+  }
+  .dark .event-orange {
+    background-color: hsl(38 92% 50% / 0.2);
+    color: hsl(38 92% 65%);
+    border-color: hsl(38 92% 50% / 0.4);
+  }
 }

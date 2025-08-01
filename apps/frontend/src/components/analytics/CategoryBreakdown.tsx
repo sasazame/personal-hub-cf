@@ -9,16 +9,21 @@ interface CategoryBreakdownProps {
   }>;
 }
 
-const COLORS = [
-  '#3b82f6', // blue
-  '#10b981', // green
-  '#f59e0b', // yellow
-  '#ef4444', // red
-  '#8b5cf6', // purple
-  '#ec4899', // pink
-];
-
 export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
+  // Get CSS variable values at runtime
+  const getCSSVariable = (variable: string) => {
+    const value = window.getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+    return `hsl(${value})`;
+  };
+
+  const COLORS = [
+    getCSSVariable('--primary'),
+    getCSSVariable('--success'),
+    getCSSVariable('--warning'),
+    getCSSVariable('--destructive'),
+    getCSSVariable('--info'),
+    getCSSVariable('--accent'),
+  ];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const CategoryTooltipContent = (props: any) => {
     if (!props.active || !props.payload || props.payload.length === 0) return null;

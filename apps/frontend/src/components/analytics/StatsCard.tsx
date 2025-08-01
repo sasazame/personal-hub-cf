@@ -14,7 +14,7 @@ interface StatsCardProps {
 const colorVariants = {
   blue: 'bg-primary/10 text-primary',
   green: 'bg-success/10 text-success',
-  purple: 'bg-purple-500/10 text-purple-500 dark:bg-purple-400/10 dark:text-purple-400',
+  purple: 'bg-purple-500/10 text-purple-500',
   orange: 'bg-warning/10 text-warning',
 };
 
@@ -43,7 +43,7 @@ export function StatsCard({
             "flex items-center gap-1 text-sm",
             isPositive && "text-success",
             isNegative && "text-destructive",
-            !isPositive && !isNegative && "text-gray-500 dark:text-gray-400"
+            !isPositive && !isNegative && "text-muted-foreground"
           )}>
             {isPositive && <TrendingUp className="w-4 h-4" />}
             {isNegative && <TrendingDown className="w-4 h-4" />}
