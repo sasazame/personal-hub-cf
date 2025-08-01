@@ -24,11 +24,11 @@ export function ActivityHeatmap({ data, startDate, endDate }: ActivityHeatmapPro
   const weeks = Math.ceil(days.length / 7);
   
   const getColor = (value: number) => {
-    if (value === 0) return 'bg-gray-100 dark:bg-gray-800';
-    if (value <= 2) return 'bg-green-200 dark:bg-green-900';
-    if (value <= 4) return 'bg-green-300 dark:bg-green-700';
-    if (value <= 6) return 'bg-green-400 dark:bg-green-600';
-    return 'bg-green-500 dark:bg-green-500';
+    if (value === 0) return 'bg-muted';
+    if (value <= 2) return 'bg-success/20';
+    if (value <= 4) return 'bg-success/40';
+    if (value <= 6) return 'bg-success/60';
+    return 'bg-success';
   };
 
   const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
@@ -44,7 +44,7 @@ export function ActivityHeatmap({ data, startDate, endDate }: ActivityHeatmapPro
   }, [days]);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+    <div className="bg-card rounded-lg p-6 shadow-sm">
       <h3 className="text-lg font-semibold mb-4">アクティビティ</h3>
       
       <div className="overflow-x-auto">
@@ -55,7 +55,7 @@ export function ActivityHeatmap({ data, startDate, endDate }: ActivityHeatmapPro
             {Array.from({ length: weeks }).map((_, weekIndex) => (
               <div key={weekIndex} className="w-[13px] text-center">
                 {months.get(weekIndex) && (
-                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                  <span className="text-xs text-muted-foreground">
                     {months.get(weekIndex)}
                   </span>
                 )}
@@ -71,7 +71,7 @@ export function ActivityHeatmap({ data, startDate, endDate }: ActivityHeatmapPro
                 <div
                   key={day}
                   className={cn(
-                    "text-xs text-gray-600 dark:text-gray-400 h-[13px] flex items-center",
+                    "text-xs text-muted-foreground h-[13px] flex items-center",
                     index % 2 === 1 && "invisible"
                   )}
                 >
@@ -100,7 +100,7 @@ export function ActivityHeatmap({ data, startDate, endDate }: ActivityHeatmapPro
                         key={dayIndex}
                         className={cn(
                           "w-[10px] h-[10px] rounded-sm transition-colors cursor-pointer",
-                          "hover:ring-1 hover:ring-gray-400 dark:hover:ring-gray-600",
+                          "hover:ring-1 hover:ring-border",
                           getColor(value)
                         )}
                         title={`${dateStr}: ${value} アクティビティ`}
@@ -113,7 +113,7 @@ export function ActivityHeatmap({ data, startDate, endDate }: ActivityHeatmapPro
           </div>
           
           {/* Legend */}
-          <div className="flex items-center gap-2 mt-4 text-xs text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-2 mt-4 text-xs text-muted-foreground">
             <span>少ない</span>
             <div className="flex gap-[3px]">
               {[0, 2, 4, 6, 8].map((value) => (
