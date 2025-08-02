@@ -4,7 +4,7 @@ import goalsRoutes from '../../routes/goals';
 import { generateTokens } from '../../utils/auth';
 import { createMockDbChain } from '../helpers/test-context';
 import type { Bindings, Variables } from '../../types';
-import type { D1Database } from '@cloudflare/workers-types';
+import type { D1Database, KVNamespace } from '@cloudflare/workers-types';
 import type { GoalResponse, APIErrorResponse } from '../helpers/response-types';
 
 describe('Goals Routes', () => {
@@ -40,6 +40,7 @@ describe('Goals Routes', () => {
       OAUTH_GOOGLE_CLIENT_ID: 'test-google-id',
       OAUTH_GOOGLE_CLIENT_SECRET: 'test-google-secret',
     ENVIRONMENT: 'test',
+      RATE_LIMITER: {} as KVNamespace,
     };
 
     // Generate valid token

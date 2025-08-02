@@ -14,19 +14,44 @@ import momentsRoutes from './routes/moments';
 import usersRoutes from './routes/users';
 import analyticsRoutes from './routes/analytics';
 import { createValidationError } from './utils/spring-boot-compat';
+import { securityHeaders } from './middleware/security-headers';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
+// Apply security headers middleware
+app.use('*', securityHeaders);
+
 // Apply CORS middleware
 app.use('*', cors({
-  origin: (origin) => {
-    // Allow requests from localhost during development
-    if (!origin || origin.startsWith('http://localhost:')) {
+  origin: (origin, c) => {
+    // Allow requests without origin (e.g., mobile apps, Postman)
+    if (!origin) {
+      return null;
+    }
+    
+    const env = c.env as Bindings;
+    const isDevEnvironment = env.ENVIRONMENT === 'development' || !env.ENVIRONMENT;
+    
+    // In development, allow localhost origins
+    if (isDevEnvironment && origin.startsWith('http://localhost:')) {
       return origin;
     }
-    // In production, allow requests from the deployed frontend
-    // This will be updated with actual production URL
-    return origin;
+    
+    // Use allowed origins from environment variable
+    const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : [];
+    
+    // In development, add default localhost origins if none specified
+    if (isDevEnvironment && allowedOrigins.length === 0) {
+      allowedOrigins.push('http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174');
+    }
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      return origin;
+    }
+    
+    // Origin not allowed
+    return null;
   },
   credentials: true,
   allowHeaders: ['Content-Type', 'Authorization'],

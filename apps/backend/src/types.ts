@@ -7,6 +7,8 @@ export type Bindings = {
   OAUTH_GOOGLE_CLIENT_ID: string;
   OAUTH_GOOGLE_CLIENT_SECRET: string;
   ENVIRONMENT: string;
+  RATE_LIMITER: KVNamespace;
+  ALLOWED_ORIGINS?: string;
 };
 
 export type Variables = {

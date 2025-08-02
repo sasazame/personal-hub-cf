@@ -18,6 +18,7 @@ import {
   StatusCodes
 } from '../utils/spring-boot-compat';
 import { springBootValidator } from '../utils/validation';
+import { authRateLimiter } from '../middleware/rate-limiter';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -53,7 +54,7 @@ const resetPasswordSchema = z.object({
 });
 
 // POST /auth/register
-app.post('/register', zValidator('json', registerSchema, springBootValidator), async (c) => {
+app.post('/register', authRateLimiter, zValidator('json', registerSchema, springBootValidator), async (c) => {
   const db = c.get('db');
   const { email, password, username } = c.req.valid('json');
   
@@ -130,7 +131,7 @@ app.post('/register', zValidator('json', registerSchema, springBootValidator), a
 });
 
 // POST /auth/login
-app.post('/login', zValidator('json', loginSchema, springBootValidator), async (c) => {
+app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootValidator), async (c) => {
   const db = c.get('db');
   const { email, password } = c.req.valid('json');
   
@@ -323,7 +324,7 @@ app.get('/me', async (c) => {
 });
 
 // POST /auth/forgot-password
-app.post('/forgot-password', zValidator('json', forgotPasswordSchema, springBootValidator), async (c) => {
+app.post('/forgot-password', authRateLimiter, zValidator('json', forgotPasswordSchema, springBootValidator), async (c) => {
   const db = c.get('db');
   const { email } = c.req.valid('json');
   
