@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Search } from 'lucide-react';
 import { Button, Input, Modal } from '@/components/ui';
 import { AppLayout } from '@/components/layout';
@@ -71,7 +71,7 @@ export function Notes() {
   const handleCreateNote = async (data: CreateNoteDto) => {
     setIsSubmitting(true);
     try {
-      const newNote = await createNote(data);
+      await createNote(data);
       showSuccess('Note created');
       setIsFormOpen(false);
       loadNotes();
@@ -92,7 +92,7 @@ export function Notes() {
     
     setIsSubmitting(true);
     try {
-      const updatedNote = await updateNote(selectedNote.id, data);
+      await updateNote(selectedNote.id, data);
       showSuccess('Note updated');
       setIsFormOpen(false);
       setSelectedNote(null);
