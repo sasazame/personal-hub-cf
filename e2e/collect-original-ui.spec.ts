@@ -144,9 +144,9 @@ test.describe('Collect Original UI Information', () => {
     await page.click('button[type="submit"]');
     
     // Wait for redirect to dashboard
-    await page.waitForURL('**/dashboard', { timeout: 10000 }).catch(() => {
+    await page.waitForURL('**/dashboard', { timeout: 5000 }).catch(() => {
       // If no /dashboard route, wait for navigation away from login
-      return page.waitForURL((url) => !url.href.includes('/login'), { timeout: 10000 });
+      return page.waitForURL((url) => !url.href.includes('/login'), { timeout: 5000 });
     });
     
     // Take screenshot of dashboard

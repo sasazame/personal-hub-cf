@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, Suspense } from 'react';
 import { AppLayout } from '@/components/layout';
 import { 
   StatsCard, 
@@ -6,7 +6,7 @@ import {
   CategoryBreakdown, 
   ProductivityScore,
   ActivityHeatmap 
-} from '@/components/analytics';
+} from '@/components/analytics/lazy';
 import { useAnalytics, useProductivityScore, useStreaks } from '@/hooks/useAnalytics';
 import { 
   CheckCircle, 
@@ -39,7 +39,7 @@ export function Analytics() {
     );
   }
 
-  const taskCompletionData = {
+  const taskCompletionData = useMemo(() => ({
     labels: analytics.taskCompletionTrend.map(item => 
       format(new Date(item.date), 'MM/dd')
     ),
@@ -54,9 +54,9 @@ export function Analytics() {
         fill: true,
       },
     ],
-  };
+  }), [analytics.taskCompletionTrend]);
 
-  const pomodoroData = {
+  const pomodoroData = useMemo(() => ({
     labels: analytics.pomodoroTrend.map(item => 
       format(new Date(item.date), 'MM/dd')
     ),
@@ -69,17 +69,28 @@ export function Analytics() {
         fill: true,
       },
     ],
-  };
+  }), [analytics.pomodoroTrend]);
 
   // Generate heatmap data for the last 90 days
-  const heatmapData = Array.from({ length: 90 }, (_, i) => {
-    const date = format(subDays(new Date(), 89 - i), 'yyyy-MM-dd');
-    const trend = analytics.taskCompletionTrend.find(item => item.date === date);
+  const { heatmapData, heatmapStartDate, heatmapEndDate } = useMemo(() => {
+    const endDate = new Date();
+    const startDate = subDays(endDate, 89);
+    
+    const data = Array.from({ length: 90 }, (_, i) => {
+      const date = format(subDays(endDate, 89 - i), 'yyyy-MM-dd');
+      const trend = analytics.taskCompletionTrend.find(item => item.date === date);
+      return {
+        date,
+        value: trend ? trend.completed : 0,
+      };
+    });
+    
     return {
-      date,
-      value: trend ? trend.completed : 0,
+      heatmapData: data,
+      heatmapStartDate: startDate,
+      heatmapEndDate: endDate
     };
-  });
+  }, [analytics.taskCompletionTrend]);
 
   return (
     <AppLayout>
@@ -118,7 +129,16 @@ export function Analytics() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Suspense fallback={
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm animate-pulse">
+                <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </div>
+            ))}
+          </div>
+        }>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard
             title="完了タスク"
             value={analytics.stats.completedTasks}
@@ -149,10 +169,21 @@ export function Analytics() {
             icon={<Calendar className="w-6 h-6" />}
             color="orange"
           />
-        </div>
+          </div>
+        </Suspense>
 
         {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Suspense fallback={
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm animate-pulse">
+              <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm animate-pulse">
+              <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
+          </div>
+        }>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <ProductivityChart data={taskCompletionData} title="タスク完了率の推移" />
           </div>
@@ -164,10 +195,20 @@ export function Analytics() {
               />
             )}
           </div>
-        </div>
+          </div>
+        </Suspense>
 
         {/* Second Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Suspense fallback={
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm animate-pulse">
+                <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </div>
+            ))}
+          </div>
+        }>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <CategoryBreakdown data={analytics.categoryBreakdown} />
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
             <h3 className="text-lg font-semibold mb-4">ポモドーロセッション</h3>
@@ -175,14 +216,21 @@ export function Analytics() {
               <ProductivityChart data={pomodoroData} title="" height={260} />
             </div>
           </div>
-        </div>
+          </div>
+        </Suspense>
 
         {/* Activity Heatmap */}
-        <ActivityHeatmap 
+        <Suspense fallback={
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm animate-pulse">
+            <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          </div>
+        }>
+          <ActivityHeatmap 
           data={heatmapData}
-          startDate={subDays(new Date(), 89)}
-          endDate={new Date()}
-        />
+          startDate={heatmapStartDate}
+          endDate={heatmapEndDate}
+          />
+        </Suspense>
 
         {/* Goals Progress */}
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">

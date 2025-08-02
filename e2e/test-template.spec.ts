@@ -48,7 +48,7 @@ const helpers = {
   async expectToast(page: Page, type: 'success' | 'error') {
     // React Hot Toast uses role="alert" for notifications
     const toast = page.locator('div[role="alert"]');
-    await expect(toast).toBeVisible({ timeout: 10000 });
+    await expect(toast).toBeVisible({ timeout: 5000 });
     
     // Optionally verify toast type by checking classes or content
     if (type === 'error') {

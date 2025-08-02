@@ -112,7 +112,7 @@ test.describe('Calendar Weekly View - Basic Functionality', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Wait for success
-    await expect(page.getByText('Event created successfully')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Event created successfully')).toBeVisible({ timeout: 5000 });
     
     // Switch to weekly view
     await page.locator('button[title="Weekly View"]').click();

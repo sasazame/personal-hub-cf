@@ -12,7 +12,7 @@ test.describe('Improved Authentication Flow', () => {
     await browserHelpers.navigateWithBrowserHandling(page, '/', browserName);
     
     // Should redirect to login
-    await expect(page).toHaveURL(/\/login/, { timeout: 15000 });
+    await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
     
     // Wait for form elements with browser-specific timeouts
     await browserHelpers.waitForElement(page, 'form', browserName);
@@ -23,13 +23,13 @@ test.describe('Improved Authentication Flow', () => {
     const submitButton = page.locator('button[type="submit"]').first();
     
     // Verify elements are visible
-    await expect(emailInput).toBeVisible({ timeout: 10000 });
-    await expect(passwordInput).toBeVisible({ timeout: 10000 });
-    await expect(submitButton).toBeVisible({ timeout: 10000 });
+    await expect(emailInput).toBeVisible({ timeout: 5000 });
+    await expect(passwordInput).toBeVisible({ timeout: 5000 });
+    await expect(submitButton).toBeVisible({ timeout: 5000 });
     
     // Check for register link with flexible selector
     const registerLink = page.locator('a[href="/register"], a:text-matches("register", "i"), a:text-matches("sign up", "i")').first();
-    await expect(registerLink).toBeVisible({ timeout: 10000 });
+    await expect(registerLink).toBeVisible({ timeout: 5000 });
   });
 
   test('should handle login form submission', async ({ page, browserName, isMobile }) => {
@@ -70,7 +70,7 @@ test.describe('Improved Authentication Flow', () => {
     await submitButton.click();
     
     // Wait for response
-    await page.waitForLoadState('networkidle', { timeout: 15000 });
+    await page.waitForLoadState('networkidle', { timeout: 5000 });
     
     // Look for any error indication with flexible selectors
     const errorIndicators = [
@@ -105,17 +105,17 @@ test.describe('Improved Authentication Flow', () => {
     // Find and click register link with flexible selector
     const registerLink = page.locator('a[href="/register"], a:text-matches("register", "i"), a:text-matches("sign up", "i"), a:text-matches("create account", "i")').first();
     
-    await registerLink.waitFor({ state: 'visible', timeout: 10000 });
+    await registerLink.waitFor({ state: 'visible', timeout: 5000 });
     await registerLink.click();
     
     // Wait for navigation
-    await page.waitForLoadState('networkidle', { timeout: 15000 });
+    await page.waitForLoadState('networkidle', { timeout: 5000 });
     
     // Verify on register page
     await expect(page).toHaveURL(/\/register/);
     
     // Verify register form is visible
     const registerForm = page.locator('form');
-    await expect(registerForm).toBeVisible({ timeout: 10000 });
+    await expect(registerForm).toBeVisible({ timeout: 5000 });
   });
 });

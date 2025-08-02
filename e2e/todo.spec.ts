@@ -27,7 +27,7 @@ test.describe('Personal Hub E2E Tests', () => {
     await page.waitForLoadState('domcontentloaded');
     
     // Wait for TODO app to be ready by checking for key elements
-    await page.waitForSelector('h1:has-text("TODO")', { timeout: 10000 });
+    await page.waitForSelector('h1:has-text("TODO")', { timeout: 5000 });
   });
 
   test('should display the todo app heading', async ({ page }) => {
@@ -75,7 +75,7 @@ test.describe('Personal Hub E2E Tests', () => {
     await expect(page.getByRole('heading', { name: 'Create New TODO' })).not.toBeVisible();
 
     // Wait for the todo to appear
-    await page.waitForSelector(`text=${todoTitle}`, { timeout: 10000 });
+    await page.waitForSelector(`text=${todoTitle}`, { timeout: 5000 });
 
     // Verify the todo is displayed (look specifically in the todo list, not in toasts)
     await expect(page.locator('.space-y-4').getByText(todoTitle)).toBeVisible();
@@ -96,7 +96,7 @@ test.describe('Personal Hub E2E Tests', () => {
     
     // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'Create New TODO' })).not.toBeVisible();
-    await page.waitForSelector(`text=${todoTitle}`, { timeout: 10000 });
+    await page.waitForSelector(`text=${todoTitle}`, { timeout: 5000 });
 
     // Delete the todo using kebab menu
     await clickTodoMenuOption(page, todoTitle, 'Delete');
@@ -108,7 +108,7 @@ test.describe('Personal Hub E2E Tests', () => {
     await page.getByRole('button', { name: 'Delete' }).click();
 
     // Wait for todo to disappear
-    await expect(page.locator('h3').filter({ hasText: todoTitle })).not.toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h3').filter({ hasText: todoTitle })).not.toBeVisible({ timeout: 5000 });
 
     // Verify the todo is removed from the list (ignore toast messages)
     await expect(page.locator('.space-y-4').getByText(todoTitle)).not.toBeVisible();
@@ -145,7 +145,7 @@ test.describe('Personal Hub E2E Tests', () => {
     
     // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'Create New TODO' })).not.toBeVisible();
-    await page.waitForSelector(`text=${todoTitle}`, { timeout: 10000 });
+    await page.waitForSelector(`text=${todoTitle}`, { timeout: 5000 });
 
     // Click delete using kebab menu
     await clickTodoMenuOption(page, todoTitle, 'Delete');

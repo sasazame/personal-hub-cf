@@ -97,7 +97,7 @@ test.describe('Calendar Weekly View', () => {
     await page.mouse.up();
 
     // Event form should open
-    await expect(page.getByRole('heading', { name: /New Event/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /New Event/i })).toBeVisible({ timeout: 5000 });
 
     // Fill in event details
     await page.fill('input[name="title"]', 'Team Meeting');
@@ -107,7 +107,7 @@ test.describe('Calendar Weekly View', () => {
     await page.getByRole('button', { name: 'Create' }).click();
 
     // Wait for success message
-    await expect(page.getByText('Event created successfully')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Event created successfully')).toBeVisible({ timeout: 5000 });
 
     // Event should appear in the weekly view
     await expect(page.getByText('Team Meeting')).toBeVisible();
@@ -131,7 +131,7 @@ test.describe('Calendar Weekly View', () => {
     await page.getByRole('button', { name: 'Create' }).click();
 
     // Wait for success message
-    await expect(page.getByText('Event created successfully')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Event created successfully')).toBeVisible({ timeout: 5000 });
 
     // Switch to weekly view
     await page.locator('button[title="Weekly View"]').click();
@@ -151,7 +151,7 @@ test.describe('Calendar Weekly View', () => {
     await page.fill('input[name="title"]', 'Client Call');
     await page.getByRole('button', { name: 'Create' }).click();
     
-    await expect(page.getByText('Event created successfully')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Event created successfully')).toBeVisible({ timeout: 5000 });
 
     // Switch to weekly view
     await page.locator('button[title="Weekly View"]').click();

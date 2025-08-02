@@ -18,8 +18,8 @@ async function registerAndLogin(page, timestamp: string) {
   
   // Wait for redirect - could be either dashboard (auto-login) or login page
   await Promise.race([
-    page.waitForURL('**/dashboard', { timeout: 10000 }),
-    page.waitForURL('**/login**', { timeout: 10000 })
+    page.waitForURL('**/dashboard', { timeout: 5000 }),
+    page.waitForURL('**/login**', { timeout: 5000 })
   ]);
   
   // If we're on login page, need to login
@@ -29,7 +29,7 @@ async function registerAndLogin(page, timestamp: string) {
     await page.click('button[type="submit"]');
     
     // Wait for dashboard after login
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
+    await page.waitForURL('**/dashboard', { timeout: 5000 });
   }
   
   return { username, email, password };
@@ -56,7 +56,7 @@ test.describe('CI Critical Path Tests', () => {
     
     // Navigate to todos
     await page.goto('/todos');
-    await page.waitForSelector('h1:has-text("TODOs")', { timeout: 10000 });
+    await page.waitForSelector('h1:has-text("TODOs")', { timeout: 5000 });
     
     // Create todo
     await page.click('button:has-text("Add Todo")');
@@ -88,7 +88,7 @@ test.describe('CI Critical Path Tests', () => {
     
     // Verify completion - check for Done status badge with more specific selector
     // The status is inside a span with rounded-full class
-    await expect(page.locator('span.rounded-full:has-text("Done")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('span.rounded-full:has-text("Done")')).toBeVisible({ timeout: 5000 });
   });
 
   test('should create a note', async ({ page }) => {
@@ -102,10 +102,10 @@ test.describe('CI Critical Path Tests', () => {
     // Wait for initial notes load
     await page.waitForResponse(response => 
       response.url().includes('/api/v1/notes') && response.status() === 200,
-      { timeout: 10000 }
+      { timeout: 5000 }
     );
     
-    await page.waitForSelector('h1:has-text("Notes")', { timeout: 10000 });
+    await page.waitForSelector('h1:has-text("Notes")', { timeout: 5000 });
     
     // Create note
     await page.click('button:has-text("New Note")');
@@ -121,7 +121,7 @@ test.describe('CI Critical Path Tests', () => {
     // Set up response listeners before clicking create
     const createResponsePromise = page.waitForResponse(response => 
       response.url().includes('/api/v1/notes') && response.status() === 201,
-      { timeout: 10000 }
+      { timeout: 5000 }
     );
     
     // Click create button
@@ -133,18 +133,18 @@ test.describe('CI Critical Path Tests', () => {
     // Now wait for the refresh response after creation
     const refreshResponsePromise = page.waitForResponse(response => 
       response.url().includes('/api/v1/notes') && response.status() === 200,
-      { timeout: 10000 }
+      { timeout: 5000 }
     );
     await refreshResponsePromise;
     
     // Wait for modal to close
-    await page.waitForSelector('input[placeholder="Enter note title"]', { state: 'hidden', timeout: 10000 });
+    await page.waitForSelector('input[placeholder="Enter note title"]', { state: 'hidden', timeout: 5000 });
     
     // Wait a bit for React to update the DOM after modal closes
     await page.waitForTimeout(1000);
     
     // Wait for note to appear with more specific selector
-    await page.waitForSelector('h3:has-text("CI Test Note")', { timeout: 10000 });
+    await page.waitForSelector('h3:has-text("CI Test Note")', { timeout: 5000 });
     
     // Verify note appears in the list
     const noteTitle = page.locator('h3:has-text("CI Test Note")');
