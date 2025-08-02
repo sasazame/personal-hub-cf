@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect, ReactNode, useCallback } from 'react'
+import { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useMemo } from 'react'
 import toast from 'react-hot-toast'
 import { apiClient } from '@/lib/api-client'
 
@@ -196,14 +196,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     checkAuth()
   }, [checkAuth])
 
-  const value: AuthContextType = {
+  const value: AuthContextType = useMemo(() => ({
     ...state,
     login,
     register,
     logout,
     clearError,
     checkAuth,
-  }
+  }), [state, login, register, logout, clearError, checkAuth])
 
   return (
     <AuthContext.Provider value={value}>
