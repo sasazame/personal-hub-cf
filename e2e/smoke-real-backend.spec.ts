@@ -10,7 +10,7 @@ test.describe('Smoke Tests (Real Backend)', () => {
     
     // Since we're not authenticated, we should be redirected to login
     // Wait for the URL to change to login page
-    await page.waitForURL(/\/login/, { timeout: 15000 });
+    await page.waitForURL(/\/login/, { timeout: 5000 });
     
     // Verify we're on the login page
     await expect(page).toHaveURL(/\/login/);
@@ -52,7 +52,7 @@ test.describe('Smoke Tests (Real Backend)', () => {
     await page.goto('/non-existent-page');
     
     // Since there's no 404 page yet, it should redirect to login
-    await page.waitForURL(/\/login/, { timeout: 15000 });
+    await page.waitForURL(/\/login/, { timeout: 5000 });
     await expect(page).toHaveURL(/\/login/);
   });
 });

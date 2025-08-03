@@ -1,8 +1,3 @@
-## enhancement
-- [ ] General: Overall, the performance is sluggish. There are many areas where I would like it to operate seamlessly.
-  - Consider code splitting for large components
-  - Optimize bundle size
-
 ## security - high priority
 - [ ] Implement Rate Limiting
   - Add rate limiting middleware for auth endpoints (login, register, password reset)

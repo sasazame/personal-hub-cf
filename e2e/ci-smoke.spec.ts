@@ -139,9 +139,9 @@ test.describe('CI Smoke Tests', () => {
     
     // Wait for either navigation or error message
     const result = await Promise.race([
-      page.waitForURL('/', { timeout: 15000 }).then(() => 'success'),
-      page.waitForSelector('.text-red-500', { timeout: 15000 }).then(() => 'error'),
-      page.waitForTimeout(15000).then(() => 'timeout')
+      page.waitForURL('/', { timeout: 5000 }).then(() => 'success'),
+      page.waitForSelector('.text-red-500', { timeout: 5000 }).then(() => 'error'),
+      page.waitForTimeout(5000).then(() => 'timeout')
     ]);
     
     console.log('Login result:', result);

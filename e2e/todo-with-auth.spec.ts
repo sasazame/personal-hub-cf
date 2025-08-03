@@ -81,7 +81,7 @@ test.describe('Todo E2E Tests with Auth', () => {
     await page.click('button:has-text("Create Todo")');
     
     // Wait for todo to appear in the list (not in toast)
-    await expect(page.locator('.space-y-4').getByText(todoTitle)).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.space-y-4').getByText(todoTitle)).toBeVisible({ timeout: 5000 });
   });
 
   test('should handle API errors gracefully', async ({ page }) => {

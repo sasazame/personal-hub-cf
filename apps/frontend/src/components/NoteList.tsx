@@ -1,6 +1,7 @@
 import { Edit, Trash2, Tag } from 'lucide-react';
 import { Note } from '@/types/note';
 import { Card } from '@/components/ui/Card';
+import { useMemo, memo, useCallback } from 'react';
 
 interface NoteListProps {
   notes: Note[];
@@ -9,7 +10,7 @@ interface NoteListProps {
   onDeleteNote: (note: Note) => void;
 }
 
-export function NoteList({ notes, onNoteClick, onEditNote, onDeleteNote }: NoteListProps) {
+export const NoteList = memo(function NoteList({ notes, onNoteClick, onEditNote, onDeleteNote }: NoteListProps) {
   if (!notes || notes.length === 0) {
     return (
       <div className="text-center py-12">
@@ -21,21 +22,23 @@ export function NoteList({ notes, onNoteClick, onEditNote, onDeleteNote }: NoteL
     );
   }
 
-  const sortedNotes = [...notes].sort((a, b) => {
-    return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
-  });
+  const sortedNotes = useMemo(() => {
+    return [...notes].sort((a, b) => {
+      return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
+    });
+  }, [notes]);
 
-  const truncateContent = (content: string, maxLength: number = 150) => {
+  const truncateContent = useCallback((content: string, maxLength: number = 150) => {
     if (content.length <= maxLength) return content;
     return content.substring(0, maxLength) + '...';
-  };
+  }, []);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-  };
+  }, []);
 
-  const formatDateTime = (dateString: string) => {
+  const formatDateTime = useCallback((dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString('en-US', { 
       year: 'numeric', 
@@ -44,7 +47,7 @@ export function NoteList({ notes, onNoteClick, onEditNote, onDeleteNote }: NoteL
       hour: '2-digit',
       minute: '2-digit'
     });
-  };
+  }, []);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -122,4 +125,4 @@ export function NoteList({ notes, onNoteClick, onEditNote, onDeleteNote }: NoteL
       ))}
     </div>
   );
-}
+});

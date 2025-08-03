@@ -10,7 +10,7 @@ test.describe('Auth E2E Tests (Real Backend)', () => {
     await page.goto('/');
     
     // Wait for redirect to complete
-    await page.waitForURL('**/login**', { timeout: 10000 });
+    await page.waitForURL('**/login**', { timeout: 5000 });
     
     // Should be on login page
     await expect(page).toHaveURL(/.*\/login/);
@@ -34,7 +34,7 @@ test.describe('Auth E2E Tests (Real Backend)', () => {
     await page.goto('/login');
     
     // Wait for page to load
-    await page.waitForSelector('h1:has-text("Login")', { timeout: 10000 });
+    await page.waitForSelector('h1:has-text("Login")', { timeout: 5000 });
     
     // Click register link
     await page.getByRole('link', { name: 'Register' }).click();
