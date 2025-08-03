@@ -91,21 +91,35 @@ if (typeof globalThis.FormData === 'undefined') {
 
 // Polyfill String.prototype.toWellFormed for older Node.js versions
 // This method was added in ES2024 and requires Node.js 21+
+// Apply this polyfill immediately and globally to handle undici usage
 if (typeof String.prototype.toWellFormed !== 'function') {
+  const toWellFormedImpl = function() {
+    // Replace unpaired surrogates with replacement character (U+FFFD)
+    // Use a simpler approach that works with older Node.js versions
+    let result = String(this);
+    // Replace high surrogates not followed by low surrogates
+    result = result.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/g, '\uFFFD');
+    // Replace low surrogates not preceded by high surrogates  
+    result = result.replace(/(^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '$1\uFFFD');
+    return result;
+  };
+  
   Object.defineProperty(String.prototype, 'toWellFormed', {
-    value: function() {
-      // Replace unpaired surrogates with replacement character (U+FFFD)
-      // Use a simpler approach that works with older Node.js versions
-      let result = String(this);
-      // Replace high surrogates not followed by low surrogates
-      result = result.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/g, '\uFFFD');
-      // Replace low surrogates not preceded by high surrogates  
-      result = result.replace(/(^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '$1\uFFFD');
-      return result;
-    },
+    value: toWellFormedImpl,
     writable: true,
-    configurable: true
+    configurable: true,
+    enumerable: false
   });
+  
+  // Also make sure it's available on the global String constructor
+  if (typeof globalThis.String !== 'undefined' && globalThis.String.prototype) {
+    Object.defineProperty(globalThis.String.prototype, 'toWellFormed', {
+      value: toWellFormedImpl,
+      writable: true,
+      configurable: true,
+      enumerable: false
+    });
+  }
 }
 
 // Add CryptoKey polyfill
