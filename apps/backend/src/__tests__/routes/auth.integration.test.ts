@@ -49,6 +49,13 @@ describe('Auth Routes Integration', () => {
       OAUTH_GOOGLE_CLIENT_ID: 'test-google-id',
       OAUTH_GOOGLE_CLIENT_SECRET: 'test-google-secret',
     ENVIRONMENT: 'test',
+    RATE_LIMITER: {
+      get: vi.fn(async (_key: string, _options?: any) => {
+        return null; // No rate limiting data by default
+      }),
+      put: vi.fn(async () => {}),
+      delete: vi.fn(async () => {}),
+    } as any,
     };
 
     // Create app with proper context

@@ -12,6 +12,11 @@ binding = "DB"
 database_name = "personal-hub-local"
 database_id = "local"
 
+# Default KV namespace for rate limiting (local)
+[[kv_namespaces]]
+binding = "RATE_LIMITER"
+id = "rate-limiter-local"
+
 # Development environment
 [env.development]
 name = "personal-hub-backend-dev"
@@ -22,15 +27,23 @@ binding = "DB"
 database_name = "personal-hub"
 database_id = "c7420c0c-e416-4577-a543-f6b44de51979"
 
+[[env.development.kv_namespaces]]
+binding = "RATE_LIMITER"
+id = "rate-limiter-dev"
+
 # Production environment
 [env.production]
 name = "personal-hub-backend-prod"
-vars = { ENVIRONMENT = "production" }
+vars = { ENVIRONMENT = "production", ALLOWED_ORIGINS = "https://your-production-domain.com" }
 
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "personal-hub-prod"
 database_id = "7b37b6d9-659a-4adc-a396-fa339c12c597"
+
+[[env.production.kv_namespaces]]
+binding = "RATE_LIMITER"
+id = "rate-limiter-prod"
 
 # Default vars (used in development)
 [vars]

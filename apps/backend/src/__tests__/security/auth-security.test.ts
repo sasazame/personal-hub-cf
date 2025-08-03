@@ -141,6 +141,7 @@ describe('Authentication Security Tests', () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'CF-Connecting-IP': '192.168.1.100', // Same IP for all requests
           },
           body: JSON.stringify({
             email: 'test@example.com',
@@ -151,8 +152,12 @@ describe('Authentication Security Tests', () => {
         results.push(res.status);
       }
 
-      // All should fail with 401
-      expect(results.every(status => status === 401)).toBe(true);
+      // First 5 should fail with 401, rest should be rate limited (429)
+      const first5 = results.slice(0, 5);
+      const remaining = results.slice(5);
+      
+      expect(first5.every(status => status === 401)).toBe(true);
+      expect(remaining.every(status => status === 429)).toBe(true);
       
       // In production, would implement:
       // - Rate limiting (e.g., 5 attempts per 15 minutes)

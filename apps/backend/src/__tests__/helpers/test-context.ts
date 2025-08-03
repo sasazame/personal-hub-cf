@@ -30,6 +30,31 @@ export function createTestContext() {
     $client: {} as D1Database,
   };
 
+  // Mock KV namespace for rate limiting
+  const mockKVStore: Record<string, string> = {};
+  const mockRateLimiter = {
+    get: vi.fn(async (key: string, options?: any) => {
+      const value = mockKVStore[key];
+      if (!value) return null;
+      // If type is 'json', parse the value
+      if (options?.type === 'json') {
+        return JSON.parse(value);
+      }
+      return value;
+    }),
+    put: vi.fn(async (key: string, value: string, _options?: any) => {
+      mockKVStore[key] = value;
+    }),
+    delete: vi.fn(async (key: string) => {
+      delete mockKVStore[key];
+    }),
+    list: vi.fn(async () => ({ keys: [], list_complete: true, cursor: null })),
+    getWithMetadata: vi.fn(async (key: string) => {
+      const value = mockKVStore[key];
+      return value ? { value, metadata: null } : { value: null, metadata: null };
+    }),
+  } as any;
+
   const env: Bindings = {
     DB: {} as D1Database,
     JWT_SECRET: 'test-jwt-secret',
@@ -38,6 +63,7 @@ export function createTestContext() {
     OAUTH_GOOGLE_CLIENT_ID: 'test-google-id',
     OAUTH_GOOGLE_CLIENT_SECRET: 'test-google-secret',
     ENVIRONMENT: 'test',
+    RATE_LIMITER: mockRateLimiter,
   };
 
   const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
