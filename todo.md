@@ -1,17 +1,17 @@
 ## security - high priority
-- [ ] Implement Rate Limiting
-  - Add rate limiting middleware for auth endpoints (login, register, password reset)
-  - Use Cloudflare's rate limiting or implement custom solution
-  - 5 requests per 15 minutes per IP for auth endpoints
-- [ ] Add Security Headers
-  - X-Content-Type-Options: nosniff
-  - X-Frame-Options: DENY
-  - X-XSS-Protection: 1; mode=block
-  - Strict-Transport-Security: max-age=31536000; includeSubDomains
-  - Content-Security-Policy headers
-- [ ] Restrict CORS Origins
-  - Replace wildcard origin with allowed domain list
-  - Configure separate origins for development and production
+- [x] Implement Rate Limiting (Completed in PR #19)
+  - ✅ Add rate limiting middleware for auth endpoints (login, register, password reset)
+  - ✅ Use Cloudflare's rate limiting or implement custom solution
+  - ✅ 5 requests per 15 minutes per IP for auth endpoints
+- [x] Add Security Headers (Completed in PR #19)
+  - ✅ X-Content-Type-Options: nosniff
+  - ✅ X-Frame-Options: DENY
+  - ✅ X-XSS-Protection: 1; mode=block
+  - ✅ Strict-Transport-Security: max-age=31536000; includeSubDomains
+  - ✅ Content-Security-Policy headers
+- [x] Restrict CORS Origins (Completed in PR #19)
+  - ✅ Replace wildcard origin with allowed domain list
+  - ✅ Configure separate origins for development and production
 
 ## security - medium priority
 - [ ] Implement Account Lockout

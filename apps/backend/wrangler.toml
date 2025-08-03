@@ -23,11 +23,6 @@ name = "personal-hub-backend-dev"
 
 [env.development.vars]
 ENVIRONMENT = "development"
-JWT_SECRET = "test-jwt-secret-for-development-only"
-OAUTH_GITHUB_CLIENT_ID = "YOUR_GITHUB_CLIENT_ID"
-OAUTH_GITHUB_CLIENT_SECRET = "YOUR_GITHUB_CLIENT_SECRET"
-OAUTH_GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID"
-OAUTH_GOOGLE_CLIENT_SECRET = "YOUR_GOOGLE_CLIENT_SECRET"
 
 [[env.development.d1_databases]]
 binding = "DB"
@@ -45,11 +40,6 @@ name = "personal-hub-backend-prod"
 [env.production.vars]
 ENVIRONMENT = "production"
 ALLOWED_ORIGINS = "https://your-production-domain.com"
-JWT_SECRET = "PLACEHOLDER_PRODUCTION_JWT_SECRET"
-OAUTH_GITHUB_CLIENT_ID = "PLACEHOLDER_GITHUB_CLIENT_ID"
-OAUTH_GITHUB_CLIENT_SECRET = "PLACEHOLDER_GITHUB_CLIENT_SECRET"
-OAUTH_GOOGLE_CLIENT_ID = "PLACEHOLDER_GOOGLE_CLIENT_ID"
-OAUTH_GOOGLE_CLIENT_SECRET = "PLACEHOLDER_GOOGLE_CLIENT_SECRET"
 
 [[env.production.d1_databases]]
 binding = "DB"
@@ -61,9 +51,7 @@ binding = "RATE_LIMITER"
 id = "c1c925b1bbc2424a84fcdd8d5afc8003"
 
 # Default vars (used in development)
+# Secrets should be set via .dev.vars file (for development) or wrangler secret (for production)
+# Never commit actual secrets to version control!
 [vars]
-JWT_SECRET = "test-jwt-secret-for-development-only"
-OAUTH_GITHUB_CLIENT_ID = "YOUR_GITHUB_CLIENT_ID"
-OAUTH_GITHUB_CLIENT_SECRET = "YOUR_GITHUB_CLIENT_SECRET"
-OAUTH_GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID"
-OAUTH_GOOGLE_CLIENT_SECRET = "YOUR_GOOGLE_CLIENT_SECRET"
+# Non-sensitive environment variables only
