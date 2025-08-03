@@ -1,6 +1,6 @@
 ## security - high priority
 - [x] Implement Rate Limiting (Completed in PR #19)
-  - ✅ Add rate limiting middleware for auth endpoints (login, register, password reset)
+  - ✅ Add rate-limiting middleware for auth endpoints (login, register, password reset)
   - ✅ Use Cloudflare's rate limiting or implement custom solution
   - ✅ 5 requests per 15 minutes per IP for auth endpoints
 - [x] Add Security Headers (Completed in PR #19)
@@ -46,4 +46,3 @@
 ## known issues
 - E2E tests still have some stability issues that need deeper investigation
 - Performance optimizations needed for smoother user experience
-- Development JWT secret is hardcoded in wrangler.toml

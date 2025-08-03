@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Setup script for Cloudflare resources
 # This script creates the necessary KV namespaces for the application
@@ -18,7 +19,7 @@ echo "Setting up Cloudflare resources..."
 echo "Creating development KV namespace..."
 DEV_KV_RESULT=$(npx wrangler kv namespace create "RATE_LIMITER" --env development 2>&1)
 if [[ $DEV_KV_RESULT == *"Success!"* ]]; then
-  DEV_KV_ID=$(echo "$DEV_KV_RESULT" | grep -oP 'id = "\K[^"]+')
+  DEV_KV_ID=$(echo "$DEV_KV_RESULT" | grep -oE 'id = "[^"]+"' | cut -d'"' -f2)
   echo "Development KV namespace created with ID: $DEV_KV_ID"
   echo "Please update the development KV namespace ID in wrangler.toml"
 else
@@ -29,7 +30,7 @@ fi
 echo "Creating production KV namespace..."
 PROD_KV_RESULT=$(npx wrangler kv namespace create "RATE_LIMITER" --env production 2>&1)
 if [[ $PROD_KV_RESULT == *"Success!"* ]]; then
-  PROD_KV_ID=$(echo "$PROD_KV_RESULT" | grep -oP 'id = "\K[^"]+')
+  PROD_KV_ID=$(echo "$PROD_KV_RESULT" | grep -oE 'id = "[^"]+"' | cut -d'"' -f2)
   echo "Production KV namespace created with ID: $PROD_KV_ID"
   echo "Please update the production KV namespace ID in wrangler.toml"
 else

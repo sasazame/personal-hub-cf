@@ -60,7 +60,7 @@ This script will:
 1. **Never commit secrets**: All secrets must be in `.dev.vars` or Cloudflare secrets
 2. **Use strong secrets**: Production JWT_SECRET should be cryptographically random
 3. **Separate environments**: Never use development secrets in production
-4. **Rotate regularly**: Change production secrets periodically
+4. **Rotate regularly**: Change production secrets every 90 days or immediately if compromised
 5. **Limit access**: Only authorized team members should have access to production secrets
 
 ## Troubleshooting
