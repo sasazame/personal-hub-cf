@@ -63,7 +63,7 @@ export function createRateLimiter(options: RateLimitOptions) {
             message,
             { path: c.req.url }
           ),
-          StatusCodes.TOO_MANY_REQUESTS as any
+          StatusCodes.TOO_MANY_REQUESTS
         );
       }
 

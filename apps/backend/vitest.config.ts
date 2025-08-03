@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: true,
-    setupFiles: ['./src/__tests__/setup.ts'],
+    setupFiles: [path.resolve(__dirname, './src/__tests__/setup.ts')],
     coverage: {
       reporter: ['text', 'json', 'html'],
       exclude: [

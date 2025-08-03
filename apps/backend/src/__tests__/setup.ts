@@ -94,10 +94,14 @@ if (typeof globalThis.FormData === 'undefined') {
 if (typeof String.prototype.toWellFormed !== 'function') {
   Object.defineProperty(String.prototype, 'toWellFormed', {
     value: function() {
-      // This is a simplified polyfill
-      // The real implementation should handle unpaired surrogates
-      // For tests, we just return the string as-is
-      return String(this);
+      // Replace unpaired surrogates with replacement character (U+FFFD)
+      // Use a simpler approach that works with older Node.js versions
+      let result = String(this);
+      // Replace high surrogates not followed by low surrogates
+      result = result.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/g, '\uFFFD');
+      // Replace low surrogates not preceded by high surrogates  
+      result = result.replace(/(^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '$1\uFFFD');
+      return result;
     },
     writable: true,
     configurable: true

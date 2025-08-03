@@ -12,11 +12,17 @@ export const securityHeaders = async (c: Context<{ Bindings: Bindings; Variables
   c.header('Referrer-Policy', 'strict-origin-when-cross-origin');
   c.header('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
   
-  // Content Security Policy - adjust as needed for your application
+  // Content Security Policy - environment-aware configuration
+  const isDevelopment = c.env.ENVIRONMENT === 'development';
   const cspDirectives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // May need to adjust for your frontend
-    "style-src 'self' 'unsafe-inline'", // May need to adjust for your styling approach
+    // Allow unsafe directives only in development
+    isDevelopment 
+      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'" 
+      : "script-src 'self'",
+    isDevelopment 
+      ? "style-src 'self' 'unsafe-inline'" 
+      : "style-src 'self'",
     "img-src 'self' data: https:",
     "font-src 'self' data:",
     "connect-src 'self'",
