@@ -36,7 +36,7 @@ name = "personal-hub-backend-prod"
 
 [env.production.vars]
 ENVIRONMENT = "production"
-ALLOWED_ORIGINS = "https://your-production-domain.com"
+ALLOWED_ORIGINS = "https://personal-hub.pages.dev,https://personal-hub.zametech.com"
 
 [[env.production.d1_databases]]
 binding = "DB"
