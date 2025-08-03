@@ -25,7 +25,7 @@ export async function createUniqueTestUser(page: Page) {
     
     await page.goto('/register');
     // Wait for the form to be ready with more flexible selectors
-    await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+    await page.waitForSelector('input[type="text"]', { timeout: 5000 });
     
     // Use more robust selectors - find inputs by their position and type
     const usernameInput = page.locator('input[type="text"]').first();
@@ -40,7 +40,7 @@ export async function createUniqueTestUser(page: Page) {
     await page.click('button[type="submit"]');
     
     // Wait for registration to complete - be more flexible with URL
-    await page.waitForFunction(() => !window.location.pathname.includes('/register'), { timeout: 15000 });
+    await page.waitForFunction(() => !window.location.pathname.includes('/register'), { timeout: 5000 });
     
     // Wait a bit for the page to stabilize
     await page.waitForTimeout(2000);
@@ -54,7 +54,7 @@ export async function createUniqueTestUser(page: Page) {
       // Now click logout button in dropdown
       const logoutButton = page.locator('button:has-text("Logout")');
       await logoutButton.click();
-      await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 10000 });
+      await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 5000 });
     }
     
     return uniqueUser;
@@ -78,14 +78,14 @@ export async function setupTestUser(page: Page) {
   // Check if user already exists by trying to login
   try {
     await page.goto('/login');
-    await page.waitForSelector('input[type="email"]', { timeout: 10000 });
+    await page.waitForSelector('input[type="email"]', { timeout: 5000 });
     
     await page.fill('input[type="email"]', TEST_USER.email);
     await page.fill('input[type="password"]', TEST_USER.password);
     await page.click('button[type="submit"]');
     
     // Wait for login to complete
-    await page.waitForFunction(() => !window.location.pathname.includes('/login'), { timeout: 10000 });
+    await page.waitForFunction(() => !window.location.pathname.includes('/login'), { timeout: 5000 });
     
     // Wait for page to stabilize
     await page.waitForTimeout(1000);
@@ -99,7 +99,7 @@ export async function setupTestUser(page: Page) {
       // Now click logout button in dropdown
       const logoutButton = page.locator('button:has-text("Logout")');
       await logoutButton.click();
-      await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 10000 });
+      await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 5000 });
       console.log('TEST_USER exists and is ready');
       return;
     }
@@ -111,7 +111,7 @@ export async function setupTestUser(page: Page) {
   try {
     await page.goto('/register');
     // Wait for the form to be ready with more flexible selectors
-    await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+    await page.waitForSelector('input[type="text"]', { timeout: 5000 });
     
     // Use more robust selectors - find inputs by their position and type
     const usernameInput = page.locator('input[type="text"]').first();
@@ -126,7 +126,7 @@ export async function setupTestUser(page: Page) {
     await page.click('button[type="submit"]');
     
     // Wait for registration to complete
-    await page.waitForFunction(() => !window.location.pathname.includes('/register'), { timeout: 15000 });
+    await page.waitForFunction(() => !window.location.pathname.includes('/register'), { timeout: 5000 });
     
     // Wait for page to stabilize
     await page.waitForTimeout(1000);
@@ -140,7 +140,7 @@ export async function setupTestUser(page: Page) {
       // Now click logout button in dropdown
       const logoutButton = page.locator('button:has-text("Logout")');
       await logoutButton.click();
-      await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 10000 });
+      await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 5000 });
     }
     
     console.log('TEST_USER created successfully');
@@ -164,6 +164,6 @@ export async function waitForApp(page: Page) {
   
   // Wait for form elements on auth pages
   if (isAuthPage) {
-    await page.waitForSelector('form', { timeout: 10000 });
+    await page.waitForSelector('form', { timeout: 5000 });
   }
 }

@@ -19,6 +19,7 @@ export function Notes() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [tagsLoaded, setTagsLoaded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -41,21 +42,31 @@ export function Notes() {
     }
   }, [searchQuery, selectedTag]);
 
-  const loadTags = useCallback(async () => {
+  const loadTags = useCallback(async (force = false) => {
+    // Only reload tags if not loaded yet or forced
+    if (tagsLoaded && !force) return;
+    
     try {
       const data = await fetchNoteTags();
       setTags(data);
+      setTagsLoaded(true);
     } catch (error) {
       console.error('Failed to load tags:', error);
     }
+  }, [tagsLoaded]);
+
+  // Load tags only once on mount
+  useEffect(() => {
+    loadTags();
   }, []);
 
+  // Load notes when filters change
   useEffect(() => {
     setIsLoading(true);
-    Promise.all([loadNotes(), loadTags()]).finally(() => {
+    loadNotes().finally(() => {
       setIsLoading(false);
     });
-  }, [loadNotes, loadTags]);
+  }, [loadNotes]);
 
   const handleCreateNote = async (data: CreateNoteDto) => {
     setIsSubmitting(true);
@@ -64,7 +75,10 @@ export function Notes() {
       showSuccess('Note created');
       setIsFormOpen(false);
       loadNotes();
-      loadTags();
+      // Only reload tags if new tags were added
+      if (data.tags.some(tag => !tags.includes(tag))) {
+        loadTags(true);
+      }
     } catch (error) {
       console.error('Failed to create note:', error);
       showError(error instanceof Error ? error.message : 'Failed to create note');
@@ -84,7 +98,14 @@ export function Notes() {
       setSelectedNote(null);
       setViewingNote(null);
       loadNotes();
-      loadTags();
+      // Only reload tags if tags were changed
+      const oldTags = selectedNote.tags;
+      const newTags = data.tags || [];
+      const tagsChanged = oldTags.some(tag => !newTags.includes(tag)) || 
+                         newTags.some(tag => !tags.includes(tag));
+      if (tagsChanged) {
+        loadTags(true);
+      }
     } catch (error) {
       console.error('Failed to update note:', error);
       showError(error instanceof Error ? error.message : 'Failed to update note');
@@ -101,8 +122,22 @@ export function Notes() {
       showSuccess('Note deleted');
       setNoteToDelete(null);
       setViewingNote(null);
+      
+      // Optimistically update notes list
+      setNotes(prevNotes => prevNotes.filter(n => n.id !== noteToDelete.id));
+      
+      // Check if we need to remove any tags from the list
+      const remainingNotes = notes.filter(n => n.id !== noteToDelete.id);
+      const remainingTags = new Set(remainingNotes.flatMap(n => n.tags));
+      const deletedTags = noteToDelete.tags.filter(tag => !remainingTags.has(tag));
+      
+      // Reload notes to ensure consistency
       loadNotes();
-      loadTags();
+      
+      // Only reload tags if some tags are no longer used
+      if (deletedTags.length > 0) {
+        loadTags(true);
+      }
     } catch (error) {
       console.error('Failed to delete note:', error);
       showError(error instanceof Error ? error.message : 'Failed to delete note');

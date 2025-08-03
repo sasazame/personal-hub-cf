@@ -61,7 +61,7 @@ test.describe('Todo Basic Operations', () => {
     await page.click('button:has-text("Create TODO")');
     
     // Wait for todo to appear in the list
-    await expect(page.locator('h3').filter({ hasText: title })).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h3').filter({ hasText: title })).toBeVisible({ timeout: 5000 });
   });
 
   test('should delete a todo', async ({ page }) => {
@@ -95,7 +95,7 @@ test.describe('Todo Basic Operations', () => {
     await page.getByRole('button', { name: 'Delete' }).click();
     
     // Wait for todo to disappear
-    await expect(page.locator('h3').filter({ hasText: title })).not.toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h3').filter({ hasText: title })).not.toBeVisible({ timeout: 5000 });
   });
 
   test('should update todo status', async ({ page }) => {
@@ -134,6 +134,6 @@ test.describe('Todo Basic Operations', () => {
     await page.click('button:has-text("Update TODO")');
     
     // Verify status changed - look for 'Done' status badge
-    await expect(page.locator('span:has-text("Done")').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('span:has-text("Done")').first()).toBeVisible({ timeout: 5000 });
   });
 });

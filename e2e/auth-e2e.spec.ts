@@ -13,7 +13,7 @@ test.describe('Auth E2E Tests', () => {
     await page.goto('/');
     
     // Wait for redirect to complete
-    await page.waitForURL('**/login**', { timeout: 10000 });
+    await page.waitForURL('**/login**', { timeout: 5000 });
     
     // Should be on login page
     await expect(page).toHaveURL(/.*\/login/);
@@ -47,7 +47,7 @@ test.describe('Auth E2E Tests', () => {
       await expect(page).toHaveURL('/dashboard');
       
       // Wait for header to appear
-      await page.waitForSelector('header', { timeout: 10000 });
+      await page.waitForSelector('header', { timeout: 5000 });
       await expect(page.locator('header').filter({ hasText: 'Personal Hub' })).toBeVisible();
       
       console.log('Login test passed successfully');
@@ -71,7 +71,7 @@ test.describe('Auth E2E Tests', () => {
       await expect(page).toHaveURL('/dashboard');
       
       // Wait for header to appear
-      await page.waitForSelector('header', { timeout: 10000 });
+      await page.waitForSelector('header', { timeout: 5000 });
       await expect(page.locator('header').filter({ hasText: 'Personal Hub' })).toBeVisible();
       
       console.log('Login with unique user test passed successfully');
@@ -85,7 +85,7 @@ test.describe('Auth E2E Tests', () => {
     await page.goto('/login');
     
     // Wait for page to load
-    await page.waitForSelector('h1:has-text("Login")', { timeout: 10000 });
+    await page.waitForSelector('h1:has-text("Login")', { timeout: 5000 });
     
     // Click register link - try different selectors
     try {

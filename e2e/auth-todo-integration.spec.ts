@@ -24,7 +24,7 @@ async function createTestUser(page: Page) {
   await page.click('button:has-text("Create account")');
   
   // Wait for registration to complete
-  await page.waitForURL('/', { timeout: 10000 });
+  await page.waitForURL('/', { timeout: 5000 });
   
   // Logout to prepare for the actual test
   await page.getByRole('button', { name: 'Logout' }).first().click();
@@ -87,8 +87,8 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     await page.click('button:has-text("Create account")');
     
     // Wait for registration to complete and redirect to home (extended timeout)
-    await page.waitForURL('/', { timeout: 20000 });
-    await page.waitForSelector('header', { timeout: 10000 });
+    await page.waitForURL('/', { timeout: 5000 });
+    await page.waitForSelector('header', { timeout: 5000 });
     await expect(page.locator('header').filter({ hasText: 'Personal Hub' })).toBeVisible();
 
     // Now test that authenticated user is redirected away from auth pages
@@ -117,7 +117,7 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     await page.click('button[type="submit"]');
 
     // Should redirect to home page (redirect parameter handling can be tested separately)
-    await page.waitForURL('/', { timeout: 10000 });
+    await page.waitForURL('/', { timeout: 5000 });
   });
 
   test('should show user info in header and allow logout', async ({ page }) => {
@@ -131,8 +131,8 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     await page.click('button[type="submit"]');
 
     // Wait for redirect to home page
-    await page.waitForURL('/', { timeout: 10000 });
-    await page.waitForSelector('header', { timeout: 10000 });
+    await page.waitForURL('/', { timeout: 5000 });
+    await page.waitForSelector('header', { timeout: 5000 });
     
     // Check if user info is shown in header (but it might not show username/email)
     await expect(page.locator('header').filter({ hasText: 'Personal Hub' })).toBeVisible();
@@ -155,7 +155,7 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     await page.click('button[type="submit"]');
 
     // Wait for redirect to home page
-    await page.waitForURL('/', { timeout: 10000 });
+    await page.waitForURL('/', { timeout: 5000 });
 
     // Simulate token expiration by setting invalid token
     await page.evaluate(() => {
@@ -167,7 +167,7 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     await page.reload();
     
     // Should be redirected to login due to invalid token
-    await expect(page).toHaveURL(/.*\/login/, { timeout: 10000 });
+    await expect(page).toHaveURL(/.*\/login/, { timeout: 5000 });
   });
 
   test('should create and manage user-specific todos', async ({ page }) => {
@@ -181,7 +181,7 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     await page.click('button[type="submit"]');
 
     // Wait for redirect to home page
-    await page.waitForURL('/', { timeout: 10000 });
+    await page.waitForURL('/', { timeout: 5000 });
     await expect(page.getByRole('heading', { name: 'Personal Hub' })).toBeVisible();
 
     // Create a todo
@@ -209,7 +209,7 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     await page.click('button[type="submit"]');
     
     // Wait for redirect to home page first
-    await page.waitForURL('/', { timeout: 10000 });
+    await page.waitForURL('/', { timeout: 5000 });
 
     // Mock network to simulate server error
     await page.route('**/api/v1/todos', route => {

@@ -230,8 +230,9 @@ test.describe('Pomodoro Feature E2E Tests', () => {
       await page.fill('input[placeholder="タスクを追加..."]', 'Test task for cycle');
       await page.press('input[placeholder="タスクを追加..."]', 'Enter');
       
-      // Wait for work session to complete (1 minute + buffer)
-      await page.waitForTimeout(65000);
+      // Wait for work session to complete - use a more reasonable wait strategy
+      // Since we set the timer to 1 minute, we'll wait for the session type to change to break
+      await expect(page.locator('[data-testid="session-type"]')).toContainText('休憩', { timeout: 70000 });
       
       // Verify break session auto-started
       await expect(page.locator('[data-testid="session-type"]')).toContainText('休憩');

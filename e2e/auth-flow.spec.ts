@@ -41,7 +41,7 @@ test.describe('Authentication Flow', () => {
     await page.waitForLoadState('domcontentloaded');
     
     // Wait for the app to fully load and check for the header
-    await page.waitForSelector('header', { timeout: 10000 });
+    await page.waitForSelector('header', { timeout: 5000 });
     
     // Should see app header with Personal Hub text - using flexible selector
     await expect(page.locator('header').filter({ hasText: 'Personal Hub' })).toBeVisible();
@@ -71,7 +71,7 @@ test.describe('Authentication Flow', () => {
     await page.waitForLoadState('domcontentloaded');
     
     // Wait for the app to fully load and check for the header
-    await page.waitForSelector('header', { timeout: 10000 });
+    await page.waitForSelector('header', { timeout: 5000 });
     
     // Should see app header with Personal Hub text - using flexible selector
     await expect(page.locator('header').filter({ hasText: 'Personal Hub' })).toBeVisible();
@@ -90,7 +90,7 @@ test.describe('Authentication Flow', () => {
     
     // Wait for app to load
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForSelector('header', { timeout: 10000 });
+    await page.waitForSelector('header', { timeout: 5000 });
     await expect(page.locator('header').filter({ hasText: 'Personal Hub' })).toBeVisible();
     
     // Logout
@@ -111,7 +111,7 @@ test.describe('Authentication Flow', () => {
     
     // Verify logged in
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForSelector('header', { timeout: 10000 });
+    await page.waitForSelector('header', { timeout: 5000 });
     await expect(page.locator('header').filter({ hasText: 'Personal Hub' })).toBeVisible();
     
     // Reload page
@@ -122,7 +122,7 @@ test.describe('Authentication Flow', () => {
     await page.waitForTimeout(2000); // Wait for React hydration
     
     // Should still be logged in
-    await page.waitForSelector('header', { timeout: 10000 });
+    await page.waitForSelector('header', { timeout: 5000 });
     await expect(page.locator('header').filter({ hasText: 'Personal Hub' })).toBeVisible();
     // Logout button is in dropdown menu, so check for user menu instead
     await expect(page.locator('button').filter({ has: page.locator('.rounded-full') })).toBeVisible();
