@@ -30,13 +30,14 @@ database_id = "c7420c0c-e416-4577-a543-f6b44de51979"
 binding = "RATE_LIMITER"
 id = "f441d11a5542459e865cecaaae376f02"
 
+
 # Production environment
 [env.production]
 name = "personal-hub-backend-prod"
 
 [env.production.vars]
 ENVIRONMENT = "production"
-ALLOWED_ORIGINS = "https://your-production-domain.com"
+ALLOWED_ORIGINS = "https://personal-hub.pages.dev,https://personal-hub.zametech.com"
 
 [[env.production.d1_databases]]
 binding = "DB"

@@ -45,9 +45,20 @@ app.use('*', cors({
       allowedOrigins.push('http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174');
     }
     
-    // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
-      return origin;
+    // Check if origin is in allowed list or matches wildcard pattern
+    for (const allowedOrigin of allowedOrigins) {
+      if (allowedOrigin.includes('*')) {
+        // Convert wildcard pattern to regex
+        const pattern = allowedOrigin
+          .replace(/[.+?^${}()|[\]\\]/g, '\\$&') // Escape special chars
+          .replace(/\*/g, '.*'); // Replace * with .*
+        const regex = new RegExp(`^${pattern}$`);
+        if (regex.test(origin)) {
+          return origin;
+        }
+      } else if (allowedOrigin === origin) {
+        return origin;
+      }
     }
     
     // Origin not allowed
