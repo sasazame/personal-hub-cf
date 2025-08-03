@@ -34,7 +34,10 @@ export function createRateLimiter(options: RateLimitOptions) {
     
     // Skip rate limiting if KV namespace is not available (e.g., in local development)
     if (!namespace) {
-      console.warn('Rate limiter: KV namespace not available, skipping rate limiting');
+      // Use debug level logging to avoid cluttering test output
+      if (c.env.ENVIRONMENT === 'development') {
+        console.debug('Rate limiter: KV namespace not available, skipping rate limiting');
+      }
       await next();
       return;
     }
