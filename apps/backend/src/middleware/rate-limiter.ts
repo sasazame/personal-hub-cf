@@ -31,6 +31,17 @@ export function createRateLimiter(options: RateLimitOptions) {
 
   return async (c: Context<{ Bindings: Bindings; Variables: Variables }>, next: Next) => {
     const namespace = c.env.RATE_LIMITER;
+    
+    // Skip rate limiting if KV namespace is not available (e.g., in local development)
+    if (!namespace) {
+      // Use debug level logging to avoid cluttering test output
+      if (c.env.ENVIRONMENT === 'development') {
+        console.debug('Rate limiter: KV namespace not available, skipping rate limiting');
+      }
+      await next();
+      return;
+    }
+    
     const key = `rate-limit:${keyGenerator(c)}`;
     const now = Date.now();
     const resetTime = now + windowMs;
