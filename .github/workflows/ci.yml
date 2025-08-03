@@ -141,6 +141,18 @@ jobs:
           cd apps/frontend
           VITE_API_BASE_URL=http://localhost:8788 pnpm build
 
+      - name: Setup backend environment
+        run: |
+          cd apps/backend
+          # Create .dev.vars file for CI environment
+          cat > .dev.vars << EOF
+          JWT_SECRET=test-jwt-secret-for-ci-only
+          OAUTH_GITHUB_CLIENT_ID=test-github-client-id
+          OAUTH_GITHUB_CLIENT_SECRET=test-github-client-secret
+          OAUTH_GOOGLE_CLIENT_ID=test-google-client-id
+          OAUTH_GOOGLE_CLIENT_SECRET=test-google-client-secret
+          EOF
+          
       - name: Initialize database
         run: |
           cd apps/backend
