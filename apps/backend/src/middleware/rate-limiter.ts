@@ -1,4 +1,5 @@
 import type { Context, Next } from 'hono';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import type { Bindings, Variables } from '../types';
 import { createErrorResponse, ErrorCodes, StatusCodes } from '../utils/spring-boot-compat';
 
@@ -63,7 +64,7 @@ export function createRateLimiter(options: RateLimitOptions) {
             message,
             { path: c.req.url }
           ),
-          StatusCodes.TOO_MANY_REQUESTS
+          StatusCodes.TOO_MANY_REQUESTS as ContentfulStatusCode
         );
       }
 
