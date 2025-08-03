@@ -20,7 +20,14 @@ id = "rate-limiter-local"
 # Development environment
 [env.development]
 name = "personal-hub-backend-dev"
-vars = { ENVIRONMENT = "development" }
+
+[env.development.vars]
+ENVIRONMENT = "development"
+JWT_SECRET = "test-jwt-secret-for-development-only"
+OAUTH_GITHUB_CLIENT_ID = "YOUR_GITHUB_CLIENT_ID"
+OAUTH_GITHUB_CLIENT_SECRET = "YOUR_GITHUB_CLIENT_SECRET"
+OAUTH_GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID"
+OAUTH_GOOGLE_CLIENT_SECRET = "YOUR_GOOGLE_CLIENT_SECRET"
 
 [[env.development.d1_databases]]
 binding = "DB"
@@ -29,12 +36,20 @@ database_id = "c7420c0c-e416-4577-a543-f6b44de51979"
 
 [[env.development.kv_namespaces]]
 binding = "RATE_LIMITER"
-id = "rate-limiter-dev"
+id = "f441d11a5542459e865cecaaae376f02"
 
 # Production environment
 [env.production]
 name = "personal-hub-backend-prod"
-vars = { ENVIRONMENT = "production", ALLOWED_ORIGINS = "https://your-production-domain.com" }
+
+[env.production.vars]
+ENVIRONMENT = "production"
+ALLOWED_ORIGINS = "https://your-production-domain.com"
+JWT_SECRET = "PLACEHOLDER_PRODUCTION_JWT_SECRET"
+OAUTH_GITHUB_CLIENT_ID = "PLACEHOLDER_GITHUB_CLIENT_ID"
+OAUTH_GITHUB_CLIENT_SECRET = "PLACEHOLDER_GITHUB_CLIENT_SECRET"
+OAUTH_GOOGLE_CLIENT_ID = "PLACEHOLDER_GOOGLE_CLIENT_ID"
+OAUTH_GOOGLE_CLIENT_SECRET = "PLACEHOLDER_GOOGLE_CLIENT_SECRET"
 
 [[env.production.d1_databases]]
 binding = "DB"
@@ -43,7 +58,7 @@ database_id = "7b37b6d9-659a-4adc-a396-fa339c12c597"
 
 [[env.production.kv_namespaces]]
 binding = "RATE_LIMITER"
-id = "rate-limiter-prod"
+id = "c1c925b1bbc2424a84fcdd8d5afc8003"
 
 # Default vars (used in development)
 [vars]
