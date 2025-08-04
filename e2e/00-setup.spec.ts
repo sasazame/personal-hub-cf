@@ -13,13 +13,13 @@ test.describe('Setup', () => {
     // Verify login works
     const loginResponse = await request.post('/api/v1/auth/login', {
       data: {
-        usernameOrEmail: defaultTestUser.email,
+        email: defaultTestUser.email,
         password: defaultTestUser.password,
       },
     });
     
     expect(loginResponse.ok()).toBeTruthy();
     const loginData = await loginResponse.json();
-    expect(loginData.data).toHaveProperty('accessToken');
+    expect(loginData).toHaveProperty('accessToken');
   });
 });

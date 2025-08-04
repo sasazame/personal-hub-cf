@@ -1,22 +1,22 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Basic Authentication Flow', () => {
-  test('should display login page when accessing root', async ({ page }) => {
+  test('should display landing page when accessing root', async ({ page }) => {
     await page.goto('/');
     
     // Wait for navigation to complete
     await page.waitForLoadState('networkidle');
     
-    // Should be redirected to login
-    expect(page.url()).toContain('/login');
+    // Should show landing page
+    expect(page.url()).toBe('http://localhost:3000/');
     
-    // Check for login form elements
-    await expect(page.locator('input[type="email"]')).toBeVisible();
-    await expect(page.locator('input[type="password"]')).toBeVisible();
-    await expect(page.locator('button[type="submit"]')).toBeVisible();
+    // Check for landing page elements
+    await expect(page.locator('h1:has-text("Your Life,")')).toBeVisible();
+    await expect(page.locator('text=Transform chaos into clarity')).toBeVisible();
     
-    // Check for register link
-    await expect(page.locator('a[href="/register"]')).toBeVisible();
+    // Check for auth links
+    await expect(page.locator('nav a[href="/login"]')).toBeVisible();
+    await expect(page.locator('a[href="/register"]:has-text("Get Started")')).toBeVisible();
   });
 
   test('should handle invalid login attempt', async ({ page }) => {
