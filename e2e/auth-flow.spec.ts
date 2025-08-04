@@ -10,9 +10,16 @@ test.describe('Authentication Flow', () => {
     await ensureLoggedOut(page);
   });
 
-  test('should redirect unauthenticated users to login', async ({ page }) => {
+  test('should show landing page for unauthenticated users', async ({ page }) => {
+    // Navigate to home page
+    await page.goto('/');
+    
+    // Should show landing page
+    await expect(page).toHaveURL(/^http:\/\/localhost:3000\/$/);
+    await expect(page.locator('h1:has-text("Your Life,")')).toBeVisible();
+    
     // Try to access protected route
-    await navigateToProtectedRoute(page, '/');
+    await navigateToProtectedRoute(page, '/dashboard');
     
     // Should be redirected to login
     await expect(page).toHaveURL(/.*\/login/);

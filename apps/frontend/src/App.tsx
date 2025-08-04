@@ -5,8 +5,10 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { PublicRoute } from './components/PublicRoute'
 
 // Lazy load all pages for better performance
+const Landing = lazy(() => import('./pages/Landing').then(m => ({ default: m.Landing })))
 const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })))
 const Register = lazy(() => import('./pages/Register').then(m => ({ default: m.Register })))
 const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })))
@@ -130,12 +132,12 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/"
+            <Route 
+              path="/" 
               element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
+                <PublicRoute>
+                  <Landing />
+                </PublicRoute>
               }
             />
             </Routes>
