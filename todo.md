@@ -31,8 +31,6 @@ This file tracks pending tasks organized by feature.
 ## Moments Feature
 
 ## Pomodoro Feature
-- [HIGH] Fix Pomodoro session API bug - GET /api/v1/pomodoro/sessions/active returns 404 when trying to end session
-- [HIGH] Fix Pomodoro timer light mode styling - background color and text colors incorrectly use dark theme values
 
 ## Analytics Feature
 
