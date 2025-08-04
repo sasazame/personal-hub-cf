@@ -26,6 +26,59 @@ export function Analytics() {
   const { data: productivityData } = useProductivityScore();
   const { data: streaks } = useStreaks();
 
+  const taskCompletionData = useMemo(() => ({
+    labels: analytics?.taskCompletionTrend?.map(item => 
+      format(new Date(item.date), 'MM/dd')
+    ) || [],
+    datasets: [
+      {
+        label: 'タスク完了率',
+        data: analytics?.taskCompletionTrend?.map(item => 
+          item.total > 0 ? Math.round((item.completed / item.total) * 100) : 0
+        ) || [],
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        fill: true,
+      },
+    ],
+  }), [analytics?.taskCompletionTrend]);
+
+  const pomodoroData = useMemo(() => ({
+    labels: analytics?.pomodoroTrend?.map(item => 
+      format(new Date(item.date), 'MM/dd')
+    ) || [],
+    datasets: [
+      {
+        label: 'セッション数',
+        data: analytics?.pomodoroTrend?.map(item => item.sessions) || [],
+        borderColor: 'rgb(239, 68, 68)',
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        fill: true,
+      },
+    ],
+  }), [analytics?.pomodoroTrend]);
+
+  // Generate heatmap data for the last 90 days
+  const { heatmapData, heatmapStartDate, heatmapEndDate } = useMemo(() => {
+    const endDate = new Date();
+    const startDate = subDays(endDate, 89);
+    
+    const data = Array.from({ length: 90 }, (_, i) => {
+      const date = format(subDays(endDate, 89 - i), 'yyyy-MM-dd');
+      const trend = analytics?.taskCompletionTrend?.find(item => item.date === date);
+      return {
+        date,
+        value: trend ? trend.completed : 0,
+      };
+    });
+    
+    return {
+      heatmapData: data,
+      heatmapStartDate: startDate,
+      heatmapEndDate: endDate
+    };
+  }, [analytics?.taskCompletionTrend]);
+
   if (isLoading || !analytics) {
     return (
       <AppLayout>
@@ -38,59 +91,6 @@ export function Analytics() {
       </AppLayout>
     );
   }
-
-  const taskCompletionData = useMemo(() => ({
-    labels: analytics.taskCompletionTrend.map(item => 
-      format(new Date(item.date), 'MM/dd')
-    ),
-    datasets: [
-      {
-        label: 'タスク完了率',
-        data: analytics.taskCompletionTrend.map(item => 
-          item.total > 0 ? Math.round((item.completed / item.total) * 100) : 0
-        ),
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        fill: true,
-      },
-    ],
-  }), [analytics.taskCompletionTrend]);
-
-  const pomodoroData = useMemo(() => ({
-    labels: analytics.pomodoroTrend.map(item => 
-      format(new Date(item.date), 'MM/dd')
-    ),
-    datasets: [
-      {
-        label: 'セッション数',
-        data: analytics.pomodoroTrend.map(item => item.sessions),
-        borderColor: 'rgb(239, 68, 68)',
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-        fill: true,
-      },
-    ],
-  }), [analytics.pomodoroTrend]);
-
-  // Generate heatmap data for the last 90 days
-  const { heatmapData, heatmapStartDate, heatmapEndDate } = useMemo(() => {
-    const endDate = new Date();
-    const startDate = subDays(endDate, 89);
-    
-    const data = Array.from({ length: 90 }, (_, i) => {
-      const date = format(subDays(endDate, 89 - i), 'yyyy-MM-dd');
-      const trend = analytics.taskCompletionTrend.find(item => item.date === date);
-      return {
-        date,
-        value: trend ? trend.completed : 0,
-      };
-    });
-    
-    return {
-      heatmapData: data,
-      heatmapStartDate: startDate,
-      heatmapEndDate: endDate
-    };
-  }, [analytics.taskCompletionTrend]);
 
   return (
     <AppLayout>
