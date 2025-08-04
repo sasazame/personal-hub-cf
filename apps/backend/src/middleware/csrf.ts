@@ -44,8 +44,8 @@ export async function csrfMiddleware(
   // Get CSRF token from cookie
   const cookieToken = getCookie(c, CSRF_TOKEN_COOKIE);
   
-  // Get CSRF token from header
-  const headerToken = c.req.header(CSRF_HEADER);
+  // Get CSRF token from header (case-insensitive)
+  const headerToken = c.req.header(CSRF_HEADER) || c.req.header(CSRF_HEADER.toLowerCase());
 
   // Validate CSRF token
   if (!cookieToken || !headerToken) {

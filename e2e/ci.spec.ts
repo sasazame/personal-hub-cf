@@ -39,24 +39,6 @@ async function registerAndLogin(page, timestamp: string) {
   await page.reload();
   await page.waitForLoadState('networkidle');
   
-  // Debug: Check if CSRF cookie is set
-  const cookies = await page.context().cookies();
-  const csrfCookie = cookies.find(c => c.name === 'csrf-token');
-  console.log('CSRF Cookie after login:', csrfCookie);
-  
-  // Ensure CSRF token is cached in frontend
-  await page.evaluate(() => {
-    // Import the csrf module and set the cached token
-    const cookies = document.cookie.split(';');
-    for (const cookie of cookies) {
-      const [name, value] = cookie.trim().split('=');
-      if (name === 'csrf-token') {
-        // Force update the cached token by calling the setCachedCSRFToken function
-        window.localStorage.setItem('csrf-token-cache', decodeURIComponent(value));
-        return;
-      }
-    }
-  });
   
   return { username, email, password };
 }
@@ -142,6 +124,7 @@ test.describe('CI Critical Path Tests', () => {
     
     await page.waitForSelector('h1:has-text("Notes")', { timeout: 5000 });
     
+    
     // Create note
     await page.click('button:has-text("New Note")');
     await page.waitForSelector('input[placeholder="Enter note title"]', { state: 'visible' });
@@ -153,57 +136,14 @@ test.describe('CI Critical Path Tests', () => {
     const createButton = page.locator('button:has-text("Create")');
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     
-    // Debug: Check if CSRF token is available in page context
-    const csrfTokenFromPage = await page.evaluate(() => {
-      // Try to get CSRF token from cookie
-      const cookies = document.cookie.split(';');
-      for (const cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === 'csrf-token') {
-          return decodeURIComponent(value);
-        }
-      }
-      return null;
-    });
-    console.log('CSRF Token from page context:', csrfTokenFromPage);
-    
-    // Set up request/response listeners before clicking create
-    let capturedResponse: any;
-    
-    // Listen for the request to check headers
-    page.on('request', request => {
-      if (request.url().includes('/api/v1/notes') && request.method() === 'POST') {
-        console.log('Request headers:', request.headers());
-      }
-    });
-    
-    const createResponsePromise = page.waitForResponse(async response => {
-      if (response.url().includes('/api/v1/notes')) {
-        console.log(`Response: ${response.url()} - Status: ${response.status()}`);
-        if (response.status() !== 201) {
-          const body = await response.text().catch(() => 'Could not read body');
-          console.log(`Response body: ${body}`);
-          capturedResponse = { status: response.status(), body };
-        }
-        return response.status() === 201;
-      }
-      return false;
-    }, { timeout: 5000 });
-    
-    // Click create button
-    console.log('Clicking create button...');
+    // Submit - wait for button to be enabled and click
     await createButton.click();
     
     // Wait for the create response
-    console.log('Waiting for create response...');
-    try {
-      await createResponsePromise;
-    } catch (error) {
-      if (capturedResponse) {
-        throw new Error(`API returned ${capturedResponse.status}: ${capturedResponse.body}`);
-      }
-      throw error;
-    }
+    await page.waitForResponse(response => 
+      response.url().includes('/api/v1/notes') && response.status() === 201,
+      { timeout: 5000 }
+    );
     
     // Now wait for the refresh response after creation
     const refreshResponsePromise = page.waitForResponse(response => 
