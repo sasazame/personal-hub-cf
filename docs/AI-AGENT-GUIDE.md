@@ -80,12 +80,15 @@ e2e/               # Playwright tests
 ```bash
 # Before creating any new branch, ensure main is up-to-date
 git checkout main
-git pull origin main
+git pull --ff-only origin main
 
 # Create feature branch from updated main
 git checkout -b fix/your-issue-name
+```
 
-# Alternative: create directly from remote main
+**Alternative: Create branch directly from remote main**
+```bash
+# Skip local main update and create directly from remote
 git fetch origin
 git checkout -b fix/your-issue-name origin/main
 ```
@@ -104,8 +107,17 @@ gh pr create --title "fix: your title" --body "Description"
 ### Common issue: Old commits in PR
 If your PR includes old commits from previous work:
 - Your local main was outdated when creating the branch
-- Always `git pull origin main` before creating new branches
+- Always `git pull --ff-only origin main` before creating new branches
 - This prevents merge conflicts and commit pollution
+
+**Recovery: Fix existing PRs with old commits**
+```bash
+# Rebase feature branch onto latest main
+git fetch origin
+git rebase origin/main
+# Or interactively clean up commits
+git rebase -i origin/main
+```
 
 ## Important Notes
 - Always run quality checks before committing
