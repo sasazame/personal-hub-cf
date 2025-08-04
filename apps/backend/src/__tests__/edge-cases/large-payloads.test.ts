@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Hono } from 'hono';
 import type { Bindings, Variables } from '../../types';
 import { createTestContext } from '../helpers/test-context';
+import { asMockedDb } from '../helpers/mock-types';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
 import todosRoutes from '../../routes/todos';
 import notesRoutes from '../../routes/notes';
@@ -15,7 +16,8 @@ describe('Large Payload Edge Cases', () => {
 
   // Helper to setup database mock with auth
   const setupDbMock = () => {
-    ctx.db.select.mockImplementation(() => ({
+    const mockedDb = asMockedDb(ctx.db);
+    mockedDb.select.mockImplementation(() => ({
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
       get: vi.fn().mockImplementation(() => {
@@ -37,11 +39,12 @@ describe('Large Payload Edge Cases', () => {
     update?: () => ReturnType<typeof vi.fn>;
     delete?: () => ReturnType<typeof vi.fn>;
   }) => {
+    const mockedDb = asMockedDb(ctx.db);
     let selectCallCount = 0;
     
     // Handle select with auth
     if (customMocks.select) {
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
           // Auth middleware
@@ -63,9 +66,9 @@ describe('Large Payload Edge Cases', () => {
     }
     
     // Apply other custom mocks
-    if (customMocks.insert) ctx.db.insert.mockImplementation(customMocks.insert);
-    if (customMocks.update) ctx.db.update.mockImplementation(customMocks.update);
-    if (customMocks.delete) ctx.db.delete.mockImplementation(customMocks.delete);
+    if (customMocks.insert) mockedDb.insert.mockImplementation(customMocks.insert);
+    if (customMocks.update) mockedDb.update.mockImplementation(customMocks.update);
+    if (customMocks.delete) mockedDb.delete.mockImplementation(customMocks.delete);
   };
 
   beforeEach(async () => {
@@ -143,7 +146,8 @@ describe('Large Payload Edge Cases', () => {
 
     it('should handle deeply nested JSON structures', async () => {
       // Setup insert mock for successful creation
-      ctx.db.insert.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.insert.mockImplementation(() => ({
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
           id: 1,
@@ -179,7 +183,8 @@ describe('Large Payload Edge Cases', () => {
     it('should handle requests with many tags', async () => {
       const manyTags = Array.from({ length: 100 }, (_, i) => `tag${i}`).join(',');
       
-      ctx.db.insert.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.insert.mockImplementation(() => ({
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
           id: 1,
@@ -207,7 +212,8 @@ describe('Large Payload Edge Cases', () => {
       // This tests what would happen with many sequential requests
       
       // Setup insert mock for successful creation
-      ctx.db.insert.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.insert.mockImplementation(() => ({
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
           id: Date.now(),
@@ -249,8 +255,9 @@ describe('Large Payload Edge Cases', () => {
         userId: userId,
       }));
 
+      const mockedDb = asMockedDb(ctx.db);
       let selectCallCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
           // Auth middleware
@@ -308,7 +315,8 @@ describe('Large Payload Edge Cases', () => {
       ];
 
       for (const payload of unicodePayloads) {
-        ctx.db.insert.mockImplementation(() => ({
+        const mockedDb = asMockedDb(ctx.db);
+        mockedDb.insert.mockImplementation(() => ({
           values: vi.fn().mockReturnThis(),
           returning: vi.fn().mockResolvedValue([{
             id: 1,
@@ -339,7 +347,8 @@ describe('Large Payload Edge Cases', () => {
     it('should handle mixed text directions', async () => {
       const mixedDirection = 'Hello مرحبا World עולם Test';
       
-      ctx.db.insert.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.insert.mockImplementation(() => ({
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
           id: 1,
@@ -375,7 +384,8 @@ describe('Large Payload Edge Cases', () => {
       ];
 
       // Setup insert mock for successful creation
-      ctx.db.insert.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.insert.mockImplementation(() => ({
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
           id: 1,
@@ -410,7 +420,8 @@ describe('Large Payload Edge Cases', () => {
       ];
 
       // Setup insert mock for successful creation when valid
-      ctx.db.insert.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.insert.mockImplementation(() => ({
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
           id: 1,
@@ -524,8 +535,9 @@ describe('Large Payload Edge Cases', () => {
 
     it('should handle database connection failures', async () => {
       // First call for auth succeeds, second call fails
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           // Auth middleware succeeds

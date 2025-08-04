@@ -54,7 +54,7 @@ describe('Notes Routes', () => {
     app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
     
     app.use('*', async (c, next) => {
-      c.set('db', mockDb as any);
+      c.set('db', mockDb as unknown as Variables['db']);
       await next();
     });
     

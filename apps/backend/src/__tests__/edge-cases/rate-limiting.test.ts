@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Hono } from 'hono';
 import type { Bindings, Variables } from '../../types';
 import { createTestContext } from '../helpers/test-context';
+import { asMockedDb } from '../helpers/mock-types';
 import authRoutes from '../../routes/auth';
 import todosRoutes from '../../routes/todos';
 import analyticsRoutes from '../../routes/analytics';
@@ -48,7 +49,8 @@ describe('Rate Limiting and Resource Protection', () => {
     vi.clearAllMocks();
 
     // Default mock for auth middleware user lookup
-    ctx.db.select.mockImplementation(() => ({
+    const mockedDb = asMockedDb(ctx.db);
+    mockedDb.select.mockImplementation(() => ({
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
       get: vi.fn().mockResolvedValue({
@@ -65,7 +67,8 @@ describe('Rate Limiting and Resource Protection', () => {
       // Note: In production, Cloudflare provides rate limiting
       // This tests application behavior under rapid requests
       
-      ctx.db.select.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockResolvedValue({
@@ -101,7 +104,8 @@ describe('Rate Limiting and Resource Protection', () => {
     });
 
     it('should rate limit registration attempts', async () => {
-      ctx.db.select.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockResolvedValue(null), // User doesn't exist
@@ -109,7 +113,7 @@ describe('Rate Limiting and Resource Protection', () => {
 
       vi.mocked(authUtils.hashPassword).mockResolvedValue('hashed');
       
-      ctx.db.insert.mockImplementation(() => ({
+      mockedDb.insert.mockImplementation(() => ({
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{ id: 'new-user' }]),
       }));
@@ -151,7 +155,8 @@ describe('Rate Limiting and Resource Protection', () => {
   describe('API Endpoint Rate Limiting', () => {
     it('should limit requests per user', async () => {
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.select.mockImplementation(() => {
         callCount++;
         if (callCount <= 100) {
           // Auth middleware user lookup
@@ -198,7 +203,8 @@ describe('Rate Limiting and Resource Protection', () => {
     it('should have stricter limits for resource-intensive operations', async () => {
       // Analytics endpoints are typically more expensive
       // Setup mock that returns valid data for all queries
-      ctx.db.select.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockResolvedValue({ 
@@ -241,7 +247,8 @@ describe('Rate Limiting and Resource Protection', () => {
   describe('Write Operation Limits', () => {
     it('should limit rapid creation of resources', async () => {
       // Setup auth to always pass
-      ctx.db.select.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockResolvedValue({
@@ -252,7 +259,7 @@ describe('Rate Limiting and Resource Protection', () => {
         }),
       }));
 
-      ctx.db.insert.mockImplementation(() => ({
+      mockedDb.insert.mockImplementation(() => ({
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{ 
           id: Date.now(),
@@ -287,7 +294,8 @@ describe('Rate Limiting and Resource Protection', () => {
       const todoId = 123;
       
       // Create a mock that handles both auth and todo lookups
-      ctx.db.select.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockImplementation(() => {
@@ -305,7 +313,7 @@ describe('Rate Limiting and Resource Protection', () => {
         }),
       }));
 
-      ctx.db.update.mockImplementation(() => ({
+      mockedDb.update.mockImplementation(() => ({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{ 
@@ -360,8 +368,9 @@ describe('Rate Limiting and Resource Protection', () => {
     it('should maintain service availability under load', async () => {
       // Test graceful degradation
       let requestCount = 0;
+      const mockedDb = asMockedDb(ctx.db);
       
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         requestCount++;
         return {
           from: vi.fn().mockReturnThis(),
@@ -414,7 +423,8 @@ describe('Rate Limiting and Resource Protection', () => {
     it('should include rate limit information in headers', async () => {
       // Setup auth and todos mocks
       let selectCallCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.select.mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
           // Auth middleware user lookup
@@ -508,7 +518,8 @@ describe('Rate Limiting and Resource Protection', () => {
   describe('Adaptive Rate Limiting', () => {
     it('should adjust limits based on user behavior', async () => {
       // Setup simple mock that always returns valid data
-      ctx.db.select.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         orderBy: vi.fn().mockReturnThis(),

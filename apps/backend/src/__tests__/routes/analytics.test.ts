@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import analyticsRoutes from '../../routes/analytics';
 import type { Bindings, Variables } from '../../types';
 import { createTestContext, createMockDbChain } from '../helpers/test-context';
+import { asMockedDb } from '../helpers/mock-types';
 import { generateTokens } from '../../utils/auth';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
 
@@ -82,8 +83,9 @@ describe('Analytics Routes', () => {
 
   // Helper to setup database mock with auth
   const setupDbMock = (dataReturns: unknown) => {
+    const mockedDb = asMockedDb(ctx.db);
     let callCount = 0;
-    ctx.db.select.mockImplementation(() => {
+    mockedDb.select.mockImplementation(() => {
       callCount++;
       if (callCount === 1) {
         // Auth middleware user lookup
@@ -101,8 +103,9 @@ describe('Analytics Routes', () => {
 
   // Helper for complex query mocks (with joins, groupBy, etc)
   const setupComplexDbMock = (mockChain: ReturnType<typeof createMockDbChain>) => {
+    const mockedDb = asMockedDb(ctx.db);
     let callCount = 0;
-    ctx.db.select.mockImplementation(() => {
+    mockedDb.select.mockImplementation(() => {
       callCount++;
       if (callCount === 1) {
         // Auth middleware user lookup
@@ -135,7 +138,8 @@ describe('Analytics Routes', () => {
     app.route('/analytics', analyticsRoutes);
     
     // Default mock for auth middleware user lookup
-    ctx.db.select.mockImplementation(() => ({
+    const mockedDb = asMockedDb(ctx.db);
+    mockedDb.select.mockImplementation(() => ({
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
       get: vi.fn().mockResolvedValue({
@@ -248,8 +252,9 @@ describe('Analytics Routes', () => {
     });
 
     it('should handle database errors', async () => {
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           // Auth middleware user lookup
@@ -500,8 +505,9 @@ describe('Analytics Routes', () => {
 
   describe('GET /analytics/tags', () => {
     it('should return tag analytics', async () => {
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           // Auth middleware
@@ -638,8 +644,9 @@ describe('Analytics Routes', () => {
 
   describe('Error Handling', () => {
     it('should handle database connection errors', async () => {
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           // Auth middleware succeeds

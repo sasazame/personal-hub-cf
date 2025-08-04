@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Hono } from 'hono';
 import type { Bindings, Variables } from '../../types';
 import { createTestContext } from '../helpers/test-context';
+import { asMockedDb } from '../helpers/mock-types';
 import { generateTokens } from '../../utils/auth';
 import todosRoutes from '../../routes/todos';
 import notesRoutes from '../../routes/notes';
@@ -15,7 +16,8 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
 
   // Helper to setup database mock with auth
   const setupDbMock = () => {
-    ctx.db.select.mockImplementation(() => ({
+    const mockedDb = asMockedDb(ctx.db);
+    mockedDb.select.mockImplementation(() => ({
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
       get: vi.fn().mockImplementation(() => {
@@ -49,7 +51,8 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
     app.route('/moments', momentsRoutes);
     
     // Default mock for auth middleware user lookup
-    ctx.db.select.mockImplementation(() => ({
+    const mockedDb = asMockedDb(ctx.db);
+    mockedDb.select.mockImplementation(() => ({
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
       get: vi.fn().mockResolvedValue({
@@ -77,7 +80,8 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
       setupDbMock();
 
       for (const payload of xssPayloads) {
-        ctx.db.insert.mockImplementation(() => ({
+        const mockedDb = asMockedDb(ctx.db);
+        mockedDb.insert.mockImplementation(() => ({
           values: vi.fn().mockReturnThis(),
           returning: vi.fn().mockResolvedValue([{
             id: 1,
@@ -123,7 +127,8 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
       setupDbMock();
 
       for (const payload of eventHandlerPayloads) {
-        ctx.db.insert.mockImplementation(() => ({
+        const mockedDb = asMockedDb(ctx.db);
+        mockedDb.insert.mockImplementation(() => ({
           values: vi.fn().mockReturnThis(),
           returning: vi.fn().mockResolvedValue([{
             id: 1,
@@ -150,7 +155,7 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
         if (res.status === 201) {
           const body = await res.json();
           // API should return data as-is, frontend responsible for escaping
-          expect((body as any).content).toBe(payload);
+          expect((body as { content: string }).content).toBe(payload);
         }
       }
     });
@@ -168,7 +173,8 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
 
       for (const payload of jsonInjectionPayloads) {
         // Mock insert for successful creation if JSON is parsed
-        ctx.db.insert.mockImplementation(() => ({
+        const mockedDb = asMockedDb(ctx.db);
+        mockedDb.insert.mockImplementation(() => ({
           values: vi.fn().mockReturnThis(),
           returning: vi.fn().mockResolvedValue([{
             id: 1,
@@ -208,7 +214,8 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
       ];
 
       for (const payload of specialCharPayloads) {
-        ctx.db.insert.mockImplementation(() => ({
+        const mockedDb = asMockedDb(ctx.db);
+        mockedDb.insert.mockImplementation(() => ({
           values: vi.fn().mockReturnThis(),
           returning: vi.fn().mockResolvedValue([{
             id: 1,
@@ -251,7 +258,8 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
 
       for (const payload of unicodePayloads) {
         // Setup insert mock for successful creation
-        ctx.db.insert.mockImplementation(() => ({
+        const mockedDb = asMockedDb(ctx.db);
+        mockedDb.insert.mockImplementation(() => ({
           values: vi.fn().mockReturnThis(),
           returning: vi.fn().mockResolvedValue([{
             id: 1,
@@ -291,8 +299,9 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
 
       for (const payload of doubleEncodedPayloads) {
         // Add specific mock for todos query
+        const mockedDb = asMockedDb(ctx.db);
         let callCount = 0;
-        ctx.db.select.mockImplementation(() => {
+        mockedDb.select.mockImplementation(() => {
           callCount++;
           if (callCount === 1) {
             // Auth middleware
@@ -347,8 +356,9 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
     });
 
     it('should always return JSON with proper content type', async () => {
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           // Auth middleware
@@ -424,7 +434,8 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
       ];
 
       for (const tags of xssTags) {
-        ctx.db.insert.mockImplementation(() => ({
+        const mockedDb = asMockedDb(ctx.db);
+        mockedDb.insert.mockImplementation(() => ({
           values: vi.fn().mockReturnThis(),
           returning: vi.fn().mockResolvedValue([{
             id: 1,
@@ -447,14 +458,15 @@ describe('XSS (Cross-Site Scripting) Security Tests', () => {
 
         expect(res.status).toBe(201);
         const body = await res.json();
-        expect((body as any).tags).toBe(tags); // Stored as-is, frontend escapes
+        expect((body as { tags: string }).tags).toBe(tags); // Stored as-is, frontend escapes
       }
     });
   });
 
   describe('Response Headers Security', () => {
     it('should include security headers in responses', async () => {
-      ctx.db.select.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockResolvedValue({ id: 1, title: 'Test' }),

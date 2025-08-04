@@ -10,6 +10,7 @@ export interface SpringBootError {
 export interface SpringBootAuthResponse {
   accessToken: string;
   refreshToken: string;
+  csrfToken?: string;
   user: {
     id: string;
     username: string;
@@ -116,11 +117,13 @@ export function createAuthResponse(
     updatedAt?: string;
   },
   accessToken: string,
-  refreshToken: string
+  refreshToken: string,
+  csrfToken?: string
 ): SpringBootAuthResponse {
   return {
     accessToken,
     refreshToken,
+    ...(csrfToken && { csrfToken }),
     user: {
       id: user.id,
       username: user.username,

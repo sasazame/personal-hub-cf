@@ -199,7 +199,7 @@ app.post('/sessions', zValidator('json', createSessionSchema, springBootValidato
     
     // Create tasks if provided
     if (data.tasks && data.tasks.length > 0) {
-      const taskValues = data.tasks.map(task => ({
+      const taskValues = data.tasks.map((task: { todoId?: number; description: string; orderIndex: number }) => ({
         id: nanoid(),
         sessionId,
         todoId: task.todoId,

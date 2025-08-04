@@ -3,8 +3,17 @@ import { Hono } from 'hono';
 import pomodoroRoutes from '../../routes/pomodoro';
 import type { Bindings, Variables } from '../../types';
 import { createTestContext } from '../helpers/test-context';
+import { asMockedDb } from '../helpers/mock-types';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
-import type { PomodoroTaskResponse, PomodoroConfigResponse, PomodoroSessionWithTasksResponse } from '../helpers/response-types';
+import type { PomodoroTaskResponse, PomodoroConfigResponse, PomodoroSessionWithTasksResponse, APIErrorResponse, PomodoroSessionResponse } from '../helpers/response-types';
+
+// Additional types for pomodoro stats
+interface PomodoroStatsResponse {
+  totalSessions: number;
+  totalCycles: number;
+  totalWorkMinutes: number;
+  averageCyclesPerSession: number;
+}
 
 vi.mock('../../utils/nanoid', () => ({
   nanoid: () => 'test-id-123',
@@ -18,8 +27,9 @@ describe('Pomodoro Routes', () => {
 
   // Helper to setup database mock with auth
   const setupDbMock = (customReturns?: { user?: unknown; config?: unknown; sessions?: unknown[]; session?: unknown; sessionWithTasks?: unknown; tasks?: unknown[]; task?: unknown }) => {
+    const mockedDb = asMockedDb(ctx.db);
     let callCount = 0;
-    ctx.db.select.mockImplementation(() => ({
+    mockedDb.select.mockImplementation(() => ({
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
       get: vi.fn().mockImplementation(() => {
@@ -85,7 +95,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(401);
-      const body = await res.json() as any;
+      const body = await res.json() as APIErrorResponse;
       expect(body.code).toBe('UNAUTHORIZED');
     });
 
@@ -140,15 +150,16 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as any;
+      const body = await res.json() as PomodoroSessionResponse[];
       
       expect(Array.isArray(body)).toBe(true);
       expect(body).toEqual(mockSessions);
     });
 
     it('should handle pagination parameters', async () => {
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => ({
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockImplementation(() => {
@@ -200,8 +211,9 @@ describe('Pomodoro Routes', () => {
         { id: 'task-2', sessionId: 'active-session', description: 'Task 2', completed: true },
       ];
 
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => ({
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockImplementation(() => {
@@ -228,7 +240,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as any;
+      const body = await res.json() as PomodoroSessionWithTasksResponse;
       
       expect(body.id).toBe(mockSession.id);
       expect(body.tasks).toEqual(mockTasks);
@@ -245,7 +257,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(404);
-      const body = await res.json() as any;
+      const body = await res.json() as APIErrorResponse;
       expect(body.code).toBe('NOT_FOUND');
     });
   });
@@ -262,8 +274,9 @@ describe('Pomodoro Routes', () => {
         { id: 'task-1', sessionId: 'session-123', description: 'Task 1' },
       ];
 
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => ({
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockImplementation(() => {
@@ -290,7 +303,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as any;
+      const body = await res.json() as PomodoroSessionWithTasksResponse;
       
       expect(body.id).toBe('session-123');
       expect(body.tasks).toEqual(mockTasks);
@@ -325,13 +338,14 @@ describe('Pomodoro Routes', () => {
       // No active session
       setupDbMock(undefined);
 
-      ctx.db.insert.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.insert.mockImplementation(() => ({
         values: vi.fn().mockResolvedValue(undefined),
       }));
       
       // Mock the tasks query after insert
       let selectCallCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
           // Auth middleware
@@ -433,7 +447,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(409);
-      const body = await res.json() as any;
+      const body = await res.json() as APIErrorResponse;
       expect(body.code).toBe('CONFLICT');
     });
 
@@ -448,7 +462,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
-      const body = await res.json() as any;
+      const body = await res.json() as APIErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
   });
@@ -463,7 +477,8 @@ describe('Pomodoro Routes', () => {
 
       setupDbMock({ session: existingSession });
 
-      ctx.db.update.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.update.mockImplementation(() => ({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
@@ -486,7 +501,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as any;
+      const body = await res.json() as PomodoroSessionResponse;
       
       expect(body.status).toBe('COMPLETED');
       expect(body.completedCycles).toBe(4);
@@ -513,7 +528,8 @@ describe('Pomodoro Routes', () => {
       // Mock session exists
       setupDbMock({ session: { id: 'session-123' } });
 
-      ctx.db.update.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.update.mockImplementation(() => ({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
@@ -556,7 +572,8 @@ describe('Pomodoro Routes', () => {
       setupDbMock({ session: { id: 'session-123' } });
 
       // But task update returns empty
-      ctx.db.update.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.update.mockImplementation(() => ({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([]),
@@ -598,7 +615,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as any;
+      const body = await res.json() as PomodoroConfigResponse;
       expect(body).toEqual(mockConfig);
     });
 
@@ -636,7 +653,8 @@ describe('Pomodoro Routes', () => {
         shortBreakDuration: 10,
       };
 
-      ctx.db.update.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.update.mockImplementation(() => ({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([updateData]),
@@ -663,7 +681,8 @@ describe('Pomodoro Routes', () => {
         workDuration: 20,
       };
 
-      ctx.db.insert.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.insert.mockImplementation(() => ({
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
           id: 'test-id-123',
@@ -702,7 +721,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
-      const body = await res.json() as any;
+      const body = await res.json() as APIErrorResponse;
       expect(body.code).toBe('VALIDATION_ERROR');
     });
   });
@@ -715,8 +734,9 @@ describe('Pomodoro Routes', () => {
         { completedCycles: 3, workDuration: 30 },
       ];
 
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           // Auth middleware user lookup
@@ -746,7 +766,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as any;
+      const body = await res.json() as PomodoroStatsResponse;
       
       expect(body.totalSessions).toBe(3);
       expect(body.totalCycles).toBe(9);
@@ -755,8 +775,9 @@ describe('Pomodoro Routes', () => {
     });
 
     it('should handle no completed sessions', async () => {
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           // Auth middleware user lookup
@@ -786,7 +807,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as any;
+      const body = await res.json() as PomodoroStatsResponse;
       
       expect(body.totalSessions).toBe(0);
       expect(body.totalCycles).toBe(0);
@@ -797,8 +818,9 @@ describe('Pomodoro Routes', () => {
 
   describe('Error Handling', () => {
     it('should handle database errors gracefully', async () => {
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           // Auth middleware user lookup - let it pass
@@ -825,7 +847,7 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(500);
-      const body = await res.json() as any;
+      const body = await res.json() as APIErrorResponse;
       expect(body.code).toBe('INTERNAL_ERROR');
     });
   });

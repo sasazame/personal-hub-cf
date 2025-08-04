@@ -2,12 +2,13 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Hono } from 'hono';
 import authRoutes from '../../routes/auth';
 import { createMockDbChain } from '../helpers/test-context';
+import { asMockedDb } from '../helpers/mock-types';
 import { hashPassword } from '../../utils/auth';
 import type { Bindings, Variables } from '../../types';
 import type { MockedFunction } from 'vitest';
 import { InferSelectModel } from 'drizzle-orm';
 import * as schema from '../../db/schema';
-import type { D1Database } from '@cloudflare/workers-types';
+import type { D1Database, KVNamespace } from '@cloudflare/workers-types';
 
 interface AuthResponse {
   accessToken: string;
@@ -50,12 +51,12 @@ describe('Auth Routes Integration', () => {
       OAUTH_GOOGLE_CLIENT_SECRET: 'test-google-secret',
     ENVIRONMENT: 'test',
     RATE_LIMITER: {
-      get: vi.fn(async (_key: string, _options?: any) => {
+      get: vi.fn(async (_key: string, _options?: unknown) => {
         return null; // No rate limiting data by default
       }),
       put: vi.fn(async () => {}),
       delete: vi.fn(async () => {}),
-    } as any,
+    } as unknown as KVNamespace,
     };
 
     // Create app with proper context
@@ -63,7 +64,7 @@ describe('Auth Routes Integration', () => {
     
     // Add database middleware (simulating the real app)
     app.use('*', async (c, next) => {
-      c.set('db', mockDb as any);
+      c.set('db', mockDb as unknown as Variables['db']);
       await next();
     });
     
@@ -110,7 +111,8 @@ describe('Auth Routes Integration', () => {
 
     it('should return 409 when email already exists', async () => {
       // Mock existing user
-      mockDb.select.mockReturnValue(
+      const mockedDb = asMockedDb(mockDb);
+      mockedDb.select.mockReturnValue(
         createMockDbChain({
           id: 'existing-user-id',
           email: 'existing@example.com',
@@ -134,10 +136,11 @@ describe('Auth Routes Integration', () => {
 
     it('should return 400 when username is taken', async () => {
       // First mock - no existing email
-      mockDb.select.mockReturnValueOnce(createMockDbChain(null));
+      const mockedDb = asMockedDb(mockDb);
+      mockedDb.select.mockReturnValueOnce(createMockDbChain(null));
       
       // Second mock - existing username
-      mockDb.select.mockReturnValueOnce(
+      mockedDb.select.mockReturnValueOnce(
         createMockDbChain({
           id: 'user-id',
           username: 'existinguser',
@@ -162,7 +165,8 @@ describe('Auth Routes Integration', () => {
 
     it('should create user and return tokens on success', async () => {
       // Mock no existing user
-      mockDb.select.mockReturnValue(createMockDbChain(null));
+      const mockedDb = asMockedDb(mockDb);
+      mockedDb.select.mockReturnValue(createMockDbChain(null));
       
       // Mock successful insert
       const newUser = {
@@ -175,7 +179,7 @@ describe('Auth Routes Integration', () => {
         updatedAt: new Date(),
       };
       
-      mockDb.insert.mockReturnValue({
+      mockedDb.insert.mockReturnValue({
         values: vi.fn().mockReturnValue({
           returning: vi.fn().mockResolvedValue([newUser]),
         }),
@@ -212,7 +216,8 @@ describe('Auth Routes Integration', () => {
 
   describe('POST /auth/login', () => {
     it('should return 401 when user not found', async () => {
-      mockDb.select.mockReturnValue(createMockDbChain(null));
+      const mockedDb = asMockedDb(mockDb);
+      mockedDb.select.mockReturnValue(createMockDbChain(null));
 
       const res = await app.request('/auth/login', {
         method: 'POST',
@@ -231,7 +236,8 @@ describe('Auth Routes Integration', () => {
     it('should return 401 for incorrect password', async () => {
       const hashedPassword = await hashPassword('CorrectPass123!');
       
-      mockDb.select.mockReturnValue(
+      const mockedDb = asMockedDb(mockDb);
+      mockedDb.select.mockReturnValue(
         createMockDbChain({
           id: 'user-id',
           email: 'user@example.com',
@@ -272,17 +278,18 @@ describe('Auth Routes Integration', () => {
         updatedAt: new Date(),
       };
       
-      mockDb.select.mockReturnValue(createMockDbChain(user));
+      const mockedDb = asMockedDb(mockDb);
+      mockedDb.select.mockReturnValue(createMockDbChain(user));
       
       // Mock update for refresh token revocation
-      mockDb.update.mockReturnValue({
+      mockedDb.update.mockReturnValue({
         set: vi.fn().mockReturnValue({
           where: vi.fn().mockReturnThis(),
         }),
       });
       
       // Mock successful refresh token insert
-      mockDb.insert.mockReturnValue({
+      mockedDb.insert.mockReturnValue({
         values: vi.fn().mockReturnThis(),
       });
 

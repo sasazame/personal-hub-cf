@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 import { Hono } from 'hono';
 import type { Bindings, Variables } from '../../types';
 import type { Database } from '../../db';
-import type { D1Database } from '@cloudflare/workers-types';
+import type { D1Database, KVNamespace } from '@cloudflare/workers-types';
 
 // Create a test context helper
 export function createTestContext() {
@@ -15,8 +15,8 @@ export function createTestContext() {
     // Add missing DrizzleD1Database properties
     batch: vi.fn(),
     resultKind: 'rows' as const,
-    _: {} as any,
-    query: {} as any,
+    _: {} as Record<string, unknown>,
+    query: {} as Record<string, unknown>,
     with: vi.fn(),
     transaction: vi.fn(),
     refreshMaterializedView: vi.fn(),
@@ -33,7 +33,7 @@ export function createTestContext() {
   // Mock KV namespace for rate limiting
   const mockKVStore: Record<string, string> = {};
   const mockRateLimiter = {
-    get: vi.fn(async (key: string, options?: any) => {
+    get: vi.fn(async (key: string, options?: { type?: string }) => {
       const value = mockKVStore[key];
       if (!value) return null;
       // If type is 'json', parse the value
@@ -42,7 +42,7 @@ export function createTestContext() {
       }
       return value;
     }),
-    put: vi.fn(async (key: string, value: string, _options?: any) => {
+    put: vi.fn(async (key: string, value: string, _options?: Record<string, unknown>) => {
       mockKVStore[key] = value;
     }),
     delete: vi.fn(async (key: string) => {
@@ -53,7 +53,7 @@ export function createTestContext() {
       const value = mockKVStore[key];
       return value ? { value, metadata: null } : { value: null, metadata: null };
     }),
-  } as any;
+  } as unknown as KVNamespace;
 
   const env: Bindings = {
     DB: {} as D1Database,
@@ -78,7 +78,7 @@ export function createTestContext() {
   // This is a valid JWT token signed with 'test-jwt-secret' that expires in 2030
   const validToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxODkzNDU2MDAwfQ.v6Q_9cAGQPR9nJmF4BFHQT6zLJMSNQaWEGS7FhR2vNg';
 
-  return { app, env, db: mockDb as any, validToken };
+  return { app, env, db: mockDb as unknown as Database, validToken };
 }
 
 // Helper to create mock database chain

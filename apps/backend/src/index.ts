@@ -15,6 +15,7 @@ import usersRoutes from './routes/users';
 import analyticsRoutes from './routes/analytics';
 import { createValidationError } from './utils/spring-boot-compat';
 import { securityHeaders } from './middleware/security-headers';
+import { csrfMiddleware } from './middleware/csrf';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -65,7 +66,7 @@ app.use('*', cors({
     return null;
   },
   credentials: true,
-  allowHeaders: ['Content-Type', 'Authorization'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 }));
 
@@ -75,6 +76,9 @@ app.use('*', async (c, next) => {
   c.set('db', db);
   await next();
 });
+
+// CSRF protection middleware (applied to all routes except excluded ones)
+app.use('*', csrfMiddleware);
 
 // Health check
 app.get('/health', (c) => {

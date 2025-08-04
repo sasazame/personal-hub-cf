@@ -3,9 +3,63 @@ import { Hono } from 'hono';
 import usersRoutes from '../../routes/users';
 import type { Bindings, Variables } from '../../types';
 import { createTestContext } from '../helpers/test-context';
+import { asMockedDb } from '../helpers/mock-types';
 import * as authUtils from '../../utils/auth';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
 import type { ErrorResponse, MessageResponse } from '../helpers/response-types';
+
+// User-specific response types
+interface UserProfileResponse {
+  id: string;
+  email: string;
+  username: string;
+  emailVerified: boolean;
+  profilePictureUrl: string | null;
+  givenName: string | null;
+  familyName: string | null;
+  locale: string | null;
+  weekStartDay: number;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface UserUpdateResponse {
+  id: string;
+  email: string;
+  username: string;
+  emailVerified: boolean;
+  profilePictureUrl: string | null;
+  givenName: string | null;
+  familyName: string | null;
+  locale: string | null;
+  weekStartDay: number;
+}
+
+interface SuccessResponse {
+  success: boolean;
+  message?: string;
+}
+
+interface UserPreferencesResponse {
+  weekStartDay: number;
+  locale: string | null;
+}
+
+interface SocialAccountResponse {
+  id: string;
+  provider: string;
+  email: string | null;
+  name: string | null;
+  picture: string | null;
+  createdAt: string;
+}
+
+interface ValidationErrorResponse {
+  code: string;
+  message: string;
+  details: Record<string, string>;
+}
 
 vi.mock('../../utils/auth', () => ({
   verifyPassword: vi.fn(),
@@ -33,8 +87,9 @@ describe('Users Routes', () => {
 
   // Helper to setup database mock with auth
   const setupDbMock = (getReturns: unknown) => {
+    const mockedDb = asMockedDb(ctx.db);
     let callCount = 0;
-    ctx.db.select.mockImplementation(() => ({
+    mockedDb.select.mockImplementation(() => ({
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
       get: vi.fn().mockImplementation(() => {
@@ -78,7 +133,8 @@ describe('Users Routes', () => {
     vi.clearAllMocks();
     
     // Default mock for auth middleware user lookup
-    ctx.db.select.mockImplementation(() => ({
+    const mockedDb = asMockedDb(ctx.db);
+    mockedDb.select.mockImplementation(() => ({
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
       get: vi.fn().mockResolvedValue({
@@ -140,7 +196,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as any;
+      const body = await res.json() as UserProfileResponse;
       expect(body).toEqual(mockUser);
     });
 
@@ -169,8 +225,9 @@ describe('Users Routes', () => {
       };
 
       // Username not taken
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => ({
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockImplementation(() => {
@@ -189,7 +246,7 @@ describe('Users Routes', () => {
         }),
       }));
 
-      ctx.db.update.mockImplementation(() => ({
+      mockedDb.update.mockImplementation(() => ({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
@@ -209,14 +266,15 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as any;
+      const body = await res.json() as UserUpdateResponse;
       expect(body.username).toBe('newusername');
       expect(body.givenName).toBe('Updated');
     });
 
     it('should return 409 if username is taken', async () => {
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => ({
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockImplementation(() => {
@@ -245,7 +303,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(409);
-      const body = await res.json() as any;
+      const body = await res.json() as ValidationErrorResponse;
       expect(body.details.username).toBe('Username already taken');
     });
 
@@ -280,7 +338,8 @@ describe('Users Routes', () => {
       vi.mocked(authUtils.verifyPassword).mockResolvedValue(true);
       vi.mocked(authUtils.hashPassword).mockResolvedValue('hashed-new-password');
 
-      ctx.db.update.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.update.mockImplementation(() => ({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockResolvedValue(undefined),
       }));
@@ -298,7 +357,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as any;
+      const body = await res.json() as SuccessResponse;
       expect(body.success).toBe(true);
       expect(vi.mocked(authUtils.verifyPassword)).toHaveBeenCalledWith('oldpass123', 'hashed-old-password');
       expect(vi.mocked(authUtils.hashPassword)).toHaveBeenCalledWith('newpass123');
@@ -322,7 +381,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
-      const body = await res.json() as any;
+      const body = await res.json() as ValidationErrorResponse;
       expect(body.details.currentPassword).toBe('Current password is incorrect');
     });
 
@@ -353,8 +412,9 @@ describe('Users Routes', () => {
         password: 'hashed-password',
       };
 
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => ({
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockImplementation(() => {
@@ -379,7 +439,7 @@ describe('Users Routes', () => {
 
       vi.mocked(authUtils.verifyPassword).mockResolvedValue(true);
 
-      ctx.db.update.mockImplementation(() => ({
+      mockedDb.update.mockImplementation(() => ({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockResolvedValue(undefined),
       }));
@@ -397,13 +457,14 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as any;
+      const body = await res.json() as SuccessResponse;
       expect(body.success).toBe(true);
     });
 
     it('should reject if email already exists', async () => {
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => ({
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockImplementation(() => {
@@ -475,7 +536,8 @@ describe('Users Routes', () => {
         locale: 'ja-JP',
       };
 
-      ctx.db.update.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.update.mockImplementation(() => ({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([updateData]),
@@ -491,7 +553,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as any;
+      const body = await res.json() as UserPreferencesResponse;
       expect(body).toEqual(updateData);
     });
 
@@ -530,8 +592,9 @@ describe('Users Routes', () => {
         },
       ];
 
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => ({
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockImplementation(() => {
           callCount++;
@@ -559,7 +622,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as any;
+      const body = await res.json() as SocialAccountResponse[];
       expect(body).toEqual(mockAccounts);
     });
   });
@@ -572,8 +635,9 @@ describe('Users Routes', () => {
         { provider: 'github' },
       ];
 
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           // Auth middleware
@@ -603,7 +667,7 @@ describe('Users Routes', () => {
         }
       });
 
-      ctx.db.delete.mockImplementation(() => ({
+      mockedDb.delete.mockImplementation(() => ({
         where: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{ id: '1' }]),
       }));
@@ -622,8 +686,9 @@ describe('Users Routes', () => {
       const mockUser = { id: 'test-user', password: null }; // No password
       const mockAccounts = [{ provider: 'google' }]; // Only one social account
 
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           // Auth middleware
@@ -668,7 +733,8 @@ describe('Users Routes', () => {
     it('should return 404 if social account not found', async () => {
       setupDbMock({ id: 'test-user', password: 'hash' });
 
-      ctx.db.delete.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.delete.mockImplementation(() => ({
         where: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([]),
       }));
@@ -695,7 +761,8 @@ describe('Users Routes', () => {
 
       vi.mocked(authUtils.verifyPassword).mockResolvedValue(true);
 
-      ctx.db.update.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.update.mockImplementation(() => ({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockResolvedValue(undefined),
       }));
@@ -710,7 +777,7 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as any;
+      const body = await res.json() as SuccessResponse;
       expect(body.success).toBe(true);
     });
 
@@ -738,7 +805,8 @@ describe('Users Routes', () => {
 
   describe('POST /users/verify-email', () => {
     it('should verify email successfully', async () => {
-      ctx.db.update.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.update.mockImplementation(() => ({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockResolvedValue(undefined),
       }));
@@ -753,15 +821,16 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as any;
+      const body = await res.json() as SuccessResponse;
       expect(body.success).toBe(true);
     });
   });
 
   describe('Error Handling', () => {
     it('should handle database errors gracefully', async () => {
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           // Auth middleware succeeds

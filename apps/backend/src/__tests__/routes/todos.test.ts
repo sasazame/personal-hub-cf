@@ -69,7 +69,7 @@ describe('Todos Routes', () => {
     
     // Add database middleware
     app.use('*', async (c, next) => {
-      c.set('db', mockDb as any);
+      c.set('db', mockDb as unknown as Variables['db']);
       await next();
     });
     

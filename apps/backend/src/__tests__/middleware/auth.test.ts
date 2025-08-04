@@ -4,16 +4,12 @@ import { authMiddleware } from '../../middleware/auth';
 import { generateTokens } from '../../utils/auth';
 import { createMockDbChain, createTestContext } from '../helpers/test-context';
 import type { Bindings, Variables } from '../../types';
+import type { Database } from '../../db';
 
 describe('Auth Middleware', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
   let env: Bindings;
-  let mockDb: {
-    select: ReturnType<typeof vi.fn>;
-    insert: ReturnType<typeof vi.fn>;
-    update: ReturnType<typeof vi.fn>;
-    delete: ReturnType<typeof vi.fn>;
-  };
+  let mockDb: Database;
 
   beforeEach(() => {
     // Use createTestContext helper
@@ -71,7 +67,7 @@ describe('Auth Middleware', () => {
     const tokens = await generateTokens(userId, env.JWT_SECRET);
     
     // Mock user exists and is enabled
-    mockDb.select.mockReturnValue(createMockDbChain({
+    (mockDb.select as ReturnType<typeof vi.fn>).mockReturnValue(createMockDbChain({
       id: userId,
       email: 'test@example.com',
       username: 'testuser',

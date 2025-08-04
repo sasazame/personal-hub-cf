@@ -5,13 +5,13 @@ import { setupTestDatabase, cleanupTestDatabase, closeTestDatabase } from './set
 import { createTestUserData, createTestTodoData, createTestGoalData, createTestNoteData } from './fixtures';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
 import type { Bindings, Variables } from '../../types';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Database } from '../../db';
 import * as schema from '../../db/schema';
 import { eq } from 'drizzle-orm';
 
 describe('Analytics Routes Integration with Real Database', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let db: DrizzleD1Database;
+  let db: Database;
   let env: Bindings;
   let testUser: { id: string; email: string; username: string; enabled: boolean };
   let accessToken: string;
@@ -19,7 +19,7 @@ describe('Analytics Routes Integration with Real Database', () => {
   beforeEach(async () => {
     // Setup test database
     const setup = await setupTestDatabase();
-    db = setup.db as any;
+    db = setup.db as Database;
     env = setup.env as Bindings;
 
     // Create test user
@@ -41,7 +41,7 @@ describe('Analytics Routes Integration with Real Database', () => {
     
     // Add database middleware
     app.use('*', async (c, next) => {
-      c.set('db', db as any);
+      c.set('db', db);
       await next();
     });
     

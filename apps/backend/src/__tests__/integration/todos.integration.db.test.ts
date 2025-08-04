@@ -20,7 +20,7 @@ describe('Todos Routes Integration with Real Database', () => {
   beforeEach(async () => {
     // Setup test database
     const setup = await setupTestDatabase();
-    db = setup.db as any;
+    db = setup.db as Database;
     env = setup.env as Bindings;
 
     // Create test user
@@ -42,7 +42,7 @@ describe('Todos Routes Integration with Real Database', () => {
     
     // Add database middleware
     app.use('*', async (c, next) => {
-      c.set('db', db as any);
+      c.set('db', db);
       await next();
     });
     

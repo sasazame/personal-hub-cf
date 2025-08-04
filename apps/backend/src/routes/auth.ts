@@ -19,6 +19,7 @@ import {
 } from '../utils/spring-boot-compat';
 import { springBootValidator } from '../utils/validation';
 import { authRateLimiter } from '../middleware/rate-limiter';
+import { generateAndSetCSRFToken } from '../middleware/csrf';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -118,7 +119,10 @@ app.post('/register', authRateLimiter, zValidator('json', registerSchema, spring
     
     await db.insert(refreshTokens).values(refreshTokenData);
     
-    return c.json(createAuthResponse(newUser, tokens.accessToken, tokens.refreshToken), StatusCodes.CREATED as ContentfulStatusCode);
+    // Generate and set CSRF token
+    const csrfToken = generateAndSetCSRFToken(c);
+    
+    return c.json(createAuthResponse(newUser, tokens.accessToken, tokens.refreshToken, csrfToken), StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Registration error:', error);
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
@@ -193,7 +197,10 @@ app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootVa
       revoked: false
     });
     
-    return c.json(createAuthResponse(user, tokens.accessToken, tokens.refreshToken));
+    // Generate and set CSRF token
+    const csrfToken = generateAndSetCSRFToken(c);
+    
+    return c.json(createAuthResponse(user, tokens.accessToken, tokens.refreshToken, csrfToken));
   } catch (error) {
     console.error('Login error:', error);
     // Match Spring Boot - returns 500 for unexpected errors
@@ -272,7 +279,10 @@ app.post('/refresh', zValidator('json', refreshSchema, springBootValidator), asy
       revoked: false
     });
     
-    return c.json(createAuthResponse(user, tokens.accessToken, tokens.refreshToken));
+    // Generate and set CSRF token
+    const csrfToken = generateAndSetCSRFToken(c);
+    
+    return c.json(createAuthResponse(user, tokens.accessToken, tokens.refreshToken, csrfToken));
   } catch (error) {
     console.error('Refresh error:', error);
     return c.json(
@@ -287,7 +297,7 @@ app.get('/me', async (c) => {
   const authHeader = c.req.header('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     // Match Spring Boot - returns 403 Forbidden
-    return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode as ContentfulStatusCode as any);
+    return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode);
   }
   
   const token = authHeader.substring(7);
@@ -295,7 +305,7 @@ app.get('/me', async (c) => {
   try {
     const decoded = await verifyToken(token, c.env.JWT_SECRET);
     if (decoded.type !== 'access') {
-      return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode as ContentfulStatusCode as any);
+      return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode);
     }
     
     const db = c.get('db');
@@ -305,7 +315,7 @@ app.get('/me', async (c) => {
       .get();
     
     if (!user || !user.enabled) {
-      return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode as ContentfulStatusCode as any);
+      return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode);
     }
     
     // Return user data in Spring Boot format
@@ -319,7 +329,7 @@ app.get('/me', async (c) => {
     });
   } catch (error) {
     console.error('Auth error:', error);
-    return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode as ContentfulStatusCode as any);
+    return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode);
   }
 });
 
