@@ -14,7 +14,7 @@ Personal Hub - A full-stack web application with:
 pnpm install
 
 # Start development servers
-npm run dev
+pnpm run dev
 ```
 
 ### Quality Checks (Run before committing)
@@ -53,7 +53,7 @@ npm run test:e2e:quick
 - Solution: Add unique identifiers (timestamps, UUIDs) to prevent conflicts
 
 ## Project Structure
-```
+```text
 apps/
   frontend/         # React app
   backend/          # Cloudflare Workers API
@@ -81,9 +81,7 @@ git checkout -b fix/your-issue-name
 
 # After changes
 git add -A
-git commit -m "fix: description
-
-Details here"
+git commit -m "fix: description" -m "Details here"
 
 # Push and create PR
 git push -u origin fix/your-issue-name
