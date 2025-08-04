@@ -14,7 +14,7 @@ This file tracks pending tasks organized by feature.
 - [MEDIUM] Enhance Session Management - Switch from localStorage to httpOnly secure cookies, implement inactivity timeout (30 minutes)
 - [LOW] Add Multi-Factor Authentication (2FA) - TOTP-based authentication with backup recovery codes
 - [LOW] Implement Security Event Logging - Use existing securityEvents table for auth attempts and suspicious activities
-- [LOW] Add Field-Level Encryption - Encrypt sensitive user data at rest using Cloudflare's Web Crypto API
+- [LOW] Add Field-Level Encryption - Encrypt sensitive user data at rest using Cloudflare's Web Crypto API (requires Cloudflare Workers runtime)
 
 ## Auth Feature
 
@@ -31,8 +31,8 @@ This file tracks pending tasks organized by feature.
 ## Moments Feature
 
 ## Pomodoro Feature
-- [HIGH] Fix Pomodoro session failed to end bug - GET /api/v1/pomodoro/sessions/active returns 404
-- [HIGH] Fix Pomodoro timer style in light mode - background color and texts incorrectly use dark theme values
+- [HIGH] Fix Pomodoro session API bug - GET /api/v1/pomodoro/sessions/active returns 404 when trying to end session
+- [HIGH] Fix Pomodoro timer light mode styling - background color and text colors incorrectly use dark theme values
 
 ## Analytics Feature
 
@@ -41,7 +41,7 @@ This file tracks pending tasks organized by feature.
 ## Profile Feature
 
 ## Testing
-- [MEDIUM] Investigate and fix E2E test stability issues
+- [MEDIUM] Investigate and fix E2E test stability issues - intermittent timeouts and race conditions in dashboard tests
 
 ## Performance
-- [LOW] Performance optimizations needed for smoother user experience
+- [LOW] Performance optimizations - target <3s page load time and <250ms API response time for smoother user experience
