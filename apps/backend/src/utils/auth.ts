@@ -90,7 +90,8 @@ export async function generateTokens(userId: string, secret: string) {
     { 
       sub: userId, 
       type: 'refresh',
-      exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // 7 days
+      exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60), // 7 days
+      jti: crypto.randomUUID() // Add unique identifier to prevent duplicate tokens
     },
     secret
   );
@@ -103,6 +104,7 @@ interface JWTPayload {
   type: 'access' | 'refresh';
   exp: number;
   iat?: number;
+  jti?: string; // JWT ID for uniqueness
 }
 
 export async function verifyToken(token: string, secret: string): Promise<JWTPayload> {

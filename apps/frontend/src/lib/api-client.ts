@@ -2,6 +2,9 @@ import axios, { AxiosError } from 'axios'
 
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || ''
 
+// Endpoints that are expected to return 404 in normal operation
+const EXPECTED_404_ENDPOINTS = ['/pomodoro/sessions/active'];
+
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -27,10 +30,15 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    // Special handling for expected 404 on active session check
-    if (error.response?.status === 404 && error.config?.url?.endsWith('/sessions/active')) {
-      // This is an expected error when no active session exists
-      // Simply return the axios error without logging
+    // Special handling for expected 404 errors
+    const isExpected404 = 
+      error.response?.status === 404 && 
+      error.config?.url && 
+      error.config?.method?.toLowerCase() === 'get' &&
+      EXPECTED_404_ENDPOINTS.some(endpoint => error.config?.url?.includes(endpoint));
+    
+    if (isExpected404) {
+      // This is an expected error, return without logging
       return Promise.reject(error);
     }
     
