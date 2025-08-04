@@ -75,10 +75,26 @@ e2e/               # Playwright tests
 4. Use `git status` frequently to track changes
 
 ## Creating PRs
-```bash
-# Create feature branch
-git checkout -b fix/your-issue-name
 
+### IMPORTANT: Always start from latest main
+```bash
+# Before creating any new branch, ensure main is up-to-date
+git checkout main
+git pull --ff-only origin main
+
+# Create feature branch from updated main
+git checkout -b fix/your-issue-name
+```
+
+**Alternative: Create branch directly from remote main**
+```bash
+# Skip local main update and create directly from remote
+git fetch origin
+git checkout -b fix/your-issue-name origin/main
+```
+
+### Commit and push
+```bash
 # After changes
 git add -A
 git commit -m "fix: description" -m "Details here"
@@ -86,6 +102,21 @@ git commit -m "fix: description" -m "Details here"
 # Push and create PR
 git push -u origin fix/your-issue-name
 gh pr create --title "fix: your title" --body "Description"
+```
+
+### Common issue: Old commits in PR
+If your PR includes old commits from previous work:
+- Your local main was outdated when creating the branch
+- Always `git pull --ff-only origin main` before creating new branches
+- This prevents merge conflicts and commit pollution
+
+**Recovery: Fix existing PRs with old commits**
+```bash
+# Rebase feature branch onto latest main
+git fetch origin
+git rebase origin/main
+# Or interactively clean up commits
+git rebase -i origin/main
 ```
 
 ## Important Notes
