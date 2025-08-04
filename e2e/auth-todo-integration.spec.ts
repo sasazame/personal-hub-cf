@@ -56,13 +56,13 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     }
   });
 
-  test('should redirect unauthenticated user to login', async ({ page }) => {
+  test('should show landing page for unauthenticated user', async ({ page }) => {
     // Try to access home page
     await page.goto('/');
     
-    // Should be redirected to login
-    await expect(page).toHaveURL(/.*\/login/);
-    await expect(page.getByRole('heading', { name: 'Login' })).toBeVisible();
+    // Should show landing page
+    await expect(page).toHaveURL('http://localhost:3000/');
+    await expect(page.locator('h1:has-text("Your Life,")')).toBeVisible();
   });
 
   test('should redirect authenticated user away from auth pages', async ({ page }) => {

@@ -18,7 +18,7 @@ export async function ensureTestUser(user: TestUser = defaultTestUser): Promise<
   try {
     // First try to login
     const loginResponse = await axios.post(`${API_BASE_URL}/api/v1/auth/login`, {
-      usernameOrEmail: user.email,
+      email: user.email,
       password: user.password,
     });
 
@@ -36,7 +36,6 @@ export async function ensureTestUser(user: TestUser = defaultTestUser): Promise<
     const registerResponse = await axios.post(`${API_BASE_URL}/api/v1/auth/register`, {
       email: user.email,
       password: user.password,
-      confirmPassword: user.password,
       username: user.username,
     });
 

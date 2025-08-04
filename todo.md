@@ -46,3 +46,293 @@
 ## known issues
 - E2E tests still have some stability issues that need deeper investigation
 - Performance optimizations needed for smoother user experience
+
+## bug
+- Pomodoro session failed to end.
+```
+ET https://personal-hub-backend-prod.zametech.workers.dev/api/v1/pomodoro/sessions/active 404 (Not Found)
+(anonymous) @ xhr.js:195
+xhr @ xhr.js:15
+Mm @ dispatchRequest.js:49
+Promise.then
+_request @ Axios.js:163
+request @ Axios.js:40
+sl.<computed> @ Axios.js:213
+(anonymous) @ bind.js:5
+xe @ pomodoro-api.ts:24
+queryFn @ usePomodoro.ts:12
+o @ query.js:212
+U @ retryer.js:80
+start @ retryer.js:121
+fetch @ query.js:295
+#c @ queryObserver.js:173
+(anonymous) @ queryObserver.js:210
+setInterval
+#y @ queryObserver.js:208
+#m @ queryObserver.js:216
+onQueryUpdate @ queryObserver.js:419
+(anonymous) @ query.js:368
+(anonymous) @ query.js:367
+batch @ notifyManager.js:40
+#u @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+A @ retryer.js:45
+Promise.then
+U @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+#c @ queryObserver.js:173
+(anonymous) @ queryObserver.js:210
+setInterval
+#y @ queryObserver.js:208
+#m @ queryObserver.js:216
+onQueryUpdate @ queryObserver.js:419
+(anonymous) @ query.js:368
+(anonymous) @ query.js:367
+batch @ notifyManager.js:40
+#u @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+A @ retryer.js:45
+Promise.then
+U @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+#c @ queryObserver.js:173
+(anonymous) @ queryObserver.js:210
+setInterval
+#y @ queryObserver.js:208
+#m @ queryObserver.js:216
+onQueryUpdate @ queryObserver.js:419
+(anonymous) @ query.js:368
+(anonymous) @ query.js:367
+batch @ notifyManager.js:40
+#u @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+A @ retryer.js:45
+Promise.then
+U @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+#c @ queryObserver.js:173
+(anonymous) @ queryObserver.js:210
+setInterval
+#y @ queryObserver.js:208
+#m @ queryObserver.js:216
+onQueryUpdate @ queryObserver.js:419
+(anonymous) @ query.js:368
+(anonymous) @ query.js:367
+batch @ notifyManager.js:40
+#u @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+A @ retryer.js:45
+Promise.then
+U @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+#c @ queryObserver.js:173
+(anonymous) @ queryObserver.js:210
+setInterval
+#y @ queryObserver.js:208
+#m @ queryObserver.js:216
+onQueryUpdate @ queryObserver.js:419
+(anonymous) @ query.js:368
+(anonymous) @ query.js:367
+batch @ notifyManager.js:40
+#u @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+A @ retryer.js:45
+Promise.then
+U @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+#c @ queryObserver.js:173
+(anonymous) @ queryObserver.js:210
+setInterval
+#y @ queryObserver.js:208
+#m @ queryObserver.js:216
+onQueryUpdate @ queryObserver.js:419
+(anonymous) @ query.js:368
+(anonymous) @ query.js:367
+batch @ notifyManager.js:40
+#u @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+A @ retryer.js:45
+Promise.then
+U @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+#c @ queryObserver.js:173
+(anonymous) @ queryObserver.js:210
+setInterval
+#y @ queryObserver.js:208
+#m @ queryObserver.js:216
+onQueryUpdate @ queryObserver.js:419
+(anonymous) @ query.js:368
+(anonymous) @ query.js:367
+batch @ notifyManager.js:40
+#u @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+A @ retryer.js:45
+Promise.then
+U @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+#c @ queryObserver.js:173
+(anonymous) @ queryObserver.js:210
+setInterval
+#y @ queryObserver.js:208
+#m @ queryObserver.js:216
+onQueryUpdate @ queryObserver.js:419
+(anonymous) @ query.js:368
+(anonymous) @ query.js:367
+batch @ notifyManager.js:40
+#u @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+A @ retryer.js:45
+Promise.then
+U @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+#c @ queryObserver.js:173
+(anonymous) @ queryObserver.js:210
+setInterval
+#y @ queryObserver.js:208
+#m @ queryObserver.js:216
+onQueryUpdate @ queryObserver.js:419
+(anonymous) @ query.js:368
+(anonymous) @ query.js:367
+batch @ notifyManager.js:40
+#u @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+A @ retryer.js:45
+Promise.then
+U @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+#c @ queryObserver.js:173
+(anonymous) @ queryObserver.js:210
+setInterval
+#y @ queryObserver.js:208
+#m @ queryObserver.js:216
+onQueryUpdate @ queryObserver.js:419
+(anonymous) @ query.js:368
+(anonymous) @ query.js:367
+batch @ notifyManager.js:40
+#u @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+A @ retryer.js:45
+Promise.then
+U @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+#c @ queryObserver.js:173
+(anonymous) @ queryObserver.js:210
+setInterval
+#y @ queryObserver.js:208
+#m @ queryObserver.js:216
+onQueryUpdate @ queryObserver.js:419
+(anonymous) @ query.js:368
+(anonymous) @ query.js:367
+batch @ notifyManager.js:40
+#u @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+A @ retryer.js:45
+Promise.then
+U @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+#c @ queryObserver.js:173
+(anonymous) @ queryObserver.js:210
+setInterval
+#y @ queryObserver.js:208
+#m @ queryObserver.js:216
+onQueryUpdate @ queryObserver.js:419
+(anonymous) @ query.js:368
+(anonymous) @ query.js:367
+batch @ notifyManager.js:40
+#u @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+A @ retryer.js:45
+Promise.then
+U @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+#c @ queryObserver.js:173
+(anonymous) @ queryObserver.js:210
+setInterval
+#y @ queryObserver.js:208
+#m @ queryObserver.js:216
+onQueryUpdate @ queryObserver.js:419
+(anonymous) @ query.js:368
+(anonymous) @ query.js:367
+batch @ notifyManager.js:40
+#u @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+A @ retryer.js:45
+Promise.then
+U @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+#c @ queryObserver.js:173
+(anonymous) @ queryObserver.js:210
+setInterval
+#y @ queryObserver.js:208
+#m @ queryObserver.js:216
+onQueryUpdate @ queryObserver.js:419
+(anonymous) @ query.js:368
+(anonymous) @ query.js:367
+batch @ notifyManager.js:40
+#u @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+A @ retryer.js:45
+Promise.then
+U @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+#c @ queryObserver.js:173
+(anonymous) @ queryObserver.js:210
+setInterval
+#y @ queryObserver.js:208
+#m @ queryObserver.js:216
+onQueryUpdate @ queryObserver.js:419
+(anonymous) @ query.js:368
+(anonymous) @ query.js:367
+batch @ notifyManager.js:40
+#u @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+A @ retryer.js:45
+Promise.then
+U @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+#c @ queryObserver.js:173
+(anonymous) @ queryObserver.js:210
+setInterval
+#y @ queryObserver.js:208
+#m @ queryObserver.js:216
+onQueryUpdate @ queryObserver.js:419
+(anonymous) @ query.js:368
+(anonymous) @ query.js:367
+batch @ notifyManager.js:40
+#u @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+A @ retryer.js:45Understand this error
+pomodoro-api.ts:36  POST https://personal-hub-backend-prod.zametech.workers.dev/api/v1/pomodoro/sessions 400 (Bad Request)
+```
+- pomodoro timer' style in light mode is awful. the back ground color and some texts are taken from dark theme.

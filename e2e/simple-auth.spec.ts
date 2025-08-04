@@ -1,23 +1,23 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Simple Auth Test', () => {
-  test('should redirect to login page', async ({ page }) => {
+  test('should show landing page', async ({ page }) => {
     // Go to home page
     await page.goto('/');
     
     // Wait for navigation to complete
     await page.waitForLoadState('networkidle');
     
-    // Check URL contains login
+    // Check URL is root
     const url = page.url();
     console.log('Current URL:', url);
-    expect(url).toContain('/login');
+    expect(url).toBe('http://localhost:3000/');
     
     // Take screenshot for debugging
     await page.screenshot({ path: 'test-results/login-page.png' });
     
-    // Check for email input
-    const emailInput = await page.locator('input[type="email"]').isVisible();
+    // Check for landing page elements
+    const heading = await page.locator('h1:has-text("Your Life,")').isVisible();
     console.log('Email input visible:', emailInput);
     
     // Check for password input  

@@ -6,18 +6,15 @@ test.describe('Auth E2E Tests (Real Backend)', () => {
     await ensureLoggedOut(page);
   });
 
-  test('should redirect to login when not authenticated', async ({ page }) => {
+  test('should show landing page when not authenticated', async ({ page }) => {
     await page.goto('/');
     
-    // Wait for redirect to complete
-    await page.waitForURL('**/login**', { timeout: 5000 });
+    // Should be on landing page
+    await expect(page).toHaveURL('http://localhost:3000/');
     
-    // Should be on login page
-    await expect(page).toHaveURL(/.*\/login/);
-    
-    // Should see login form
-    await expect(page.locator('input[type="email"]')).toBeVisible();
-    await expect(page.locator('button:has-text("Login")')).toBeVisible();
+    // Should see landing page content
+    await expect(page.locator('h1:has-text("Your Life,")')).toBeVisible();
+    await expect(page.locator('a:has-text("Get Started")')).toBeVisible();
   });
 
   test('should show login form', async ({ page }) => {
