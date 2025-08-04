@@ -35,7 +35,13 @@ export function useUpdateSession() {
     mutationFn: ({ id, ...data }: { id: string } & UpdatePomodoroSessionRequest) => 
       pomodoroApi.updateSession(id, data),
     onSuccess: (updatedSession) => {
-      queryClient.setQueryData(['pomodoro-session-active'], updatedSession);
+      // Only set as active session if it's still active
+      if (updatedSession.status === 'ACTIVE' || updatedSession.status === 'PAUSED') {
+        queryClient.setQueryData(['pomodoro-session-active'], updatedSession);
+      } else {
+        // Clear active session if it's completed or cancelled
+        queryClient.setQueryData(['pomodoro-session-active'], null);
+      }
       queryClient.invalidateQueries({ queryKey: ['pomodoro-sessions'] });
     }
   });

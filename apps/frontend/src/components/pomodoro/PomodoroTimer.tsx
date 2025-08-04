@@ -166,7 +166,7 @@ export function PomodoroTimer({ session, onComplete, onUpdate }: PomodoroTimerPr
       case SessionType.LONG_BREAK:
         return 'text-purple-600 dark:text-purple-400';
       default:
-        return 'text-gray-600 dark:text-gray-400';
+        return 'text-slate-600 dark:text-slate-400';
     }
   };
 
@@ -203,7 +203,7 @@ export function PomodoroTimer({ session, onComplete, onUpdate }: PomodoroTimerPr
             stroke="currentColor"
             strokeWidth="8"
             fill="none"
-            className="text-gray-200 dark:text-gray-700"
+            className="text-gray-300/50 dark:text-gray-700"
           />
           <circle
             cx="128"
@@ -218,7 +218,7 @@ export function PomodoroTimer({ session, onComplete, onUpdate }: PomodoroTimerPr
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-5xl font-bold text-gray-900 dark:text-gray-100" data-testid="timer-display">
+          <span className="text-5xl font-bold text-slate-900 dark:text-slate-100" data-testid="timer-display">
             {formatTime(timeLeft)}
           </span>
         </div>
@@ -289,7 +289,7 @@ export function PomodoroTimer({ session, onComplete, onUpdate }: PomodoroTimerPr
         )}
       </div>
       
-      <div className="mt-6 text-sm text-gray-600 dark:text-gray-400">
+      <div className="mt-6 text-sm text-slate-600 dark:text-slate-400">
         サイクル {session.completedCycles + 1}
       </div>
     </div>
