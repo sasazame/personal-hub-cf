@@ -32,12 +32,13 @@ async function registerAndLogin(page, timestamp: string) {
     await page.waitForURL('**/dashboard', { timeout: 5000 });
   }
   
-  // Wait a bit for cookies to be properly set and reload to ensure they're accessible
-  await page.waitForTimeout(500);
+  // Wait for the login API to succeed
+  await page.waitForResponse(response =>
+    response.url().endsWith('/api/v1/auth/login') && response.status() === 200
+  );
   
-  // Force a page reload to ensure cookies are properly loaded
-  await page.reload();
-  await page.waitForLoadState('networkidle');
+  // Then wait until the CSRF cookie is set in the browser
+  await page.waitForFunction(() => document.cookie.includes('csrf-token'));
   
   
   return { username, email, password };
