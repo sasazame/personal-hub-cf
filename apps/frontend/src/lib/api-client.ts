@@ -24,6 +24,7 @@ apiClient.interceptors.request.use(
     // Add CSRF token for state-changing requests
     const method = config.method?.toUpperCase()
     if (method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+      // Always try to get fresh token from cookie first, fall back to cache
       const csrfToken = getCachedCSRFToken()
       if (csrfToken) {
         config.headers['X-CSRF-Token'] = csrfToken

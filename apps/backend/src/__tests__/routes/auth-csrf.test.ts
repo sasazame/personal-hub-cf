@@ -97,7 +97,7 @@ describe('Auth Routes - CSRF Token', () => {
       const setCookieHeader = response.headers.get('Set-Cookie');
       expect(setCookieHeader).toBeDefined();
       expect(setCookieHeader).toContain('csrf-token=');
-      expect(setCookieHeader).toContain('SameSite=Strict');
+      expect(setCookieHeader).toContain('SameSite=Lax');
     });
   });
 
@@ -143,7 +143,7 @@ describe('Auth Routes - CSRF Token', () => {
       const setCookieHeader = response.headers.get('Set-Cookie');
       expect(setCookieHeader).toBeDefined();
       expect(setCookieHeader).toContain('csrf-token=');
-      expect(setCookieHeader).toContain('SameSite=Strict');
+      expect(setCookieHeader).toContain('SameSite=Lax');
     });
   });
 
@@ -197,7 +197,7 @@ describe('Auth Routes - CSRF Token', () => {
       const setCookieHeader = response.headers.get('Set-Cookie');
       expect(setCookieHeader).toBeDefined();
       expect(setCookieHeader).toContain('csrf-token=');
-      expect(setCookieHeader).toContain('SameSite=Strict');
+      expect(setCookieHeader).toContain('SameSite=Lax');
     });
   });
 });

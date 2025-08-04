@@ -6,7 +6,11 @@ export function getCSRFToken(): string | null {
   for (const cookie of cookies) {
     const [name, value] = cookie.trim().split('=');
     if (name === 'csrf-token') {
-      return decodeURIComponent(value);
+      try {
+        return decodeURIComponent(value);
+      } catch {
+        return null;
+      }
     }
   }
   return null;

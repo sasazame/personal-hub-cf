@@ -180,7 +180,7 @@ describe('CSRF Middleware', () => {
       const setCookieHeader = response.headers.get('Set-Cookie');
       expect(setCookieHeader).toBeDefined();
       expect(setCookieHeader).toContain('csrf-token=');
-      expect(setCookieHeader).toContain('SameSite=Strict');
+      expect(setCookieHeader).toContain('SameSite=Lax');
       expect(setCookieHeader).toContain('Path=/');
     });
   });

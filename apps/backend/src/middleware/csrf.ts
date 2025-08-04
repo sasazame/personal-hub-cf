@@ -18,7 +18,6 @@ const EXCLUDED_PATHS = [
   '/api/v1/auth/forgot-password',
   '/api/v1/auth/reset-password',
   '/api/v1/auth/oidc',
-  '/api/v1/auth/verify-email',
 ];
 
 function generateCSRFToken(): string {
@@ -71,10 +70,11 @@ export async function csrfMiddleware(
 }
 
 export function setCSRFCookie(c: Context, token: string) {
+  const isProduction = c.env?.ENVIRONMENT === 'production';
   setCookie(c, CSRF_TOKEN_COOKIE, token, {
     httpOnly: false, // Must be accessible by JavaScript to read and send in header
-    secure: c.env?.ENVIRONMENT === 'production',
-    sameSite: 'Strict',
+    secure: isProduction,
+    sameSite: isProduction ? 'Strict' : 'Lax', // Use Lax for development/testing
     path: '/',
     maxAge: 86400, // 24 hours
   });
