@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || ''
 
@@ -26,7 +26,14 @@ apiClient.interceptors.request.use(
 // Response interceptor to handle auth errors
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error) => {
+  async (error: AxiosError) => {
+    // Special handling for expected 404 on active session check
+    if (error.response?.status === 404 && error.config?.url?.endsWith('/sessions/active')) {
+      // This is an expected error when no active session exists
+      // Simply return the axios error without logging
+      return Promise.reject(error);
+    }
+    
     if (error.response?.status === 401) {
       // Clear token and redirect to login
       localStorage.removeItem('accessToken')
