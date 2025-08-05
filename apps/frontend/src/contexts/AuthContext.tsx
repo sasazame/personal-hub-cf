@@ -118,10 +118,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     
     try {
       const response = await apiClient.post('/api/v1/auth/login', { email, password })
-      const { user, accessToken, csrfToken } = response.data
-      
-      // Store token
-      localStorage.setItem('accessToken', accessToken)
+      const { user, csrfToken } = response.data
       
       // Cache CSRF token if provided
       if (csrfToken) {
@@ -147,10 +144,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email, 
         password 
       })
-      const { user, accessToken, csrfToken } = response.data
-      
-      // Store token
-      localStorage.setItem('accessToken', accessToken)
+      const { user, csrfToken } = response.data
       
       // Cache CSRF token if provided
       if (csrfToken) {
@@ -173,7 +167,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (error) {
       console.warn('Logout request failed:', error)
     } finally {
-      localStorage.removeItem('accessToken')
       setCachedCSRFToken(null)
       dispatch({ type: 'AUTH_LOGOUT' })
       toast.success('You have been logged out successfully.')
@@ -185,19 +178,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [])
 
   const checkAuth = useCallback(async (): Promise<void> => {
-    const token = localStorage.getItem('accessToken')
-    
-    if (!token) {
-      dispatch({ type: 'AUTH_LOGOUT' })
-      return
-    }
-
     try {
       dispatch({ type: 'AUTH_LOADING' })
       const response = await apiClient.get('/api/v1/auth/me')
       dispatch({ type: 'AUTH_SUCCESS', payload: response.data })
     } catch (error) {
-      localStorage.removeItem('accessToken')
       dispatch({ type: 'AUTH_LOGOUT' })
       console.warn('Auth check failed:', error)
     }

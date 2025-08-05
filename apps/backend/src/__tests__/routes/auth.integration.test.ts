@@ -10,10 +10,9 @@ import { InferSelectModel } from 'drizzle-orm';
 import * as schema from '../../db/schema';
 import type { D1Database, KVNamespace } from '@cloudflare/workers-types';
 
-interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
+interface CookieAuthResponse {
   user: Omit<InferSelectModel<typeof schema.users>, 'password'>;
+  csrfToken: string;
 }
 
 interface ErrorResponse {
@@ -196,12 +195,13 @@ describe('Auth Routes Integration', () => {
       }, env);
 
       expect(res.status).toBe(201);
-      const body = await res.json() as AuthResponse;
+      const body = await res.json() as CookieAuthResponse;
       
       // Check response structure
-      expect(body).toHaveProperty('accessToken');
-      expect(body).toHaveProperty('refreshToken');
       expect(body).toHaveProperty('user');
+      expect(body).toHaveProperty('csrfToken');
+      expect(body).not.toHaveProperty('accessToken');
+      expect(body).not.toHaveProperty('refreshToken');
       expect(body.user).toMatchObject({
         email: 'newuser@example.com',
         username: 'newuser',
@@ -211,6 +211,12 @@ describe('Auth Routes Integration', () => {
       
       // Verify password was not included in response
       expect(body.user).not.toHaveProperty('password');
+      
+      // Verify authentication cookies are set
+      const setCookieHeaders = res.headers.get('set-cookie')?.split(', ') || [];
+      expect(setCookieHeaders.some(cookie => cookie.includes('access-token='))).toBe(true);
+      expect(setCookieHeaders.some(cookie => cookie.includes('refresh-token='))).toBe(true);
+      expect(setCookieHeaders.some(cookie => cookie.includes('session-id='))).toBe(true);
     });
   });
 
@@ -303,27 +309,34 @@ describe('Auth Routes Integration', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as AuthResponse;
+      const body = await res.json() as CookieAuthResponse;
       
-      expect(body).toHaveProperty('accessToken');
-      expect(body).toHaveProperty('refreshToken');
       expect(body).toHaveProperty('user');
+      expect(body).toHaveProperty('csrfToken');
+      expect(body).not.toHaveProperty('accessToken');
+      expect(body).not.toHaveProperty('refreshToken');
       expect(body.user.email).toBe('user@example.com');
       expect(body.user).not.toHaveProperty('password');
+      
+      // Verify authentication cookies are set
+      const setCookieHeaders = res.headers.get('set-cookie')?.split(', ') || [];
+      expect(setCookieHeaders.some(cookie => cookie.includes('access-token='))).toBe(true);
+      expect(setCookieHeaders.some(cookie => cookie.includes('refresh-token='))).toBe(true);
+      expect(setCookieHeaders.some(cookie => cookie.includes('session-id='))).toBe(true);
     });
   });
 
   describe('POST /auth/refresh', () => {
-    it('should return 400 when refresh token is missing', async () => {
+    it('should return 401 when refresh token is missing', async () => {
       const res = await app.request('/auth/refresh', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
       }, env);
 
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(401);
       const body = await res.json() as ErrorResponse;
-      expect(body.code).toBe('VALIDATION_ERROR');
+      expect(body.code).toBe('INVALID_TOKEN');
     });
 
     it('should return 401 for malformed token', async () => {

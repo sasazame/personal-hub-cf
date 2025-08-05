@@ -20,6 +20,7 @@ test.describe('Setup', () => {
     
     expect(loginResponse.ok()).toBeTruthy();
     const loginData = await loginResponse.json();
-    expect(loginData).toHaveProperty('accessToken');
+    expect(loginData).toHaveProperty('user');
+    expect(loginData).toHaveProperty('csrfToken');
   });
 });

@@ -10,7 +10,6 @@ This file tracks pending tasks organized by feature.
 ---
 
 ## Common
-- [MEDIUM] Enhance Session Management - Switch from localStorage to httpOnly secure cookies, implement inactivity timeout (30 minutes)
 - [LOW] Add Multi-Factor Authentication (2FA) - TOTP-based authentication with backup recovery codes
 - [LOW] Implement Security Event Logging - Use existing securityEvents table for auth attempts and suspicious activities
 - [LOW] Add Field-Level Encryption - Encrypt sensitive user data at rest using Cloudflare's Web Crypto API (requires Cloudflare Workers runtime)

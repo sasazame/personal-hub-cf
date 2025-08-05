@@ -100,8 +100,7 @@ export function useDeleteAccount() {
   return useMutation({
     mutationFn: (password: string) => userApi.deleteAccount(password),
     onSuccess: () => {
-      // Clear auth and redirect
-      localStorage.removeItem('token');
+      // Redirect to login after account deletion
       window.location.href = '/login';
     },
     onError: () => {

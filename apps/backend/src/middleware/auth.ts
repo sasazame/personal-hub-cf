@@ -1,25 +1,70 @@
 import { Context, Next } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import { getCookie, setCookie } from 'hono/cookie';
 import { eq } from 'drizzle-orm';
 import { users } from '../db/schema';
 import type { Bindings, Variables } from '../types';
 import { verifyToken } from '../utils/auth';
 import { createErrorResponse, ErrorCodes, StatusCodes } from '../utils/spring-boot-compat';
 
+// Cookie names (matching auth.ts)
+const ACCESS_TOKEN_COOKIE = 'access-token';
+const SESSION_COOKIE = 'session-id';
+
+// Session timeout in milliseconds (30 minutes)
+const SESSION_TIMEOUT = 30 * 60 * 1000;
+
+interface SessionData {
+  lastActivity: number;
+  userId: string | null;
+}
+
 export async function authMiddleware(
   c: Context<{ Bindings: Bindings; Variables: Variables }>,
   next: Next
 ) {
-  const authHeader = c.req.header('Authorization');
-  
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json(
-      createErrorResponse(ErrorCodes.UNAUTHORIZED, 'Missing or invalid authorization header'),
-      StatusCodes.UNAUTHORIZED as ContentfulStatusCode
-    );
+  // Check session timeout first
+  const sessionCookie = getCookie(c, SESSION_COOKIE);
+  if (sessionCookie) {
+    try {
+      const session: SessionData = JSON.parse(sessionCookie);
+      if (Date.now() - session.lastActivity > SESSION_TIMEOUT) {
+        // Session expired, clear all cookies
+        setCookie(c, ACCESS_TOKEN_COOKIE, '', { maxAge: 0 });
+        setCookie(c, SESSION_COOKIE, '', { maxAge: 0 });
+        return c.json(
+          createErrorResponse(ErrorCodes.UNAUTHORIZED, 'Session expired'),
+          StatusCodes.UNAUTHORIZED as ContentfulStatusCode
+        );
+      }
+      
+      // Update session activity
+      const updatedSession: SessionData = { ...session, lastActivity: Date.now() };
+      setCookie(c, SESSION_COOKIE, JSON.stringify(updatedSession), {
+        httpOnly: true,
+        secure: c.env?.ENVIRONMENT === 'production',
+        sameSite: c.env?.ENVIRONMENT === 'production' ? 'Strict' : 'Lax',
+        path: '/',
+        maxAge: 30 * 60,
+      });
+    } catch {
+      // Invalid session cookie, continue without session check
+    }
   }
   
-  const token = authHeader.substring(7);
+  // Try to get token from cookie first, then fall back to header for backwards compatibility
+  let token = getCookie(c, ACCESS_TOKEN_COOKIE);
+  
+  if (!token) {
+    const authHeader = c.req.header('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return c.json(
+        createErrorResponse(ErrorCodes.UNAUTHORIZED, 'Missing or invalid authorization'),
+        StatusCodes.UNAUTHORIZED as ContentfulStatusCode
+      );
+    }
+    token = authHeader.substring(7);
+  }
   
   try {
     const decoded = await verifyToken(token, c.env.JWT_SECRET);
@@ -46,6 +91,25 @@ export async function authMiddleware(
     
     // Set userId in context for use in routes
     c.set('userId', user.id);
+    
+    // Update session with userId if not already set
+    if (sessionCookie) {
+      try {
+        const session: SessionData = JSON.parse(sessionCookie);
+        if (!session.userId || session.userId !== user.id) {
+          session.userId = user.id;
+          setCookie(c, SESSION_COOKIE, JSON.stringify(session), {
+            httpOnly: true,
+            secure: c.env?.ENVIRONMENT === 'production',
+            sameSite: c.env?.ENVIRONMENT === 'production' ? 'Strict' : 'Lax',
+            path: '/',
+            maxAge: 30 * 60,
+          });
+        }
+      } catch {
+        // Ignore session update errors
+      }
+    }
     
     await next();
   } catch (error) {

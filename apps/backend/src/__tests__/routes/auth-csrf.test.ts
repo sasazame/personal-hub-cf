@@ -179,10 +179,8 @@ describe('Auth Routes - CSRF Token', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Cookie': 'refresh-token=valid-refresh-token',
         },
-        body: JSON.stringify({
-          refreshToken: 'valid-refresh-token',
-        }),
       });
       
       expect(response.status).toBe(200);

@@ -3,10 +3,8 @@ import { Moment, CreateMomentDto, UpdateMomentDto, MomentPage } from '@/types/mo
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8787';
 
 export function getAuthHeaders() {
-  const token = localStorage.getItem('accessToken');
   return {
     'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
   };
 }
 
@@ -20,7 +18,8 @@ function transformMoment(backendMoment: Omit<Moment, 'tags'> & { tags?: string |
 
 export async function fetchMoments(page = 0, size = 20): Promise<MomentPage> {
   const response = await fetch(`${API_BASE_URL}/api/v1/moments?page=${page + 1}&limit=${size}`, {
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(),
+    credentials: 'include'
   });
   
   if (!response.ok) {
@@ -46,7 +45,8 @@ export async function fetchMoments(page = 0, size = 20): Promise<MomentPage> {
 
 export async function fetchAllMoments(): Promise<Moment[]> {
   const response = await fetch(`${API_BASE_URL}/api/v1/moments?limit=1000`, {
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(),
+    credentials: 'include'
   });
   
   if (!response.ok) {
@@ -59,7 +59,8 @@ export async function fetchAllMoments(): Promise<Moment[]> {
 
 export async function fetchMomentById(id: number): Promise<Moment> {
   const response = await fetch(`${API_BASE_URL}/api/v1/moments/${id}`, {
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(),
+    credentials: 'include'
   });
   
   if (!response.ok) {
@@ -75,7 +76,8 @@ export async function searchMoments(query: string, tag?: string): Promise<Moment
   if (tag) params.append('tags', tag);
   
   const response = await fetch(`${API_BASE_URL}/api/v1/moments?${params}`, {
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(),
+    credentials: 'include'
   });
   
   if (!response.ok) {
@@ -89,7 +91,8 @@ export async function searchMoments(query: string, tag?: string): Promise<Moment
 export async function fetchMomentsByTag(tag: string): Promise<Moment[]> {
   const params = new URLSearchParams({ tags: tag });
   const response = await fetch(`${API_BASE_URL}/api/v1/moments?${params}`, {
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(),
+    credentials: 'include'
   });
   
   if (!response.ok) {
@@ -109,7 +112,8 @@ export async function fetchMomentsByDateRange(startDate: string, endDate: string
   });
   
   const response = await fetch(`${API_BASE_URL}/api/v1/moments?${params}`, {
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(),
+    credentials: 'include'
   });
   
   if (!response.ok) {
@@ -135,7 +139,8 @@ export async function fetchMomentsByDateRange(startDate: string, endDate: string
 
 export async function fetchRecentMoments(limit = 10): Promise<Moment[]> {
   const response = await fetch(`${API_BASE_URL}/api/v1/moments?limit=${limit}`, {
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(),
+    credentials: 'include'
   });
   
   if (!response.ok) {
@@ -148,7 +153,8 @@ export async function fetchRecentMoments(limit = 10): Promise<Moment[]> {
 
 export async function fetchTodaysMoments(): Promise<Moment[]> {
   const response = await fetch(`${API_BASE_URL}/api/v1/moments/today`, {
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(),
+    credentials: 'include'
   });
   
   if (!response.ok) {
@@ -161,7 +167,8 @@ export async function fetchTodaysMoments(): Promise<Moment[]> {
 
 export async function fetchMomentTags(): Promise<string[]> {
   const response = await fetch(`${API_BASE_URL}/api/v1/moments/tags`, {
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(),
+    credentials: 'include'
   });
   
   if (!response.ok) {
@@ -175,7 +182,8 @@ export async function fetchMomentTags(): Promise<string[]> {
 
 export async function fetchDefaultMomentTags(): Promise<string[]> {
   const response = await fetch(`${API_BASE_URL}/api/v1/moments/tags/default`, {
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(),
+    credentials: 'include'
   });
   
   if (!response.ok) {
@@ -197,7 +205,8 @@ export async function createMoment(data: CreateMomentDto): Promise<Moment> {
   const response = await fetch(`${API_BASE_URL}/api/v1/moments`, {
     method: 'POST',
     headers: getAuthHeaders(),
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
+    credentials: 'include'
   });
   
   if (!response.ok) {
@@ -221,7 +230,8 @@ export async function updateMoment(id: number, data: UpdateMomentDto): Promise<M
   const response = await fetch(`${API_BASE_URL}/api/v1/moments/${id}`, {
     method: 'PUT',
     headers: getAuthHeaders(),
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
+    credentials: 'include'
   });
   
   if (!response.ok) {
@@ -238,7 +248,8 @@ export async function updateMoment(id: number, data: UpdateMomentDto): Promise<M
 export async function deleteMoment(id: number): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/v1/moments/${id}`, {
     method: 'DELETE',
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(),
+    credentials: 'include'
   });
   
   if (!response.ok) {

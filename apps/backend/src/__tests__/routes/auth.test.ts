@@ -5,7 +5,7 @@ import { asMockedDb } from '../helpers/mock-types';
 import { hashPassword } from '../../utils/auth';
 import type { Hono } from 'hono';
 import type { Bindings, Variables } from '../../types';
-import type { ErrorResponse, AuthResponse } from '../helpers/response-types';
+import type { ErrorResponse, CookieAuthResponse } from '../helpers/response-types';
 
 describe('Auth Routes', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
@@ -108,11 +108,17 @@ describe('Auth Routes', () => {
       }, env);
 
       expect(res.status).toBe(201);
-      const body = await res.json() as AuthResponse;
-      expect(body.accessToken).toBeDefined();
-      expect(body.refreshToken).toBeDefined();
+      const body = await res.json() as CookieAuthResponse;
       expect(body.user).toBeDefined();
-      expect(body.user?.email).toBe('newuser@example.com');
+      expect(body.csrfToken).toBeDefined();
+      expect(body.user.email).toBe('newuser@example.com');
+      
+      // Check that auth cookies are set
+      const setCookieHeaders = res.headers.get('set-cookie')?.split(', ') ?? [];
+      expect(setCookieHeaders.length).toBeGreaterThan(0);
+      expect(setCookieHeaders.some((h: string) => h.includes('access-token='))).toBe(true);
+      expect(setCookieHeaders.some((h: string) => h.includes('refresh-token='))).toBe(true);
+      expect(setCookieHeaders.some((h: string) => h.includes('session-id='))).toBe(true);
     });
   });
 
@@ -222,34 +228,39 @@ describe('Auth Routes', () => {
       }, env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as AuthResponse;
-      expect(body.accessToken).toBeDefined();
-      expect(body.refreshToken).toBeDefined();
+      const body = await res.json() as CookieAuthResponse;
       expect(body.user).toBeDefined();
-      expect(body.user?.email).toBe('user@example.com');
+      expect(body.csrfToken).toBeDefined();
+      expect(body.user.email).toBe('user@example.com');
+      
+      // Check that auth cookies are set
+      const setCookieHeaders = res.headers.get('set-cookie')?.split(', ') ?? [];
+      expect(setCookieHeaders.length).toBeGreaterThan(0);
+      expect(setCookieHeaders.some((h: string) => h.includes('access-token='))).toBe(true);
+      expect(setCookieHeaders.some((h: string) => h.includes('refresh-token='))).toBe(true);
+      expect(setCookieHeaders.some((h: string) => h.includes('session-id='))).toBe(true);
     });
   });
 
   describe('POST /auth/refresh', () => {
-    it('should return 400 for missing token', async () => {
+    it('should return 401 for missing token', async () => {
       const res = await app.request('/auth/refresh', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
       }, env);
 
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(401);
       const body = await res.json() as ErrorResponse;
-      expect(body.code).toBe('VALIDATION_ERROR');
+      expect(body.code).toBe('INVALID_TOKEN');
     });
 
     it('should return 401 for invalid token format', async () => {
       const res = await app.request('/auth/refresh', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          refreshToken: 'invalid.jwt.token',
-        }),
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cookie': 'refresh-token=invalid.jwt.token',
+        },
       }, env);
 
       expect(res.status).toBe(401);

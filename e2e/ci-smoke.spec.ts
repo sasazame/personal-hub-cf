@@ -147,21 +147,20 @@ test.describe('CI Smoke Tests', () => {
     console.log('Login result:', result);
     console.log('Current URL:', page.url());
     
-    // Check localStorage for auth data
-    const authData = await page.evaluate(() => ({
-      accessToken: localStorage.getItem('accessToken'),
-      user: localStorage.getItem('user')
-    }));
-    console.log('Auth data:', authData);
+    // Check cookies for auth data
+    const cookies = await page.context().cookies();
+    const hasAccessToken = cookies.some(c => c.name === 'access-token');
+    const hasSessionId = cookies.some(c => c.name === 'session-id');
+    console.log('Cookies:', cookies.map(c => c.name));
     
     // If we successfully navigated, verify we're on the dashboard
     if (result === 'success') {
       // Verify we navigated away from login page
       expect(page.url()).not.toContain('/login');
       
-      // Verify auth data was stored
-      expect(authData.accessToken).toBe('mock-access-token');
-      expect(authData.user).toBeTruthy();
+      // Verify auth cookies were set
+      expect(hasAccessToken).toBe(true);
+      expect(hasSessionId).toBe(true);
       
       console.log('Login test passed - successfully authenticated and navigated');
     } else if (result === 'error') {

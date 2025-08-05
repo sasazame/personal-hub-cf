@@ -85,9 +85,17 @@ export const handlers = [
          body.password === 'Password123!' || 
          body.password === 'Test123')) {
       return HttpResponse.json({
-        accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token',
         user: mockUser,
+        csrfToken: 'mock-csrf-token',
+      }, {
+        headers: {
+          'Set-Cookie': [
+            'access-token=mock-access-token; HttpOnly; Path=/; Max-Age=900',
+            'refresh-token=mock-refresh-token; HttpOnly; Path=/; Max-Age=604800',
+            'session-id=mock-session-id; HttpOnly; Path=/; Max-Age=1800',
+            'csrf-token=mock-csrf-token; Path=/; Max-Age=86400'
+          ].join(', ')
+        }
       });
     }
     
@@ -101,12 +109,20 @@ export const handlers = [
     const body = await request.json() as { username: string; email: string; password: string };
     
     return HttpResponse.json({
-      accessToken: 'mock-access-token',
-      refreshToken: 'mock-refresh-token',
       user: {
         ...mockUser,
         username: body.username,
         email: body.email,
+      },
+      csrfToken: 'mock-csrf-token',
+    }, {
+      headers: {
+        'Set-Cookie': [
+          'access-token=mock-access-token; HttpOnly; Path=/; Max-Age=900',
+          'refresh-token=mock-refresh-token; HttpOnly; Path=/; Max-Age=604800',
+          'session-id=mock-session-id; HttpOnly; Path=/; Max-Age=1800',
+          'csrf-token=mock-csrf-token; Path=/; Max-Age=86400'
+        ].join(', ')
       }
     });
   }),

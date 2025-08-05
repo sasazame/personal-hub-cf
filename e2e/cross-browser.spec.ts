@@ -37,7 +37,7 @@ test.describe('Cross-Browser Tests', () => {
       
       // Should redirect to dashboard
       await expect(page).toHaveURL('/dashboard');
-      await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+      await expect(page.getByRole('heading').filter({ hasText: 'Welcome back' })).toBeVisible();
       
       // User menu should be accessible
       const userButton = page.locator('button').filter({ hasText: TEST_USER.email.split('@')[0] });
@@ -65,7 +65,8 @@ test.describe('Cross-Browser Tests', () => {
       const todoTitle = `Cross Browser Test ${Date.now()}`;
       await page.fill('input[name="title"]', todoTitle);
       await page.fill('textarea[name="description"]', 'Testing cross-browser compatibility');
-      await page.getByRole('button', { name: 'Create' }).click();
+      // Click the submit button in the form
+      await page.locator('form').getByRole('button', { name: 'Add Todo' }).click();
       
       // Verify todo was created
       await expect(page.locator('.bg-card').filter({ hasText: todoTitle })).toBeVisible();
@@ -189,11 +190,10 @@ test.describe('Cross-Browser Tests', () => {
       // Login and check if session is stored
       await login(page, TEST_USER.email, TEST_USER.password);
       
-      // Check if auth token or session data exists
+      // Check if auth cookies exist
       const hasAuthData = await page.evaluate(() => {
-        return localStorage.getItem('auth-token') !== null || 
-               sessionStorage.length > 0 ||
-               document.cookie.includes('session');
+        return document.cookie.includes('access-token') || 
+               document.cookie.includes('session-id');
       });
       
       // Some form of session data should exist

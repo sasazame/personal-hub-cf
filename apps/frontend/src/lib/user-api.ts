@@ -1,20 +1,4 @@
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8787',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add auth interceptor
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+import { apiClient } from './api-client';
 
 export interface UserProfile {
   id: string;
@@ -53,12 +37,12 @@ export interface UpdatePasswordDto {
 
 export const userApi = {
   getProfile: async (): Promise<UserProfile> => {
-    const response = await api.get('/users/profile');
+    const response = await apiClient.get('/users/profile');
     return response.data;
   },
 
   updateProfile: async (data: UpdateProfileDto): Promise<UserProfile> => {
-    const response = await api.put('/users/profile', data);
+    const response = await apiClient.put('/users/profile', data);
     return response.data;
   },
 
@@ -66,7 +50,7 @@ export const userApi = {
     const formData = new FormData();
     formData.append('avatar', file);
     
-    const response = await api.post('/users/avatar', formData, {
+    const response = await apiClient.post('/users/avatar', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -75,20 +59,20 @@ export const userApi = {
   },
 
   updatePassword: async (data: UpdatePasswordDto): Promise<void> => {
-    await api.put('/users/password', data);
+    await apiClient.put('/users/password', data);
   },
 
   getSettings: async (): Promise<UserSettings> => {
-    const response = await api.get('/users/settings');
+    const response = await apiClient.get('/users/settings');
     return response.data;
   },
 
   updateSettings: async (settings: Partial<UserSettings>): Promise<UserSettings> => {
-    const response = await api.put('/users/settings', settings);
+    const response = await apiClient.put('/users/settings', settings);
     return response.data;
   },
 
   deleteAccount: async (password: string): Promise<void> => {
-    await api.delete('/users/account', { data: { password } });
+    await apiClient.delete('/users/account', { data: { password } });
   },
 };
