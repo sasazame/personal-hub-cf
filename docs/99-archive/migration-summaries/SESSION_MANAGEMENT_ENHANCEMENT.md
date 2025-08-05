@@ -18,10 +18,11 @@ January 5, 2025
   - **HTTP-only**: Prevents XSS attacks by making cookies inaccessible to JavaScript
   - **Secure flag**: Set in production for HTTPS-only transmission
   - **SameSite**: Strict in production, Lax in development
+    - **Note**: SameSite=Strict may interfere with OAuth provider redirects (GitHub/Google sign-in). Consider using SameSite=None with Secure flag specifically for OAuth callback endpoints if OAuth integration is implemented.
   - **Expiration times**:
     - Access token: 15 minutes
     - Refresh token: 7 days
-    - Session: 30 minutes (with sliding window)
+    - Session: 30 minutes of inactivity (sliding window)
 
 #### 2. Session Timeout Logic (`apps/backend/src/middleware/auth.ts`)
 - Added session inactivity tracking:

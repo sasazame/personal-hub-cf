@@ -15,7 +15,6 @@ This file tracks pending tasks organized by feature.
 - [LOW] Add Field-Level Encryption - Encrypt sensitive user data at rest using Cloudflare's Web Crypto API (requires Cloudflare Workers runtime)
 
 ## Auth Feature
-- [COMPLETED] Enhance Session Management - Switched from localStorage to httpOnly secure cookies with 30-minute inactivity timeout
 
 ## Dashboard Feature
 
