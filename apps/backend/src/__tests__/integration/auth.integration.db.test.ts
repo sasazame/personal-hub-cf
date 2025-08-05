@@ -51,17 +51,24 @@ describe('Auth Routes Integration with Real Database', () => {
 
       expect(res.status).toBe(201);
       const body = await res.json() as {
-        accessToken: string;
-        refreshToken: string;
         user: { id: string; email: string; username: string };
+        csrfToken: string;
       };
       
-      expect(body).toHaveProperty('accessToken');
-      expect(body).toHaveProperty('refreshToken');
       expect(body).toHaveProperty('user');
+      expect(body).toHaveProperty('csrfToken');
+      expect(body).not.toHaveProperty('accessToken');
+      expect(body).not.toHaveProperty('refreshToken');
       expect(body.user.email).toBe('newuser@example.com');
       expect(body.user.username).toBe('newuser');
       expect(body.user).not.toHaveProperty('password');
+      
+      // Check that auth cookies are set
+      const setCookieHeaders = res.headers.getSetCookie();
+      expect(setCookieHeaders).toBeDefined();
+      expect(setCookieHeaders.some(h => h.includes('access-token='))).toBe(true);
+      expect(setCookieHeaders.some(h => h.includes('refresh-token='))).toBe(true);
+      expect(setCookieHeaders.some(h => h.includes('session-id='))).toBe(true);
     });
 
     it('should reject duplicate email', async () => {
@@ -110,14 +117,22 @@ describe('Auth Routes Integration with Real Database', () => {
 
       expect(res.status).toBe(200);
       const body = await res.json() as {
-        accessToken: string;
-        refreshToken: string;
         user: { id: string; email: string; username: string };
+        csrfToken: string;
       };
       
-      expect(body).toHaveProperty('accessToken');
-      expect(body).toHaveProperty('refreshToken');
+      expect(body).toHaveProperty('user');
+      expect(body).toHaveProperty('csrfToken');
+      expect(body).not.toHaveProperty('accessToken');
+      expect(body).not.toHaveProperty('refreshToken');
       expect(body.user.id).toBe(user.id);
+      
+      // Check that auth cookies are set
+      const setCookieHeaders = res.headers.getSetCookie();
+      expect(setCookieHeaders).toBeDefined();
+      expect(setCookieHeaders.some(h => h.includes('access-token='))).toBe(true);
+      expect(setCookieHeaders.some(h => h.includes('refresh-token='))).toBe(true);
+      expect(setCookieHeaders.some(h => h.includes('session-id='))).toBe(true);
     });
 
     it('should reject disabled user', async () => {

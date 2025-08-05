@@ -1,21 +1,5 @@
-import axios from 'axios';
 import { format, subDays, startOfWeek, startOfMonth, startOfYear } from 'date-fns';
-
-const api = axios.create({
-  baseURL: import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8787',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add auth interceptor
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+import { apiClient } from './api-client';
 
 export interface OverviewData {
   todos: {
@@ -216,22 +200,22 @@ function transformToAnalyticsData(
 
 export const analyticsApi = {
   getOverview: async (): Promise<OverviewData> => {
-    const response = await api.get('/api/v1/analytics/overview');
+    const response = await apiClient.get('/api/v1/analytics/overview');
     return response.data;
   },
 
   getProductivity: async (fromDate: string, toDate: string): Promise<ProductivityData> => {
-    const response = await api.get(`/api/v1/analytics/productivity?fromDate=${fromDate}&toDate=${toDate}`);
+    const response = await apiClient.get(`/api/v1/analytics/productivity?fromDate=${fromDate}&toDate=${toDate}`);
     return response.data;
   },
 
   getHabits: async (days: number = 30): Promise<HabitsData> => {
-    const response = await api.get(`/api/v1/analytics/habits?days=${days}`);
+    const response = await apiClient.get(`/api/v1/analytics/habits?days=${days}`);
     return response.data;
   },
 
   getGoalsProgress: async (): Promise<GoalProgress[]> => {
-    const response = await api.get('/api/v1/analytics/goals-progress');
+    const response = await apiClient.get('/api/v1/analytics/goals-progress');
     return response.data;
   },
 

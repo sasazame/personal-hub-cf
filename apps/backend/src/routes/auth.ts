@@ -20,8 +20,60 @@ import {
 import { springBootValidator } from '../utils/validation';
 import { authRateLimiter } from '../middleware/rate-limiter';
 import { generateAndSetCSRFToken } from '../middleware/csrf';
+import { setCookie, getCookie } from 'hono/cookie';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
+
+// Cookie names
+const ACCESS_TOKEN_COOKIE = 'access-token';
+const REFRESH_TOKEN_COOKIE = 'refresh-token';
+const SESSION_COOKIE = 'session-id';
+
+// Session timeout in milliseconds (30 minutes)
+const SESSION_TIMEOUT = 30 * 60 * 1000;
+
+// Helper function to set auth cookies
+function setAuthCookies(c: any, accessToken: string, refreshToken: string) {
+  const isProduction = c.env?.ENVIRONMENT === 'production';
+  
+  // Set access token cookie (15 minutes)
+  setCookie(c, ACCESS_TOKEN_COOKIE, accessToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'Strict' : 'Lax',
+    path: '/',
+    maxAge: 15 * 60, // 15 minutes
+  });
+  
+  // Set refresh token cookie (7 days)
+  setCookie(c, REFRESH_TOKEN_COOKIE, refreshToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'Strict' : 'Lax',
+    path: '/',
+    maxAge: 7 * 24 * 60 * 60, // 7 days
+  });
+  
+  // Set session cookie with last activity timestamp
+  const sessionData = {
+    lastActivity: Date.now(),
+    userId: null // Will be set after decoding token
+  };
+  setCookie(c, SESSION_COOKIE, JSON.stringify(sessionData), {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'Strict' : 'Lax',
+    path: '/',
+    maxAge: 30 * 60, // 30 minutes
+  });
+}
+
+// Helper function to clear auth cookies
+function clearAuthCookies(c: any) {
+  setCookie(c, ACCESS_TOKEN_COOKIE, '', { maxAge: 0 });
+  setCookie(c, REFRESH_TOKEN_COOKIE, '', { maxAge: 0 });
+  setCookie(c, SESSION_COOKIE, '', { maxAge: 0 });
+}
 
 // Validation schemas - matching Spring Boot requirements
 const registerSchema = z.object({
@@ -122,7 +174,19 @@ app.post('/register', authRateLimiter, zValidator('json', registerSchema, spring
     // Generate and set CSRF token
     const csrfToken = generateAndSetCSRFToken(c);
     
-    return c.json(createAuthResponse(newUser, tokens.accessToken, tokens.refreshToken, csrfToken), StatusCodes.CREATED as ContentfulStatusCode);
+    // Set auth cookies
+    setAuthCookies(c, tokens.accessToken, tokens.refreshToken);
+    
+    // Return user data without tokens (they're in cookies now)
+    return c.json({
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        roles: []
+      },
+      csrfToken
+    }, StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Registration error:', error);
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
@@ -200,7 +264,19 @@ app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootVa
     // Generate and set CSRF token
     const csrfToken = generateAndSetCSRFToken(c);
     
-    return c.json(createAuthResponse(user, tokens.accessToken, tokens.refreshToken, csrfToken));
+    // Set auth cookies
+    setAuthCookies(c, tokens.accessToken, tokens.refreshToken);
+    
+    // Return user data without tokens (they're in cookies now)
+    return c.json({
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        roles: []
+      },
+      csrfToken
+    });
   } catch (error) {
     console.error('Login error:', error);
     // Match Spring Boot - returns 500 for unexpected errors
@@ -212,9 +288,17 @@ app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootVa
 });
 
 // POST /auth/refresh
-app.post('/refresh', zValidator('json', refreshSchema, springBootValidator), async (c) => {
+app.post('/refresh', async (c) => {
   const db = c.get('db');
-  const { refreshToken } = c.req.valid('json');
+  // Get refresh token from cookie instead of body
+  const refreshToken = getCookie(c, REFRESH_TOKEN_COOKIE);
+  
+  if (!refreshToken) {
+    return c.json(
+      createErrorResponse(ErrorCodes.INVALID_TOKEN, 'Refresh token not found'),
+      StatusCodes.INVALID_TOKEN as ContentfulStatusCode
+    );
+  }
   
   try {
     // Verify refresh token
@@ -282,7 +366,19 @@ app.post('/refresh', zValidator('json', refreshSchema, springBootValidator), asy
     // Generate and set CSRF token
     const csrfToken = generateAndSetCSRFToken(c);
     
-    return c.json(createAuthResponse(user, tokens.accessToken, tokens.refreshToken, csrfToken));
+    // Set new auth cookies
+    setAuthCookies(c, tokens.accessToken, tokens.refreshToken);
+    
+    // Return user data without tokens
+    return c.json({
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        roles: []
+      },
+      csrfToken
+    });
   } catch (error) {
     console.error('Refresh error:', error);
     return c.json(
@@ -294,13 +390,39 @@ app.post('/refresh', zValidator('json', refreshSchema, springBootValidator), asy
 
 // GET /auth/me
 app.get('/me', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    // Match Spring Boot - returns 403 Forbidden
-    return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode);
+  // Check session timeout first
+  const sessionCookie = getCookie(c, SESSION_COOKIE);
+  if (sessionCookie) {
+    try {
+      const session = JSON.parse(sessionCookie);
+      if (Date.now() - session.lastActivity > SESSION_TIMEOUT) {
+        clearAuthCookies(c);
+        return c.text('Session expired', StatusCodes.AUTHENTICATION_FAILED as ContentfulStatusCode);
+      }
+      // Update session activity
+      const updatedSession = { ...session, lastActivity: Date.now() };
+      setCookie(c, SESSION_COOKIE, JSON.stringify(updatedSession), {
+        httpOnly: true,
+        secure: c.env?.ENVIRONMENT === 'production',
+        sameSite: c.env?.ENVIRONMENT === 'production' ? 'Strict' : 'Lax',
+        path: '/',
+        maxAge: 30 * 60,
+      });
+    } catch (e) {
+      // Invalid session cookie
+    }
   }
   
-  const token = authHeader.substring(7);
+  // Try to get token from cookie first, then fall back to header for backwards compatibility
+  let token = getCookie(c, ACCESS_TOKEN_COOKIE);
+  
+  if (!token) {
+    const authHeader = c.req.header('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode);
+    }
+    token = authHeader.substring(7);
+  }
   
   try {
     const decoded = await verifyToken(token, c.env.JWT_SECRET);
@@ -473,9 +595,25 @@ app.post('/oidc/github/callback', (c) => {
 });
 
 // POST /auth/logout - Spring Boot endpoint
-app.post('/logout', (c) => {
-  // For JWT-based auth, logout is typically handled client-side
-  // But we can provide a success response for compatibility
+app.post('/logout', async (c) => {
+  // Clear all auth cookies
+  clearAuthCookies(c);
+  
+  // Optionally revoke refresh token in database
+  const refreshToken = getCookie(c, REFRESH_TOKEN_COOKIE);
+  if (refreshToken) {
+    try {
+      const decoded = await verifyToken(refreshToken, c.env.JWT_SECRET);
+      const db = c.get('db');
+      const tokenHash = await createHash(refreshToken);
+      await db.update(refreshTokens)
+        .set({ revoked: true, revokedAt: new Date().toISOString() })
+        .where(eq(refreshTokens.tokenHash, tokenHash));
+    } catch (error) {
+      // Ignore errors during logout
+    }
+  }
+  
   return c.json({ success: true, message: 'Logged out successfully' });
 });
 

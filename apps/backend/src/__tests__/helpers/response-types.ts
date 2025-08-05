@@ -21,6 +21,11 @@ export interface AuthResponse {
   user?: UserResponse;
 }
 
+export interface CookieAuthResponse {
+  user: UserResponse;
+  csrfToken: string;
+}
+
 export interface UserResponse {
   id: string;
   email: string;

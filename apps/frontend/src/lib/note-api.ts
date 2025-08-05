@@ -4,10 +4,8 @@ import { getCachedCSRFToken } from './csrf';
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8787';
 
 function getAuthHeaders(includeCSRF: boolean = false): HeadersInit {
-  const token = localStorage.getItem('accessToken');
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
   };
   
   // Add CSRF token for state-changing requests

@@ -14,14 +14,9 @@ export const apiClient = axios.create({
   withCredentials: true, // Include cookies in cross-origin requests
 })
 
-// Request interceptor to add auth token and CSRF token
+// Request interceptor to add CSRF token
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    
     // Add CSRF token for state-changing requests
     const method = config.method?.toUpperCase()
     if (method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
@@ -56,8 +51,7 @@ apiClient.interceptors.response.use(
     }
     
     if (error.response?.status === 401) {
-      // Clear token and redirect to login
-      localStorage.removeItem('accessToken')
+      // Redirect to login on unauthorized
       window.location.href = '/login'
     }
     return Promise.reject(error)
