@@ -172,6 +172,7 @@ pnpm test:e2e:ui
 
 - **CSRF Protection**: Double-submit cookie pattern with secure SameSite attributes
 - **JWT Authentication**: Secure token-based authentication with refresh tokens
+- **Session Management**: HTTP-only secure cookies with 30-minute inactivity timeout
 - **Input Validation**: Comprehensive Zod-based validation on all endpoints
 - **Secure Headers**: Security headers configured for XSS and clickjacking protection
 - **Rate Limiting**: API rate limiting on authentication endpoints
