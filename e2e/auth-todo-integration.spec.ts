@@ -23,11 +23,14 @@ async function createTestUser(page: Page) {
   await page.fill('input[name="confirmPassword"]', user.password);
   await page.click('button:has-text("Create account")');
   
-  // Wait for registration to complete
-  await page.waitForURL('/', { timeout: 5000 });
+  // Wait for registration to complete and redirect to dashboard
+  await page.waitForURL('/dashboard', { timeout: 5000 });
   
   // Logout to prepare for the actual test
-  await page.getByRole('button', { name: 'Logout' }).first().click();
+  // Click on user menu first to reveal logout button
+  const userMenuButton = page.locator('button').filter({ has: page.locator('svg') }).last();
+  await userMenuButton.click();
+  await page.getByRole('button', { name: 'Logout' }).click();
   await page.waitForURL(/.*\/login/, { timeout: 5000 });
   
   return user;
