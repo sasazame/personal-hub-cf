@@ -1,15 +1,19 @@
 {
   "permissions": {
     "allow": [
-      "Bash(gh api:*)",
+      "Bash(gh api -X GET:*)",
       "Bash(npm run test:*)",
       "Bash(npm run lint)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(gh pr view:*)",
-      "Bash(git push:*)",
+      "Bash(git push origin feat/csrf-protection)",
       "Bash(gh pr comment:*)"
     ],
-    "deny": []
+    "deny": [
+      "Bash(gh api -X DELETE:*)",
+      "Bash(gh api -X PATCH:*)",
+      "Bash(git push --force:*)"
+    ]
   }
 }
