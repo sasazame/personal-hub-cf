@@ -28,16 +28,16 @@ async function registerAndLogin(page, timestamp: string) {
     await page.fill('input[name="password"]', password);
     await page.click('button[type="submit"]');
     
+    // Wait for the login API to succeed
+    await page.waitForResponse(response =>
+      response.url().endsWith('/api/v1/auth/login') && response.status() === 200
+    );
+    
     // Wait for dashboard after login
     await page.waitForURL('**/dashboard', { timeout: 5000 });
   }
   
-  // Wait for the login API to succeed
-  await page.waitForResponse(response =>
-    response.url().endsWith('/api/v1/auth/login') && response.status() === 200
-  );
-  
-  // Then wait until the CSRF cookie is set in the browser
+  // Wait until the CSRF cookie is set in the browser
   await page.waitForFunction(() => document.cookie.includes('csrf-token'));
   
   
