@@ -114,11 +114,11 @@ describe('Auth Routes', () => {
       expect(body.user.email).toBe('newuser@example.com');
       
       // Check that auth cookies are set
-      const setCookieHeaders = res.headers.getSetCookie();
-      expect(setCookieHeaders).toBeDefined();
-      expect(setCookieHeaders.some(h => h.includes('access-token='))).toBe(true);
-      expect(setCookieHeaders.some(h => h.includes('refresh-token='))).toBe(true);
-      expect(setCookieHeaders.some(h => h.includes('session-id='))).toBe(true);
+      const setCookieHeaders = res.headers.get('set-cookie')?.split(', ') ?? [];
+      expect(setCookieHeaders.length).toBeGreaterThan(0);
+      expect(setCookieHeaders.some((h: string) => h.includes('access-token='))).toBe(true);
+      expect(setCookieHeaders.some((h: string) => h.includes('refresh-token='))).toBe(true);
+      expect(setCookieHeaders.some((h: string) => h.includes('session-id='))).toBe(true);
     });
   });
 
@@ -234,11 +234,11 @@ describe('Auth Routes', () => {
       expect(body.user.email).toBe('user@example.com');
       
       // Check that auth cookies are set
-      const setCookieHeaders = res.headers.getSetCookie();
-      expect(setCookieHeaders).toBeDefined();
-      expect(setCookieHeaders.some(h => h.includes('access-token='))).toBe(true);
-      expect(setCookieHeaders.some(h => h.includes('refresh-token='))).toBe(true);
-      expect(setCookieHeaders.some(h => h.includes('session-id='))).toBe(true);
+      const setCookieHeaders = res.headers.get('set-cookie')?.split(', ') ?? [];
+      expect(setCookieHeaders.length).toBeGreaterThan(0);
+      expect(setCookieHeaders.some((h: string) => h.includes('access-token='))).toBe(true);
+      expect(setCookieHeaders.some((h: string) => h.includes('refresh-token='))).toBe(true);
+      expect(setCookieHeaders.some((h: string) => h.includes('session-id='))).toBe(true);
     });
   });
 

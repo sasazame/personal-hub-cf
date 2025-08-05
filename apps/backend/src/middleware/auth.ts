@@ -47,7 +47,7 @@ export async function authMiddleware(
         path: '/',
         maxAge: 30 * 60,
       });
-    } catch (e) {
+    } catch {
       // Invalid session cookie, continue without session check
     }
   }
@@ -106,7 +106,7 @@ export async function authMiddleware(
             maxAge: 30 * 60,
           });
         }
-      } catch (e) {
+      } catch {
         // Ignore session update errors
       }
     }

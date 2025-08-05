@@ -10,8 +10,7 @@ import { createHash } from '../utils/crypto';
 import { hashPassword, verifyPassword, generateTokens, verifyToken } from '../utils/auth';
 import { 
   createErrorResponse, 
-  createValidationError, 
-  createAuthResponse,
+  createValidationError,
   ErrorCodes,
   ErrorMessages,
   ValidationMessages,
@@ -20,6 +19,7 @@ import {
 import { springBootValidator } from '../utils/validation';
 import { authRateLimiter } from '../middleware/rate-limiter';
 import { generateAndSetCSRFToken } from '../middleware/csrf';
+import { authMiddleware } from '../middleware/auth';
 import { setCookie, getCookie } from 'hono/cookie';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
@@ -29,8 +29,6 @@ const ACCESS_TOKEN_COOKIE = 'access-token';
 const REFRESH_TOKEN_COOKIE = 'refresh-token';
 const SESSION_COOKIE = 'session-id';
 
-// Session timeout in milliseconds (30 minutes)
-const SESSION_TIMEOUT = 30 * 60 * 1000;
 
 // Helper function to set auth cookies
 function setAuthCookies(c: any, accessToken: string, refreshToken: string) {
@@ -91,9 +89,6 @@ const loginSchema = z.object({
   password: z.string().min(1, ValidationMessages.PASSWORD_REQUIRED),
 });
 
-const refreshSchema = z.object({
-  refreshToken: z.string(),
-});
 
 const forgotPasswordSchema = z.object({
   email: z.string().email(ValidationMessages.EMAIL_INVALID),
@@ -389,70 +384,28 @@ app.post('/refresh', async (c) => {
 });
 
 // GET /auth/me
-app.get('/me', async (c) => {
-  // Check session timeout first
-  const sessionCookie = getCookie(c, SESSION_COOKIE);
-  if (sessionCookie) {
-    try {
-      const session = JSON.parse(sessionCookie);
-      if (Date.now() - session.lastActivity > SESSION_TIMEOUT) {
-        clearAuthCookies(c);
-        return c.text('Session expired', StatusCodes.AUTHENTICATION_FAILED as ContentfulStatusCode);
-      }
-      // Update session activity
-      const updatedSession = { ...session, lastActivity: Date.now() };
-      setCookie(c, SESSION_COOKIE, JSON.stringify(updatedSession), {
-        httpOnly: true,
-        secure: c.env?.ENVIRONMENT === 'production',
-        sameSite: c.env?.ENVIRONMENT === 'production' ? 'Strict' : 'Lax',
-        path: '/',
-        maxAge: 30 * 60,
-      });
-    } catch (e) {
-      // Invalid session cookie
-    }
-  }
+app.get('/me', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const db = c.get('db');
   
-  // Try to get token from cookie first, then fall back to header for backwards compatibility
-  let token = getCookie(c, ACCESS_TOKEN_COOKIE);
+  const user = await db.select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .get();
   
-  if (!token) {
-    const authHeader = c.req.header('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode);
-    }
-    token = authHeader.substring(7);
-  }
-  
-  try {
-    const decoded = await verifyToken(token, c.env.JWT_SECRET);
-    if (decoded.type !== 'access') {
-      return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode);
-    }
-    
-    const db = c.get('db');
-    const user = await db.select()
-      .from(users)
-      .where(eq(users.id, decoded.sub))
-      .get();
-    
-    if (!user || !user.enabled) {
-      return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode);
-    }
-    
-    // Return user data in Spring Boot format
-    return c.json({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      weekStartDay: user.weekStartDay,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    });
-  } catch (error) {
-    console.error('Auth error:', error);
+  if (!user) {
     return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode);
   }
+  
+  // Return user data in Spring Boot format
+  return c.json({
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    weekStartDay: user.weekStartDay,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  });
 });
 
 // POST /auth/forgot-password
@@ -603,13 +556,13 @@ app.post('/logout', async (c) => {
   const refreshToken = getCookie(c, REFRESH_TOKEN_COOKIE);
   if (refreshToken) {
     try {
-      const decoded = await verifyToken(refreshToken, c.env.JWT_SECRET);
+      await verifyToken(refreshToken, c.env.JWT_SECRET);
       const db = c.get('db');
       const tokenHash = await createHash(refreshToken);
       await db.update(refreshTokens)
         .set({ revoked: true, revokedAt: new Date().toISOString() })
         .where(eq(refreshTokens.tokenHash, tokenHash));
-    } catch (error) {
+    } catch {
       // Ignore errors during logout
     }
   }
