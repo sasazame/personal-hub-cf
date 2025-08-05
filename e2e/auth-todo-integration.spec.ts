@@ -89,19 +89,19 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     // Submit registration form
     await page.click('button:has-text("Create account")');
     
-    // Wait for registration to complete and redirect to home (extended timeout)
-    await page.waitForURL('/', { timeout: 5000 });
+    // Wait for registration to complete and redirect to dashboard (extended timeout)
+    await page.waitForURL('/dashboard', { timeout: 5000 });
     await page.waitForSelector('header', { timeout: 5000 });
     await expect(page.locator('header').filter({ hasText: 'Personal Hub' })).toBeVisible();
 
     // Now test that authenticated user is redirected away from auth pages
-    // Try to go to login page - should be redirected back to home
+    // Try to go to login page - should be redirected back to dashboard
     await page.goto('/login');
-    await page.waitForURL('/', { timeout: 5000 });
+    await page.waitForURL('/dashboard', { timeout: 5000 });
     
-    // Try to go to register page - should be redirected back to home  
+    // Try to go to register page - should be redirected back to dashboard  
     await page.goto('/register');
-    await page.waitForURL('/', { timeout: 5000 });
+    await page.waitForURL('/dashboard', { timeout: 5000 });
   });
 
   test('should preserve intended destination after login', async ({ page }) => {
@@ -119,8 +119,8 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     await page.fill('input[name="password"]', user.password);
     await page.click('button[type="submit"]');
 
-    // Should redirect to home page (redirect parameter handling can be tested separately)
-    await page.waitForURL('/', { timeout: 5000 });
+    // Should redirect to dashboard (redirect parameter handling can be tested separately)
+    await page.waitForURL('/dashboard', { timeout: 5000 });
   });
 
   test('should show user info in header and allow logout', async ({ page }) => {
@@ -133,8 +133,8 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     await page.fill('input[name="password"]', user.password);
     await page.click('button[type="submit"]');
 
-    // Wait for redirect to home page
-    await page.waitForURL('/', { timeout: 5000 });
+    // Wait for redirect to dashboard
+    await page.waitForURL('/dashboard', { timeout: 5000 });
     await page.waitForSelector('header', { timeout: 5000 });
     
     // Check if user info is shown in header (but it might not show username/email)
@@ -157,8 +157,8 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     await page.fill('input[name="password"]', user.password);
     await page.click('button[type="submit"]');
 
-    // Wait for redirect to home page
-    await page.waitForURL('/', { timeout: 5000 });
+    // Wait for redirect to dashboard
+    await page.waitForURL('/dashboard', { timeout: 5000 });
 
     // Simulate token expiration by clearing auth cookies
     await page.context().clearCookies();
@@ -182,9 +182,9 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     await page.fill('input[name="password"]', user.password);
     await page.click('button[type="submit"]');
 
-    // Wait for redirect to home page
-    await page.waitForURL('/', { timeout: 5000 });
-    await expect(page.getByRole('heading', { name: 'Personal Hub' })).toBeVisible();
+    // Wait for redirect to dashboard
+    await page.waitForURL('/dashboard', { timeout: 5000 });
+    await expect(page.getByRole('heading').filter({ hasText: 'Welcome back' })).toBeVisible();
 
     // Create a todo
     await page.click('button:has-text("Add TODO")');
@@ -210,8 +210,8 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     await page.fill('input[name="password"]', user.password);
     await page.click('button[type="submit"]');
     
-    // Wait for redirect to home page first
-    await page.waitForURL('/', { timeout: 5000 });
+    // Wait for redirect to dashboard first
+    await page.waitForURL('/dashboard', { timeout: 5000 });
 
     // Mock network to simulate server error
     await page.route('**/api/v1/todos', route => {

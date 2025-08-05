@@ -211,6 +211,12 @@ describe('Auth Routes Integration', () => {
       
       // Verify password was not included in response
       expect(body.user).not.toHaveProperty('password');
+      
+      // Verify authentication cookies are set
+      const setCookieHeaders = res.headers.get('set-cookie')?.split(', ') || [];
+      expect(setCookieHeaders.some(cookie => cookie.includes('access-token='))).toBe(true);
+      expect(setCookieHeaders.some(cookie => cookie.includes('refresh-token='))).toBe(true);
+      expect(setCookieHeaders.some(cookie => cookie.includes('session-id='))).toBe(true);
     });
   });
 
@@ -311,6 +317,12 @@ describe('Auth Routes Integration', () => {
       expect(body).not.toHaveProperty('refreshToken');
       expect(body.user.email).toBe('user@example.com');
       expect(body.user).not.toHaveProperty('password');
+      
+      // Verify authentication cookies are set
+      const setCookieHeaders = res.headers.get('set-cookie')?.split(', ') || [];
+      expect(setCookieHeaders.some(cookie => cookie.includes('access-token='))).toBe(true);
+      expect(setCookieHeaders.some(cookie => cookie.includes('refresh-token='))).toBe(true);
+      expect(setCookieHeaders.some(cookie => cookie.includes('session-id='))).toBe(true);
     });
   });
 
