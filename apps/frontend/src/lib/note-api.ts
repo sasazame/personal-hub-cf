@@ -1,13 +1,24 @@
 import { Note, CreateNoteDto, UpdateNoteDto, NoteFilters } from '@/types/note';
+import { getCachedCSRFToken } from './csrf';
 
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8787';
 
-function getAuthHeaders(): HeadersInit {
+function getAuthHeaders(includeCSRF: boolean = false): HeadersInit {
   const token = localStorage.getItem('accessToken');
-  return {
+  const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
   };
+  
+  // Add CSRF token for state-changing requests
+  if (includeCSRF) {
+    const csrfToken = getCachedCSRFToken();
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
+    }
+  }
+  
+  return headers;
 }
 
 export async function fetchNotes(filters?: NoteFilters): Promise<Note[]> {
@@ -16,7 +27,8 @@ export async function fetchNotes(filters?: NoteFilters): Promise<Note[]> {
   if (filters?.tags?.length) params.append('tags', filters.tags.join(','));
 
   const response = await fetch(`${API_BASE_URL}/api/v1/notes?${params}`, {
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(),
+    credentials: 'include'
   });
 
   if (!response.ok) {
@@ -29,7 +41,8 @@ export async function fetchNotes(filters?: NoteFilters): Promise<Note[]> {
 
 export async function fetchNoteTags(): Promise<string[]> {
   const response = await fetch(`${API_BASE_URL}/api/v1/notes/tags`, {
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(),
+    credentials: 'include'
   });
 
   if (!response.ok) {
@@ -50,8 +63,9 @@ export async function createNote(note: CreateNoteDto): Promise<Note> {
   
   const response = await fetch(`${API_BASE_URL}/api/v1/notes`, {
     method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify(payload)
+    headers: getAuthHeaders(true), // Include CSRF token
+    body: JSON.stringify(payload),
+    credentials: 'include' // Include cookies in cross-origin requests
   });
 
   if (!response.ok) {
@@ -72,8 +86,9 @@ export async function updateNote(id: string, updates: UpdateNoteDto): Promise<No
   
   const response = await fetch(`${API_BASE_URL}/api/v1/notes/${id}`, {
     method: 'PUT',
-    headers: getAuthHeaders(),
-    body: JSON.stringify(payload)
+    headers: getAuthHeaders(true), // Include CSRF token
+    body: JSON.stringify(payload),
+    credentials: 'include'
   });
 
   if (!response.ok) {
@@ -88,7 +103,8 @@ export async function updateNote(id: string, updates: UpdateNoteDto): Promise<No
 export async function deleteNote(id: string): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/v1/notes/${id}`, {
     method: 'DELETE',
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(true), // Include CSRF token
+    credentials: 'include'
   });
 
   if (!response.ok) {

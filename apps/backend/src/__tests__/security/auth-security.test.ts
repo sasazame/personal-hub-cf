@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Hono } from 'hono';
 import type { Bindings, Variables } from '../../types';
 import { createTestContext } from '../helpers/test-context';
+import { asMockedDb } from '../helpers/mock-types';
 import authRoutes from '../../routes/auth';
 import todosRoutes from '../../routes/todos';
 import * as authUtils from '../../utils/auth';
@@ -61,7 +62,8 @@ describe('Authentication Security Tests', () => {
     vi.clearAllMocks();
     
     // Default mock for auth middleware user lookup
-    ctx.db.select.mockImplementation(() => ({
+    const mockedDb = asMockedDb(ctx.db);
+    mockedDb.select.mockImplementation(() => ({
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
       get: vi.fn().mockResolvedValue({
@@ -92,7 +94,8 @@ describe('Authentication Security Tests', () => {
       // 3. CSRF tokens for state-changing operations
       
       // Setup insert mock for successful creation
-      ctx.db.insert.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.insert.mockImplementation(() => ({
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
           id: 1,
@@ -119,7 +122,8 @@ describe('Authentication Security Tests', () => {
 
   describe('Brute Force Protection', () => {
     it('should handle rapid login attempts gracefully', async () => {
-      ctx.db.select.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockResolvedValue({
@@ -168,7 +172,8 @@ describe('Authentication Security Tests', () => {
 
     it('should not reveal whether email exists', async () => {
       // User doesn't exist
-      ctx.db.select.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockResolvedValue(null),
@@ -186,7 +191,7 @@ describe('Authentication Security Tests', () => {
       }, ctx.env);
 
       // User exists but wrong password
-      ctx.db.select.mockImplementation(() => ({
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockResolvedValue({
@@ -331,7 +336,8 @@ describe('Authentication Security Tests', () => {
     });
 
     it('should not store passwords in plain text', async () => {
-      ctx.db.select.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockResolvedValue(null),
@@ -345,7 +351,7 @@ describe('Authentication Security Tests', () => {
       
       // Also mock the refresh token insert
       let insertCount = 0;
-      ctx.db.insert.mockImplementation((_table: unknown) => {
+      mockedDb.insert.mockImplementation((_table: unknown) => {
         insertCount++;
         return {
           values: vi.fn((values) => {
@@ -403,8 +409,9 @@ describe('Authentication Security Tests', () => {
         throw new Error('Invalid token');
       });
       
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           // Auth middleware - attacker user exists
@@ -509,8 +516,9 @@ describe('Authentication Security Tests', () => {
       
       // Both tokens should work
       for (const token of [token1, token2]) {
+        const mockedDb = asMockedDb(ctx.db);
         let callCount = 0;
-        ctx.db.select.mockImplementation(() => {
+        mockedDb.select.mockImplementation(() => {
           callCount++;
           if (callCount === 1) {
             // Auth middleware user lookup

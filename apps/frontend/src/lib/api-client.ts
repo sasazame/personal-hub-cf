@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios'
+import { getCachedCSRFToken } from './csrf'
 
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || ''
 
@@ -10,15 +11,27 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Include cookies in cross-origin requests
 })
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token and CSRF token
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    
+    // Add CSRF token for state-changing requests
+    const method = config.method?.toUpperCase()
+    if (method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+      // Always try to get fresh token from cookie first, fall back to cache
+      const csrfToken = getCachedCSRFToken()
+      if (csrfToken) {
+        config.headers['X-CSRF-Token'] = csrfToken
+      }
+    }
+    
     return config
   },
   (error) => {

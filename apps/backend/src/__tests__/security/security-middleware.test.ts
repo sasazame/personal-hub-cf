@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Hono } from 'hono';
 import type { Bindings, Variables } from '../../types';
+import type { KVNamespace } from '@cloudflare/workers-types';
 import { createTestContext } from '../helpers/test-context';
+import { asMockedDb } from '../helpers/mock-types';
 import { securityHeaders } from '../../middleware/security-headers';
 import authRoutes from '../../routes/auth';
 import { cors } from 'hono/cors';
@@ -21,9 +23,9 @@ describe('Security Middleware Tests', () => {
     ctx = createTestContext();
     
     // Mock KV namespace for rate limiting
-    const mockKVStore: Record<string, any> = {};
+    const mockKVStore: Record<string, string> = {};
     ctx.env.RATE_LIMITER = {
-      get: vi.fn(async (key: string, options?: any) => {
+      get: vi.fn(async (key: string, options?: { type?: string }) => {
         const value = mockKVStore[key];
         if (!value) return null;
         // If type is 'json', parse the value
@@ -38,7 +40,7 @@ describe('Security Middleware Tests', () => {
       delete: vi.fn(async (key: string) => {
         delete mockKVStore[key];
       }),
-    } as any;
+    } as unknown as KVNamespace;
     
     app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
     
@@ -71,7 +73,8 @@ describe('Security Middleware Tests', () => {
       const loginData = { email: 'test@example.com', password: 'wrongpassword' };
       
       // Mock database for login attempt
-      ctx.db.select.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockResolvedValue({
@@ -102,7 +105,8 @@ describe('Security Middleware Tests', () => {
       const ip = '192.168.1.2';
       
       // Mock database for login attempts
-      ctx.db.select.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockResolvedValue({
@@ -139,7 +143,7 @@ describe('Security Middleware Tests', () => {
       expect(res.headers.get('X-RateLimit-Remaining')).toBe('0');
       expect(res.headers.get('Retry-After')).toBeDefined();
       
-      const body = await res.json() as any;
+      const body = await res.json() as { code: string; message: string };
       expect(body.code).toBe('RATE_LIMIT_EXCEEDED');
       expect(body.message).toContain('Too many authentication attempts');
     });
@@ -148,7 +152,8 @@ describe('Security Middleware Tests', () => {
       const loginData = { email: 'test@example.com', password: 'wrongpassword' };
       
       // Mock database for login attempts
-      ctx.db.select.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.select.mockImplementation(() => ({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         get: vi.fn().mockResolvedValue({

@@ -1,6 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useMemo } from 'react'
 import toast from 'react-hot-toast'
 import { apiClient } from '@/lib/api-client'
+import { setCachedCSRFToken } from '@/lib/csrf'
 
 interface User {
   id: string
@@ -117,10 +118,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     
     try {
       const response = await apiClient.post('/api/v1/auth/login', { email, password })
-      const { user, accessToken } = response.data
+      const { user, accessToken, csrfToken } = response.data
       
       // Store token
       localStorage.setItem('accessToken', accessToken)
+      
+      // Cache CSRF token if provided
+      if (csrfToken) {
+        setCachedCSRFToken(csrfToken)
+      }
       
       dispatch({ type: 'AUTH_SUCCESS', payload: user })
       toast.success(`Welcome back, ${user.username}!`)
@@ -141,10 +147,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email, 
         password 
       })
-      const { user, accessToken } = response.data
+      const { user, accessToken, csrfToken } = response.data
       
       // Store token
       localStorage.setItem('accessToken', accessToken)
+      
+      // Cache CSRF token if provided
+      if (csrfToken) {
+        setCachedCSRFToken(csrfToken)
+      }
       
       dispatch({ type: 'AUTH_SUCCESS', payload: user })
       toast.success(`Welcome, ${user.username}! Account created successfully.`)
@@ -163,6 +174,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.warn('Logout request failed:', error)
     } finally {
       localStorage.removeItem('accessToken')
+      setCachedCSRFToken(null)
       dispatch({ type: 'AUTH_LOGOUT' })
       toast.success('You have been logged out successfully.')
     }

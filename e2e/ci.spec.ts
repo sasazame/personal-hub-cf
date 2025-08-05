@@ -28,9 +28,18 @@ async function registerAndLogin(page, timestamp: string) {
     await page.fill('input[name="password"]', password);
     await page.click('button[type="submit"]');
     
+    // Wait for the login API to succeed
+    await page.waitForResponse(response =>
+      response.url().endsWith('/api/v1/auth/login') && response.status() === 200
+    );
+    
     // Wait for dashboard after login
     await page.waitForURL('**/dashboard', { timeout: 5000 });
   }
+  
+  // Wait until the CSRF cookie is set in the browser
+  await page.waitForFunction(() => document.cookie.includes('csrf-token'));
+  
   
   return { username, email, password };
 }
@@ -66,8 +75,17 @@ test.describe('CI Critical Path Tests', () => {
     await page.fill('textarea[name="description"]', 'This is a test task for CI');
     await page.selectOption('select[name="priority"]', 'HIGH');
     
-    // Submit form
-    await page.click('button[type="submit"]:has-text("Add Todo")');
+    // Submit form and wait for response
+    const [response] = await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/todos'), { timeout: 10000 }),
+      page.click('button[type="submit"]:has-text("Add Todo")')
+    ]);
+    
+    // Check response for debugging
+    if (response.status() !== 201) {
+      const responseBody = await response.text();
+      console.error('Failed to create todo:', response.status(), responseBody);
+    }
     
     // Wait for todo to appear
     await page.waitForSelector('text=CI Test Task', { timeout: 5000 });
@@ -107,6 +125,7 @@ test.describe('CI Critical Path Tests', () => {
     
     await page.waitForSelector('h1:has-text("Notes")', { timeout: 5000 });
     
+    
     // Create note
     await page.click('button:has-text("New Note")');
     await page.waitForSelector('input[placeholder="Enter note title"]', { state: 'visible' });
@@ -118,17 +137,14 @@ test.describe('CI Critical Path Tests', () => {
     const createButton = page.locator('button:has-text("Create")');
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     
-    // Set up response listeners before clicking create
-    const createResponsePromise = page.waitForResponse(response => 
-      response.url().includes('/api/v1/notes') && response.status() === 201,
-      { timeout: 5000 }
-    );
-    
-    // Click create button
+    // Submit - wait for button to be enabled and click
     await createButton.click();
     
     // Wait for the create response
-    await createResponsePromise;
+    await page.waitForResponse(response => 
+      response.url().includes('/api/v1/notes') && response.status() === 201,
+      { timeout: 5000 }
+    );
     
     // Now wait for the refresh response after creation
     const refreshResponsePromise = page.waitForResponse(response => 

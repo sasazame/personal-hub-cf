@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import momentsRoutes from '../../routes/moments';
 import type { Bindings, Variables } from '../../types';
 import { createTestContext } from '../helpers/test-context';
+import { asMockedDb } from '../helpers/mock-types';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
 import type { MomentResponse, PaginatedResponse, APIErrorResponse, MomentsStatsResponse } from '../helpers/response-types';
 
@@ -14,8 +15,9 @@ describe('Moments Routes', () => {
 
   // Helper to setup database mock with auth
   const setupDbMock = (dataReturns: unknown) => {
+    const mockedDb = asMockedDb(ctx.db);
     let callCount = 0;
-    ctx.db.select.mockImplementation(() => {
+    mockedDb.select.mockImplementation(() => {
       callCount++;
       
       const mockChain = {
@@ -55,8 +57,9 @@ describe('Moments Routes', () => {
 
   // Helper for paginated queries (used by GET /moments)
   const setupPaginatedDbMock = (items: unknown[], total: number = items.length) => {
+    const mockedDb = asMockedDb(ctx.db);
     let callCount = 0;
-    ctx.db.select.mockImplementation(() => {
+    mockedDb.select.mockImplementation(() => {
       callCount++;
       
       if (callCount === 1) {
@@ -113,7 +116,8 @@ describe('Moments Routes', () => {
     app.route('/moments', momentsRoutes);
     
     // Default mock for auth middleware user lookup
-    ctx.db.select.mockImplementation(() => ({
+    const mockedDb = asMockedDb(ctx.db);
+    mockedDb.select.mockImplementation(() => ({
       from: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
       get: vi.fn().mockResolvedValue({
@@ -447,7 +451,8 @@ describe('Moments Routes', () => {
         tags: 'learning,achievement',
       };
 
-      ctx.db.insert.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.insert.mockImplementation(() => ({
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
           id: 1,
@@ -495,7 +500,8 @@ describe('Moments Routes', () => {
         content: 'Simple moment without tags',
       };
 
-      ctx.db.insert.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.insert.mockImplementation(() => ({
         values: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
           id: 1,
@@ -534,7 +540,8 @@ describe('Moments Routes', () => {
 
       setupDbMock(existingMoment);
 
-      ctx.db.update.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.update.mockImplementation(() => ({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{
@@ -580,7 +587,8 @@ describe('Moments Routes', () => {
     it('should delete existing moment', async () => {
       setupDbMock({ id: 1 });
 
-      ctx.db.delete.mockImplementation(() => ({
+      const mockedDb = asMockedDb(ctx.db);
+      mockedDb.delete.mockImplementation(() => ({
         where: vi.fn().mockResolvedValue(undefined),
       }));
 
@@ -610,8 +618,9 @@ describe('Moments Routes', () => {
 
   describe('Error Handling', () => {
     it('should handle database errors gracefully', async () => {
+      const mockedDb = asMockedDb(ctx.db);
       let callCount = 0;
-      ctx.db.select.mockImplementation(() => {
+      mockedDb.select.mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           // Auth middleware user lookup - let it pass

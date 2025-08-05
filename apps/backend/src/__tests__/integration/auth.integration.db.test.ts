@@ -4,24 +4,24 @@ import authRoutes from '../../routes/auth';
 import { setupTestDatabase, cleanupTestDatabase, createTestUser, closeTestDatabase } from './setup-test-db';
 import { hashPassword } from '../../utils/auth';
 import type { Bindings, Variables } from '../../types';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Database } from '../../db';
 
 describe('Auth Routes Integration with Real Database', () => {
   let app: Hono<{ Bindings: Bindings; Variables: Variables }>;
-  let db: DrizzleD1Database;
+  let db: Database;
   let env: Bindings;
 
   beforeEach(async () => {
     // Setup test database
     const setup = await setupTestDatabase();
-    db = setup.db as any;
+    db = setup.db as Database;
     env = setup.env as Bindings;
 
     app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
     
     // Add database middleware
     app.use('*', async (c, next) => {
-      c.set('db', db as any);
+      c.set('db', db);
       await next();
     });
     
@@ -66,7 +66,7 @@ describe('Auth Routes Integration with Real Database', () => {
 
     it('should reject duplicate email', async () => {
       // Create existing user
-      await createTestUser(db as any, {
+      await createTestUser(db, {
         email: 'existing@example.com',
         username: 'existing',
       });
@@ -93,7 +93,7 @@ describe('Auth Routes Integration with Real Database', () => {
       const hashedPassword = await hashPassword(password);
       
       // Create user
-      const user = await createTestUser(db as any, {
+      const user = await createTestUser(db, {
         email: 'user@example.com',
         username: 'testuser',
         password: hashedPassword,
@@ -125,7 +125,7 @@ describe('Auth Routes Integration with Real Database', () => {
       const hashedPassword = await hashPassword(password);
       
       // Create disabled user
-      await createTestUser(db as any, {
+      await createTestUser(db, {
         email: 'disabled@example.com',
         username: 'disabled',
         password: hashedPassword,

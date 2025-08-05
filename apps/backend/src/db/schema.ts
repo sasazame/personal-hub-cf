@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, foreignKey } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
 // Users table
@@ -27,7 +27,7 @@ export const todos = sqliteTable('todos', {
   status: text('status', { enum: ['TODO', 'IN_PROGRESS', 'DONE', 'CANCELLED'] }).default('TODO').notNull(),
   priority: text('priority', { enum: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'] }).default('MEDIUM').notNull(),
   dueDate: text('due_date'), // ISO date string
-  parentId: integer('parent_id').references((): any => todos.id),
+  parentId: integer('parent_id'),
   isRepeatable: integer('is_repeatable', { mode: 'boolean' }).default(false).notNull(),
   repeatType: text('repeat_type', { enum: ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'] }),
   repeatInterval: integer('repeat_interval'),
@@ -37,7 +37,13 @@ export const todos = sqliteTable('todos', {
   originalTodoId: integer('original_todo_id'),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
-});
+}, (table) => ({
+  parentReference: foreignKey({
+    columns: [table.parentId],
+    foreignColumns: [table.id],
+    name: 'todos_parent_id_fkey',
+  }),
+}));
 
 // Events table
 export const events = sqliteTable('events', {

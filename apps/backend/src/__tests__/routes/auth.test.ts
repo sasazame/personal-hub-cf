@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import authRoutes from '../../routes/auth';
 import { createTestContext, createMockDbChain } from '../helpers/test-context';
+import { asMockedDb } from '../helpers/mock-types';
 import { hashPassword } from '../../utils/auth';
 import type { Hono } from 'hono';
 import type { Bindings, Variables } from '../../types';
@@ -52,7 +53,8 @@ describe('Auth Routes', () => {
 
     it('should return 409 for existing user', async () => {
       // Mock existing user
-      mockDb.select.mockReturnValue(
+      const mockedDb = asMockedDb(mockDb);
+      mockedDb.select.mockReturnValue(
         createMockDbChain({
           id: 'existing-user-id',
           email: 'existing@example.com',
@@ -76,7 +78,8 @@ describe('Auth Routes', () => {
 
     it('should return 201 for successful registration', async () => {
       // Mock no existing user
-      mockDb.select.mockReturnValue(createMockDbChain(null));
+      const mockedDb = asMockedDb(mockDb);
+      mockedDb.select.mockReturnValue(createMockDbChain(null));
       
       // Mock successful insert
       const newUser = {
@@ -88,7 +91,7 @@ describe('Auth Routes', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      mockDb.insert.mockReturnValue({
+      mockedDb.insert.mockReturnValue({
         values: vi.fn().mockReturnValue({
           returning: vi.fn().mockResolvedValue([newUser]),
         }),
@@ -128,7 +131,8 @@ describe('Auth Routes', () => {
 
     it('should return 401 for non-existent user', async () => {
       // Mock no user found
-      mockDb.select.mockReturnValue(createMockDbChain(null));
+      const mockedDb = asMockedDb(mockDb);
+      mockedDb.select.mockReturnValue(createMockDbChain(null));
 
       const res = await app.request('/auth/login', {
         method: 'POST',
@@ -148,7 +152,8 @@ describe('Auth Routes', () => {
       const hashedPassword = await hashPassword('CorrectPass123!');
       
       // Mock user found
-      mockDb.select.mockReturnValue(
+      const mockedDb = asMockedDb(mockDb);
+      mockedDb.select.mockReturnValue(
         createMockDbChain({
           id: 'user-id',
           email: 'user@example.com',
@@ -190,19 +195,20 @@ describe('Auth Routes', () => {
         updatedAt: new Date(),
       };
       
-      mockDb.select.mockReturnValue(createMockDbChain({
+      const mockedDb = asMockedDb(mockDb);
+      mockedDb.select.mockReturnValue(createMockDbChain({
         ...user,
         enabled: true
       }));
       
       // Mock update for refresh token revocation
-      mockDb.update.mockReturnValue({
+      mockedDb.update.mockReturnValue({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
       });
       
       // Mock successful refresh token insert
-      mockDb.insert.mockReturnValue({
+      mockedDb.insert.mockReturnValue({
         values: vi.fn().mockReturnThis(),
       });
 

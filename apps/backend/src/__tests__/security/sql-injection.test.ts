@@ -98,7 +98,7 @@ describe('SQL Injection Security Tests', () => {
         // Should not cause error, should handle gracefully
         expect(res.status).toBe(200);
         const body = await res.json();
-        expect((body as any).items).toBeDefined();
+        expect((body as { items: unknown[] }).items).toBeDefined();
         
         // Verify tables still exist
         const tables = await db.select().from(schema.todos).limit(1);
@@ -132,7 +132,7 @@ describe('SQL Injection Security Tests', () => {
 
         expect(res.status).toBe(200);
         const body = await res.json();
-        expect((body as any).items).toBeDefined();
+        expect((body as { items: unknown[] }).items).toBeDefined();
       }
     });
 
@@ -251,7 +251,7 @@ describe('SQL Injection Security Tests', () => {
         // Should never return other users' data
         if (res.status === 200) {
           const body = await res.json();
-          expect((body as any).userId).toBe(testUser.id);
+          expect((body as { userId: string }).userId).toBe(testUser.id);
         }
       }
     });
