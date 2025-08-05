@@ -157,16 +157,15 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     // Wait for redirect to home page
     await page.waitForURL('/', { timeout: 5000 });
 
-    // Simulate token expiration by setting invalid token
-    await page.evaluate(() => {
-      localStorage.setItem('accessToken', 'invalid-token');
-      localStorage.setItem('refreshToken', 'invalid-refresh-token');
-    });
+    // Simulate token expiration by clearing auth cookies
+    await page.context().clearCookies();
+    // Restore locale cookie
+    await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
 
-    // Reload page to trigger auth check with invalid token
+    // Reload page to trigger auth check without valid cookies
     await page.reload();
     
-    // Should be redirected to login due to invalid token
+    // Should be redirected to login due to missing auth cookies
     await expect(page).toHaveURL(/.*\/login/, { timeout: 5000 });
   });
 

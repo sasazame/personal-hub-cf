@@ -189,11 +189,10 @@ test.describe('Cross-Browser Tests', () => {
       // Login and check if session is stored
       await login(page, TEST_USER.email, TEST_USER.password);
       
-      // Check if auth token or session data exists
+      // Check if auth cookies exist
       const hasAuthData = await page.evaluate(() => {
-        return localStorage.getItem('auth-token') !== null || 
-               sessionStorage.length > 0 ||
-               document.cookie.includes('session');
+        return document.cookie.includes('access-token') || 
+               document.cookie.includes('session-id');
       });
       
       // Some form of session data should exist

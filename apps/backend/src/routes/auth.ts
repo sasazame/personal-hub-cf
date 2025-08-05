@@ -388,6 +388,10 @@ app.get('/me', authMiddleware, async (c) => {
   const userId = c.get('userId');
   const db = c.get('db');
   
+  if (!userId) {
+    return c.text('Unauthorized', StatusCodes.UNAUTHORIZED as ContentfulStatusCode);
+  }
+  
   const user = await db.select()
     .from(users)
     .where(eq(users.id, userId))

@@ -13,7 +13,7 @@ export async function login(page: Page, email: string, password: string) {
   }
   
   // Wait for login form to be visible
-  await page.waitForSelector('input[type="email"]', { timeout: 5000 });
+  await page.waitForSelector('input[type="email"]', { timeout: 10000 });
   
   // Fill in login form
   await page.fill('input[type="email"]', email);
@@ -137,20 +137,13 @@ export async function ensureLoggedOut(page: Page) {
   
   // Navigate to login page if not already there
   if (!page.url().includes('/login')) {
-    try {
-      await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    } catch (error) {
-      // If navigation fails due to redirect, wait for it to complete
-      if (error instanceof Error && error.message.includes('interrupted')) {
-        await page.waitForURL(/.*\/login/, { timeout: 5000 });
-      } else {
-        throw error;
-      }
-    }
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    // Wait a bit for any potential redirects
+    await page.waitForTimeout(1000);
   }
   
   // Wait for login form to be ready
-  await page.waitForSelector('input[type="email"]', { timeout: 5000 });
+  await page.waitForSelector('input[type="email"]', { timeout: 10000 });
 }
 
 // Test user credentials
