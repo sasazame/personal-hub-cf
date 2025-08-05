@@ -168,6 +168,14 @@ pnpm test:e2e:ui
 - **Analytics Dashboard**: Productivity insights, habit tracking, and time analysis
 - **User Management**: Profile settings and secure password management
 
+## 🔒 Security Features
+
+- **CSRF Protection**: Double-submit cookie pattern with secure SameSite attributes
+- **JWT Authentication**: Secure token-based authentication with refresh tokens
+- **Input Validation**: Comprehensive Zod-based validation on all endpoints
+- **Secure Headers**: Security headers configured for XSS and clickjacking protection
+- **Rate Limiting**: API rate limiting on authentication endpoints
+
 ## 📄 License
 
 MIT
