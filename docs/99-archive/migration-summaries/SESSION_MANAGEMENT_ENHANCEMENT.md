@@ -18,7 +18,19 @@ January 5, 2025
   - **HTTP-only**: Prevents XSS attacks by making cookies inaccessible to JavaScript
   - **Secure flag**: Set in production for HTTPS-only transmission
   - **SameSite**: Strict in production, Lax in development
-    - **Note**: SameSite=Strict may interfere with OAuth provider redirects (GitHub/Google sign-in). Consider using SameSite=None with Secure flag specifically for OAuth callback endpoints if OAuth integration is implemented.
+    - **Note**: SameSite=Strict breaks OAuth redirects (e.g., GitHub/Google).  
+      **Mitigation example** (Hono/Cloudflare Workers):
+      ```typescript
+      // Only for the temporary OAuth callback cookie
+      setCookie(c, 'oauth_state', stateValue, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'None',
+        path: '/api/v1/auth/oauth/callback',
+        maxAge: 5 * 60 // 5 minutes
+      });
+      ```
+      Use `SameSite=None; Secure` only on this narrow path or a short-lived cookie to minimize CSRF exposure.
   - **Expiration times**:
     - Access token: 15 minutes
     - Refresh token: 7 days
@@ -93,6 +105,8 @@ January 5, 2025
 
 ### Environment Considerations
 - Development: Cookies work on localhost with relaxed settings
+  - **Local HTTPS caveat**: Secure cookies won't be sent from http://localhost. Use `secure: false` in development or set up https://localhost with a self-signed certificate
+  - Configure via environment: `isProduction = c.env?.ENVIRONMENT === 'production'`
 - Production: Requires HTTPS for secure cookies
 - CORS: Backend must allow credentials from frontend origin
 
