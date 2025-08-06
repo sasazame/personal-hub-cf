@@ -12,6 +12,7 @@ interface User {
 
 interface ApiErrorResponse {
   response?: {
+    status?: number
     data?: {
       error?: string
       message?: string
@@ -46,6 +47,7 @@ type AuthAction =
   | { type: 'AUTH_ERROR'; payload: string }
   | { type: 'AUTH_LOGOUT' }
   | { type: 'CLEAR_ERROR' }
+  | { type: 'AUTH_VERIFICATION_ERROR'; payload: string }
 
 const initialState: AuthState = {
   user: null,
@@ -91,6 +93,13 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         ...state,
         error: null,
       }
+    case 'AUTH_VERIFICATION_ERROR':
+      return {
+        ...state,
+        isLoading: false,
+        error: action.payload,
+        // Maintain existing authentication state
+      }
     default:
       return state
   }
@@ -101,7 +110,7 @@ interface AuthContextType extends AuthState {
   register: (username: string, email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   clearError: () => void
-  checkAuth: () => Promise<void>
+  checkAuth: (retryCount?: number) => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -177,20 +186,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
     dispatch({ type: 'CLEAR_ERROR' })
   }, [])
 
-  const checkAuth = useCallback(async (): Promise<void> => {
+  const checkAuth = useCallback(async (retryCount = 0): Promise<void> => {
     try {
       dispatch({ type: 'AUTH_LOADING' })
       const response = await apiClient.get('/api/v1/auth/me')
       dispatch({ type: 'AUTH_SUCCESS', payload: response.data })
     } catch (error) {
-      dispatch({ type: 'AUTH_LOGOUT' })
-      console.warn('Auth check failed:', error)
+      const axiosError = error as ApiErrorResponse
+      
+      // Handle definitive unauthorized responses
+      if (axiosError?.response?.status === 401 || axiosError?.response?.status === 403) {
+        dispatch({ type: 'AUTH_LOGOUT' })
+        console.warn('Auth check failed with unauthorized status:', error)
+      } 
+      // Retry on network errors (no response object means network error)
+      else if (retryCount < 3 && !axiosError?.response) {
+        console.warn(`Auth check network error, retrying (${retryCount + 1}/3)...`)
+        setTimeout(() => checkAuth(retryCount + 1), Math.pow(2, retryCount) * 1000)
+      } 
+      // For other errors, maintain current auth state
+      else {
+        dispatch({ type: 'AUTH_VERIFICATION_ERROR', payload: 'Unable to verify authentication' })
+        console.warn('Auth check failed, maintaining current state:', error)
+      }
     }
   }, [])
 
   // Check authentication on mount
   useEffect(() => {
-    checkAuth()
+    checkAuth(0)
   }, [checkAuth])
 
   const value: AuthContextType = useMemo(() => ({

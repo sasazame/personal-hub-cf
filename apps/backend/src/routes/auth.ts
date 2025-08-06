@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, Context } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
@@ -31,7 +31,7 @@ const SESSION_COOKIE = 'session-id';
 
 
 // Helper function to set auth cookies
-function setAuthCookies(c: any, accessToken: string, refreshToken: string) {
+function setAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variables }>, accessToken: string, refreshToken: string) {
   const isProduction = c.env?.ENVIRONMENT === 'production';
   
   // Set access token cookie (15 minutes)
@@ -67,7 +67,7 @@ function setAuthCookies(c: any, accessToken: string, refreshToken: string) {
 }
 
 // Helper function to clear auth cookies
-function clearAuthCookies(c: any) {
+function clearAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variables }>) {
   setCookie(c, ACCESS_TOKEN_COOKIE, '', { maxAge: 0 });
   setCookie(c, REFRESH_TOKEN_COOKIE, '', { maxAge: 0 });
   setCookie(c, SESSION_COOKIE, '', { maxAge: 0 });

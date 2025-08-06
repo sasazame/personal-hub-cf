@@ -16,6 +16,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     )
   }
 
+  // Always redirect to login if not authenticated
+  // This ensures security - only authenticated users can access protected routes
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }

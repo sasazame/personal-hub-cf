@@ -21,7 +21,7 @@ export function Dashboard() {
       description: 'Manage your tasks and stay organized',
       icon: CheckSquare,
       href: '/todos',
-      color: 'bg-primary',
+      gradient: 'from-blue-500 to-cyan-500',
       stats: '5 incomplete tasks'
     },
     {
@@ -29,7 +29,7 @@ export function Dashboard() {
       description: 'Track your goals and achievements',
       icon: Target,
       href: '/goals',
-      color: 'bg-primary/90',
+      gradient: 'from-green-500 to-emerald-500',
       stats: '3 active goals'
     },
     {
@@ -37,7 +37,7 @@ export function Dashboard() {
       description: 'Boost productivity with time management',
       icon: Timer,
       href: '/pomodoro',
-      color: 'bg-destructive',
+      gradient: 'from-indigo-500 to-purple-500',
       stats: '0 sessions today'
     },
     {
@@ -45,7 +45,7 @@ export function Dashboard() {
       description: 'Schedule and manage your events',
       icon: Calendar,
       href: '/calendar',
-      color: 'bg-success',
+      gradient: 'from-purple-500 to-pink-500',
       stats: '2 events today'
     },
     {
@@ -53,7 +53,7 @@ export function Dashboard() {
       description: 'Create and organize your thoughts',
       icon: FileText,
       href: '/notes',
-      color: 'bg-primary/80',
+      gradient: 'from-orange-500 to-red-500',
       stats: '12 notes'
     },
     {
@@ -61,7 +61,7 @@ export function Dashboard() {
       description: 'Visualize your productivity',
       icon: BarChart3,
       href: '/analytics',
-      color: 'bg-warning',
+      gradient: 'from-teal-500 to-cyan-500',
       stats: '85% completion rate'
     }
   ];
@@ -99,8 +99,8 @@ export function Dashboard() {
                 <div className="bg-card rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer group h-full p-6">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className={`w-12 h-12 rounded-lg ${feature.color} flex items-center justify-center ${feature.color === 'bg-destructive' || feature.color === 'bg-warning' ? 'text-destructive-foreground' : 'text-primary-foreground'}`}>
-                        <IconComponent className="w-6 h-6" />
+                      <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${feature.gradient} flex items-center justify-center`}>
+                        <IconComponent className="w-6 h-6 text-white" />
                       </div>
                       <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300 transition-colors" />
                     </div>
