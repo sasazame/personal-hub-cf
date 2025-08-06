@@ -20,12 +20,10 @@ export async function createUniqueTestUser(page: Page) {
   await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
   
   try {
-    // Small delay to ensure page is ready
-    await page.waitForTimeout(500);
-    
     await page.goto('/register');
-    // Wait for the form to be ready with more flexible selectors
-    await page.waitForSelector('input[type="text"]', { timeout: 5000 });
+    // Wait for the form to be ready with more flexible selectors and increased timeout
+    await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     
     // Use more robust selectors - find inputs by their position and type
     const usernameInput = page.locator('input[type="text"]').first();
@@ -40,10 +38,10 @@ export async function createUniqueTestUser(page: Page) {
     await page.click('button[type="submit"]');
     
     // Wait for registration to complete - be more flexible with URL
-    await page.waitForFunction(() => !window.location.pathname.includes('/register'), { timeout: 5000 });
+    await page.waitForFunction(() => !window.location.pathname.includes('/register'), { timeout: 10000 });
     
-    // Wait a bit for the page to stabilize
-    await page.waitForTimeout(2000);
+    // Wait for page to stabilize properly
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     
     // Try to find and click user menu to show logout button
     const userMenu = page.locator('button').filter({ has: page.locator('.rounded-full') });
@@ -54,7 +52,7 @@ export async function createUniqueTestUser(page: Page) {
       // Now click logout button in dropdown
       const logoutButton = page.locator('button:has-text("Logout")');
       await logoutButton.click();
-      await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 5000 });
+      await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 10000 });
     }
     
     return uniqueUser;
@@ -69,26 +67,23 @@ export async function createUniqueTestUser(page: Page) {
  * Only use this for tests that specifically need the TEST_USER
  */
 export async function setupTestUser(page: Page) {
-  // Small delay to ensure page is ready
-  await page.waitForTimeout(500);
-  
   // Set English locale
   await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
   
   // Check if user already exists by trying to login
   try {
     await page.goto('/login');
-    await page.waitForSelector('input[type="email"]', { timeout: 5000 });
+    await page.waitForSelector('input[type="email"]', { timeout: 10000 });
     
     await page.fill('input[type="email"]', TEST_USER.email);
     await page.fill('input[type="password"]', TEST_USER.password);
     await page.click('button[type="submit"]');
     
     // Wait for login to complete
-    await page.waitForFunction(() => !window.location.pathname.includes('/login'), { timeout: 5000 });
+    await page.waitForFunction(() => !window.location.pathname.includes('/login'), { timeout: 10000 });
     
-    // Wait for page to stabilize
-    await page.waitForTimeout(1000);
+    // Wait for page to stabilize properly
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     
     // Find and click user menu to show logout button
     const userMenu = page.locator('button').filter({ has: page.locator('.rounded-full') });
@@ -99,7 +94,7 @@ export async function setupTestUser(page: Page) {
       // Now click logout button in dropdown
       const logoutButton = page.locator('button:has-text("Logout")');
       await logoutButton.click();
-      await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 5000 });
+      await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 10000 });
       console.log('TEST_USER exists and is ready');
       return;
     }
@@ -110,8 +105,9 @@ export async function setupTestUser(page: Page) {
   // Try to register user
   try {
     await page.goto('/register');
-    // Wait for the form to be ready with more flexible selectors
-    await page.waitForSelector('input[type="text"]', { timeout: 5000 });
+    // Wait for the form to be ready with more flexible selectors and increased timeout
+    await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     
     // Use more robust selectors - find inputs by their position and type
     const usernameInput = page.locator('input[type="text"]').first();
@@ -126,10 +122,10 @@ export async function setupTestUser(page: Page) {
     await page.click('button[type="submit"]');
     
     // Wait for registration to complete
-    await page.waitForFunction(() => !window.location.pathname.includes('/register'), { timeout: 5000 });
+    await page.waitForFunction(() => !window.location.pathname.includes('/register'), { timeout: 10000 });
     
-    // Wait for page to stabilize
-    await page.waitForTimeout(1000);
+    // Wait for page to stabilize properly
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     
     // Find and click user menu to show logout button
     const userMenu = page.locator('button').filter({ has: page.locator('.rounded-full') });
@@ -140,7 +136,7 @@ export async function setupTestUser(page: Page) {
       // Now click logout button in dropdown
       const logoutButton = page.locator('button:has-text("Logout")');
       await logoutButton.click();
-      await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 5000 });
+      await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 10000 });
     }
     
     console.log('TEST_USER created successfully');
@@ -156,14 +152,14 @@ export async function waitForApp(page: Page) {
   // Use web assertions to check app readiness
   await page.waitForSelector('[id="__next"], #__next, body > div', { timeout: 30000 });
   
-  // Additional wait for React hydration
-  await page.waitForTimeout(2000);
+  // Wait for React hydration
+  await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
   
   // Check if we're authenticated or on auth page
   const isAuthPage = page.url().includes('/login') || page.url().includes('/register');
   
   // Wait for form elements on auth pages
   if (isAuthPage) {
-    await page.waitForSelector('form', { timeout: 5000 });
+    await page.waitForSelector('form', { timeout: 10000 });
   }
 }

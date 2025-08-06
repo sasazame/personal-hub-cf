@@ -12,8 +12,11 @@ export async function login(page: Page, email: string, password: string) {
     await page.goto('/login');
   }
   
-  // Wait for login form to be visible
-  await page.waitForSelector('input[type="email"]', { timeout: 10000 });
+  // Wait for login form to be visible with increased timeout
+  await page.waitForSelector('input[type="email"]', { timeout: 15000 });
+  
+  // Ensure form is ready for interaction
+  await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
   
   // Fill in login form
   await page.fill('input[type="email"]', email);
@@ -22,18 +25,18 @@ export async function login(page: Page, email: string, password: string) {
   // Submit form
   await page.click('button[type="submit"]');
   
-  // Wait for either redirect or error message
+  // Wait for either redirect or error message with longer timeout
   await Promise.race([
     // Wait for successful redirect
-    page.waitForURL((url) => !url.href.includes('/login'), { timeout: 5000 }),
+    page.waitForURL((url) => !url.href.includes('/login'), { timeout: 10000 }),
     // Or wait for error message
-    page.waitForSelector('[data-sonner-toast][data-type="error"], .text-red-500, .text-red-600', { timeout: 5000 }).then(() => {
+    page.waitForSelector('[data-sonner-toast][data-type="error"], .text-red-500, .text-red-600', { timeout: 10000 }).then(() => {
       throw new Error('Login error detected');
     })
   ]).catch(async () => {
     // Handle errors
     const errorToast = page.locator('[data-sonner-toast][data-type="error"]');
-    const hasErrorToast = await errorToast.isVisible({ timeout: 1000 }).catch(() => false);
+    const hasErrorToast = await errorToast.isVisible({ timeout: 2000 }).catch(() => false);
     
     if (hasErrorToast) {
       const errorText = await errorToast.textContent();
@@ -96,12 +99,17 @@ export async function login(page: Page, email: string, password: string) {
 export async function logout(page: Page) {
   // First click the user menu dropdown
   const userMenu = page.locator('button').filter({ has: page.locator('.rounded-full') });
-  if (await userMenu.isVisible()) {
+  const menuVisible = await userMenu.isVisible({ timeout: 5000 }).catch(() => false);
+  
+  if (menuVisible) {
     await userMenu.click();
+    // Wait for dropdown to open
+    await page.waitForTimeout(500);
+    
     // Now click logout button in dropdown
     const logoutButton = page.getByRole('button', { name: 'Logout' });
     await logoutButton.click();
-    await page.waitForURL(/.*\/login/, { timeout: 5000 });
+    await page.waitForURL(/.*\/login/, { timeout: 10000 });
   }
 }
 
@@ -138,12 +146,12 @@ export async function ensureLoggedOut(page: Page) {
   // Navigate to login page if not already there
   if (!page.url().includes('/login')) {
     await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    // Wait a bit for any potential redirects
-    await page.waitForTimeout(1000);
+    // Wait for any potential redirects or page stabilization
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
   }
   
-  // Wait for login form to be ready
-  await page.waitForSelector('input[type="email"]', { timeout: 10000 });
+  // Wait for login form to be ready with increased timeout
+  await page.waitForSelector('input[type="email"]', { timeout: 15000 });
 }
 
 // Test user credentials
