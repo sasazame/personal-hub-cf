@@ -188,10 +188,11 @@ test.describe('Calendar Feature E2E Tests', () => {
     const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
     const gridContent = await calendarGrid.textContent();
     
+    let event;
     // Check if event exists in the calendar
     if (gridContent && gridContent.includes(eventTitle)) {
       // Event was created successfully
-      const event = calendarGrid.locator('div').filter({ hasText: eventTitle }).first();
+      event = calendarGrid.locator('div').filter({ hasText: eventTitle }).first();
       await expect(event).toBeVisible();
     } else {
       throw new Error(`Event '${eventTitle}' not found in calendar after creation`);

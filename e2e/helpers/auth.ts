@@ -103,8 +103,8 @@ export async function logout(page: Page) {
   
   if (menuVisible) {
     await userMenu.click();
-    // Wait for dropdown to open
-    await page.waitForTimeout(500);
+    // Wait for dropdown to open by waiting for the logout button to be visible
+    await page.waitForSelector('button:has-text("Logout")', { timeout: 5000 });
     
     // Now click logout button in dropdown
     const logoutButton = page.getByRole('button', { name: 'Logout' });
