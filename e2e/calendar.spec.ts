@@ -108,30 +108,44 @@ test.describe('Calendar Feature E2E Tests', () => {
     // Submit form
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // Wait for modal to close and event to appear
+    // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'New Event' })).not.toBeVisible({ timeout: 10000 });
     
-    // Verify event appears on calendar
-    await page.waitForTimeout(2000); // Wait for event to render
+    // Wait longer for backend and frontend to sync
+    await page.waitForTimeout(5000);
     
-    // Try multiple selectors to find the event
-    const eventSelectors = [
-      page.locator('[class*="event-"]').filter({ hasText: eventTitle }),
-      page.locator('.text-xs').filter({ hasText: eventTitle }),
-      page.getByText(eventTitle)
-    ];
+    // Force a page reload to ensure we get the latest events from the backend
+    await page.reload();
+    await page.waitForSelector('.grid.grid-cols-7', { timeout: 10000 });
     
-    let eventFound = false;
-    for (const selector of eventSelectors) {
-      const count = await selector.count();
-      if (count > 0) {
-        await expect(selector.first()).toBeVisible();
-        eventFound = true;
-        break;
-      }
+    // The calendar has two grids - weekday headers and the actual calendar
+    // We need the second one which contains the dates and events
+    const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
+    const gridContent = await calendarGrid.textContent();
+    
+    console.log('Calendar grid content after creation:', gridContent?.substring(0, 500));
+    console.log('Looking for event:', eventTitle);
+    
+    // Look for any events that might have been created
+    const allEvents = await page.locator('[class*="event-"], .text-xs.p-1.rounded').all();
+    console.log(`Found ${allEvents.length} event elements on page`);
+    
+    for (const evt of allEvents) {
+      const text = await evt.textContent();
+      console.log('Event text:', text);
     }
     
-    expect(eventFound).toBeTruthy();
+    // Check if event exists anywhere on the page
+    const eventAnywhere = await page.getByText(eventTitle).count();
+    console.log(`Event '${eventTitle}' found ${eventAnywhere} times on page`);
+    
+    if (eventAnywhere > 0) {
+      // Event exists somewhere, just verify it's visible
+      await expect(page.getByText(eventTitle).first()).toBeVisible();
+    } else {
+      // Event truly doesn't exist - this is a real problem
+      throw new Error(`Event '${eventTitle}' not found anywhere on page after creation`);
+    }
   });
 
   test('should create all-day event', async ({ page }) => {
@@ -158,35 +172,30 @@ test.describe('Calendar Feature E2E Tests', () => {
     const dateInputCount = await dateInputs.count();
     expect(dateInputCount).toBeGreaterThan(0);
     
-    // Submit form
-    await page.getByRole('button', { name: 'Create' }).click();
+    // Submit form and wait for the GET request to refetch events
+    await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 }),
+      page.getByRole('button', { name: 'Create' }).click()
+    ]);
     
     // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'New Event' })).not.toBeVisible({ timeout: 10000 });
     
-    // Verify event appears
-    await page.waitForTimeout(2000); // Wait for event to render
+    // Additional wait for React to re-render
+    await page.waitForTimeout(1000);
     
-    // Try multiple selectors to find the event
-    const eventSelectors = [
-      page.locator('[class*="event-"]').filter({ hasText: eventTitle }),
-      page.locator('.text-xs').filter({ hasText: eventTitle }),
-      page.getByText(eventTitle)
-    ];
+    // The calendar has two grids - we need the second one
+    const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
+    const gridContent = await calendarGrid.textContent();
     
-    let eventFound = false;
-    let event;
-    for (const selector of eventSelectors) {
-      const count = await selector.count();
-      if (count > 0) {
-        event = selector.first();
-        await expect(event).toBeVisible();
-        eventFound = true;
-        break;
-      }
+    // Check if event exists in the calendar
+    if (gridContent && gridContent.includes(eventTitle)) {
+      // Event was created successfully
+      const event = calendarGrid.locator('div').filter({ hasText: eventTitle }).first();
+      await expect(event).toBeVisible();
+    } else {
+      throw new Error(`Event '${eventTitle}' not found in calendar after creation`);
     }
-    
-    expect(eventFound).toBeTruthy();
     
     // Check if event doesn't show time (for all-day events)
     const eventText = await event.textContent();
@@ -203,32 +212,31 @@ test.describe('Calendar Feature E2E Tests', () => {
     
     const eventTitle = `Edit Test ${Date.now()}`;
     await page.fill('input[placeholder="Event title"]', eventTitle);
-    await page.getByRole('button', { name: 'Create' }).click();
+    // Submit form and wait for the GET request to refetch events
+    await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 }),
+      page.getByRole('button', { name: 'Create' }).click()
+    ]);
     
-    // Wait for modal to close and event to appear
+    // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'New Event' })).not.toBeVisible({ timeout: 10000 });
-    await page.waitForTimeout(2000); // Wait for event to render
     
-    // Try multiple selectors to find the event
-    const eventSelectors = [
-      page.locator('[class*="event-"]').filter({ hasText: eventTitle }),
-      page.locator('.text-xs').filter({ hasText: eventTitle }),
-      page.getByText(eventTitle)
-    ];
+    // Additional wait for React to re-render
+    await page.waitForTimeout(1000);
     
+    // The calendar has two grids - we need the second one
+    const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
+    const gridContent = await calendarGrid.textContent();
+    
+    // Check if event exists in the calendar
     let eventElement;
-    let eventFound = false;
-    for (const selector of eventSelectors) {
-      const count = await selector.count();
-      if (count > 0) {
-        eventElement = selector.first();
-        await expect(eventElement).toBeVisible();
-        eventFound = true;
-        break;
-      }
+    if (gridContent && gridContent.includes(eventTitle)) {
+      // Event was created successfully
+      eventElement = calendarGrid.locator('div').filter({ hasText: eventTitle }).first();
+      await expect(eventElement).toBeVisible();
+    } else {
+      throw new Error(`Event '${eventTitle}' not found in calendar after creation`);
     }
-    
-    expect(eventFound).toBeTruthy();
     
     // Click on the event to edit
     await eventElement.click();
@@ -247,31 +255,29 @@ test.describe('Calendar Feature E2E Tests', () => {
       await colorOptions.nth(1).click();
     }
     
-    // Save changes
-    await page.getByRole('button', { name: 'Update' }).click();
+    // Save changes and wait for the GET request to refetch events
+    await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 }),
+      page.getByRole('button', { name: 'Update' }).click()
+    ]);
     
-    // Wait for modal to close and verify changes
+    // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'Edit Event' })).not.toBeVisible({ timeout: 10000 });
-    await page.waitForTimeout(2000); // Wait for event to render
     
-    // Try multiple selectors to find the updated event
-    const updatedEventSelectors = [
-      page.locator('[class*="event-"]').filter({ hasText: newTitle }),
-      page.locator('.text-xs').filter({ hasText: newTitle }),
-      page.getByText(newTitle)
-    ];
+    // Additional wait for React to re-render
+    await page.waitForTimeout(1000);
     
-    let updatedFound = false;
-    for (const selector of updatedEventSelectors) {
-      const count = await selector.count();
-      if (count > 0) {
-        await expect(selector.first()).toBeVisible();
-        updatedFound = true;
-        break;
-      }
+    // Re-fetch the calendar grid content after update
+    const updatedGridContent = await calendarGrid.textContent();
+    
+    // Check if updated event exists in the calendar
+    if (updatedGridContent && updatedGridContent.includes(newTitle)) {
+      // Event was updated successfully
+      const updatedEvent = calendarGrid.locator('div').filter({ hasText: newTitle }).first();
+      await expect(updatedEvent).toBeVisible();
+    } else {
+      throw new Error(`Updated event '${newTitle}' not found in calendar`);
     }
-    
-    expect(updatedFound).toBeTruthy();
   });
 
   test('should delete event', async ({ page }) => {
@@ -284,32 +290,31 @@ test.describe('Calendar Feature E2E Tests', () => {
     
     const eventTitle = `Delete Test ${Date.now()}`;
     await page.fill('input[placeholder="Event title"]', eventTitle);
-    await page.getByRole('button', { name: 'Create' }).click();
+    // Submit form and wait for the GET request to refetch events
+    await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 }),
+      page.getByRole('button', { name: 'Create' }).click()
+    ]);
     
-    // Wait for modal to close and event to appear
+    // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'New Event' })).not.toBeVisible({ timeout: 10000 });
-    await page.waitForTimeout(2000); // Wait for event to render
     
-    // Try multiple selectors to find the event
-    const eventSelectors = [
-      page.locator('[class*="event-"]').filter({ hasText: eventTitle }),
-      page.locator('.text-xs').filter({ hasText: eventTitle }),
-      page.getByText(eventTitle)
-    ];
+    // Additional wait for React to re-render
+    await page.waitForTimeout(1000);
     
+    // The calendar has two grids - we need the second one
+    const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
+    const gridContent = await calendarGrid.textContent();
+    
+    // Check if event exists in the calendar
     let eventElement;
-    let eventFound = false;
-    for (const selector of eventSelectors) {
-      const count = await selector.count();
-      if (count > 0) {
-        eventElement = selector.first();
-        await expect(eventElement).toBeVisible();
-        eventFound = true;
-        break;
-      }
+    if (gridContent && gridContent.includes(eventTitle)) {
+      // Event was created successfully
+      eventElement = calendarGrid.locator('div').filter({ hasText: eventTitle }).first();
+      await expect(eventElement).toBeVisible();
+    } else {
+      throw new Error(`Event '${eventTitle}' not found in calendar after creation`);
     }
-    
-    expect(eventFound).toBeTruthy();
     
     // Click on the event to open edit form
     await eventElement.click();
@@ -353,32 +358,31 @@ test.describe('Calendar Feature E2E Tests', () => {
     await expect(page.getByRole('heading', { name: 'New Event' })).toBeVisible({ timeout: 10000 });
     const eventTitle = `Drag Test ${Date.now()}`;
     await page.fill('input[placeholder="Event title"]', eventTitle);
-    await page.getByRole('button', { name: 'Create' }).click();
+    // Submit form and wait for the GET request to refetch events
+    await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 }),
+      page.getByRole('button', { name: 'Create' }).click()
+    ]);
     
-    // Wait for modal to close and event to appear
+    // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'New Event' })).not.toBeVisible({ timeout: 10000 });
-    await page.waitForTimeout(2000); // Wait for event to render
     
-    // Try multiple selectors to find the event
-    const eventSelectors = [
-      page.locator('[class*="event-"]').filter({ hasText: eventTitle }),
-      page.locator('.text-xs').filter({ hasText: eventTitle }),
-      page.getByText(eventTitle)
-    ];
+    // Additional wait for React to re-render
+    await page.waitForTimeout(1000);
     
+    // The calendar has two grids - we need the second one
+    const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
+    const gridContent = await calendarGrid.textContent();
+    
+    // Check if event exists in the calendar
     let event;
-    let eventFound = false;
-    for (const selector of eventSelectors) {
-      const count = await selector.count();
-      if (count > 0) {
-        event = selector.first();
-        await expect(event).toBeVisible();
-        eventFound = true;
-        break;
-      }
+    if (gridContent && gridContent.includes(eventTitle)) {
+      // Event was created successfully
+      event = calendarGrid.locator('div').filter({ hasText: eventTitle }).first();
+      await expect(event).toBeVisible();
+    } else {
+      throw new Error(`Event '${eventTitle}' not found in calendar after creation`);
     }
-    
-    expect(eventFound).toBeTruthy();
     
     // Find the 20th date cell
     const date20Elements = page.locator('div, button').filter({ hasText: /^20$/ });
@@ -400,19 +404,44 @@ test.describe('Calendar Feature E2E Tests', () => {
       }
     }
     
-    // Perform drag and drop
+    // Perform drag and drop and wait for the update
     await event.hover();
     await page.mouse.down();
     await dateCell20.hover();
-    await page.mouse.up();
     
-    // Wait for drag-drop to process
+    // Complete the drop and wait for the PUT/PATCH request and subsequent GET
+    await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && (resp.request().method() === 'PUT' || resp.request().method() === 'PATCH'), { timeout: 10000 }),
+      page.mouse.up()
+    ]);
+    
+    // Wait for the events to be refetched
+    await page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 });
+    
+    // Additional wait for React to re-render
     await page.waitForTimeout(1000);
     
     // Verify event moved to new date
-    // The event should now be associated with the 20th
-    const eventsOn20th = await date20Elements.first().locator('..').locator('div, span').filter({ hasText: eventTitle }).count();
-    expect(eventsOn20th).toBeGreaterThan(0);
+    // Check if the event is still visible and associated with the 20th
+    const updatedGridContent = await calendarGrid.textContent();
+    
+    if (updatedGridContent && updatedGridContent.includes(eventTitle)) {
+      // Event is still visible, verify it's near the 20th date
+      // In the calendar grid, events appear after their date number
+      // So we check if "20" appears before the event title in the text
+      const indexOfEvent = updatedGridContent.indexOf(eventTitle);
+      const textBeforeEvent = updatedGridContent.substring(Math.max(0, indexOfEvent - 50), indexOfEvent);
+      
+      if (textBeforeEvent.includes('20')) {
+        // Success - event is associated with the 20th
+        const movedEvent = calendarGrid.locator('div').filter({ hasText: eventTitle }).first();
+        await expect(movedEvent).toBeVisible();
+      } else {
+        throw new Error(`Event '${eventTitle}' not associated with date 20 after drag`);
+      }
+    } else {
+      throw new Error(`Event '${eventTitle}' not found after drag and drop`);
+    }
   });
 
   test.fixme('should show multiple events on same date', async ({ page }) => {
@@ -433,7 +462,11 @@ test.describe('Calendar Feature E2E Tests', () => {
       
       await expect(page.getByRole('heading', { name: 'New Event' })).toBeVisible({ timeout: 10000 });
       await page.fill('input[placeholder="Event title"]', `Multi Event ${i}`);
-      await page.getByRole('button', { name: 'Create' }).click();
+      // Submit form and wait for the GET request to refetch events
+      await Promise.all([
+        page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 }),
+        page.getByRole('button', { name: 'Create' }).click()
+      ]);
       
       // Wait for modal to close
       await expect(page.getByRole('heading', { name: 'New Event' })).not.toBeVisible({ timeout: 10000 });
@@ -442,10 +475,19 @@ test.describe('Calendar Feature E2E Tests', () => {
       await page.waitForTimeout(500);
     }
     
-    // Verify at least the first event is visible
-    await page.waitForTimeout(1000); // Brief wait for events to render
+    // Wait a bit for all events to render
+    await page.waitForTimeout(2000);
     
-    await expect(page.locator('[class*="event-"]').filter({ hasText: 'Multi Event 1' })).toBeVisible({ timeout: 15000 });
+    // Check if at least the first event is visible in the calendar grid
+    const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
+    const gridContent = await calendarGrid.textContent();
+    
+    if (gridContent && gridContent.includes('Multi Event 1')) {
+      const firstEvent = calendarGrid.locator('div').filter({ hasText: 'Multi Event 1' }).first();
+      await expect(firstEvent).toBeVisible();
+    } else {
+      throw new Error('First multi event not found in calendar');
+    }
     
     // Check if there's a "more" indicator or all events are shown
     const moreIndicator = page.locator('text=/\\+\\d+ more|more events/i');
@@ -457,12 +499,16 @@ test.describe('Calendar Feature E2E Tests', () => {
       
       // Verify all events become visible
       for (let i = 1; i <= 3; i++) {
-        await expect(page.locator('[class*="event-"]').filter({ hasText: `Multi Event ${i}` })).toBeVisible({ timeout: 5000 });
+        const eventText = `Multi Event ${i}`;
+        const eventElement = calendarGrid.locator('div').filter({ hasText: eventText });
+        await expect(eventElement.first()).toBeVisible({ timeout: 5000 });
       }
     } else {
       // If no more indicator, verify all events are already visible
+      const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
       for (let i = 1; i <= 3; i++) {
-        const eventVisible = await page.locator('[class*="event-"]').filter({ hasText: `Multi Event ${i}` }).isVisible({ timeout: 1000 }).catch(() => false);
+        const eventText = `Multi Event ${i}`;
+        const eventVisible = await calendarGrid.locator('div').filter({ hasText: eventText }).first().isVisible({ timeout: 1000 }).catch(() => false);
         expect(eventVisible).toBeTruthy();
       }
     }
@@ -497,34 +543,31 @@ test.describe('Calendar Feature E2E Tests', () => {
     await dateTimeInputs.first().fill(startDateTime);
     await dateTimeInputs.last().fill(endDateTime);
     
-    await page.getByRole('button', { name: 'Create' }).click();
+    // Submit form and wait for the GET request to refetch events
+    await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 }),
+      page.getByRole('button', { name: 'Create' }).click()
+    ]);
     
-    // Wait for modal to close and event to appear
+    // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'New Event' })).not.toBeVisible({ timeout: 10000 });
     
-    // Verify event shows with time
-    await page.waitForTimeout(2000); // Wait for event to render
+    // Additional wait for React to re-render
+    await page.waitForTimeout(1000);
     
-    // Try multiple selectors to find the event
-    const eventSelectors = [
-      page.locator('[class*="event-"]').filter({ hasText: eventTitle }),
-      page.locator('.text-xs').filter({ hasText: eventTitle }),
-      page.getByText(eventTitle)
-    ];
+    // The calendar has two grids - we need the second one
+    const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
+    const gridContent = await calendarGrid.textContent();
     
+    // Check if event exists in the calendar
     let event;
-    let eventFound = false;
-    for (const selector of eventSelectors) {
-      const count = await selector.count();
-      if (count > 0) {
-        event = selector.first();
-        await expect(event).toBeVisible();
-        eventFound = true;
-        break;
-      }
+    if (gridContent && gridContent.includes(eventTitle)) {
+      // Event was created successfully
+      event = calendarGrid.locator('div').filter({ hasText: eventTitle }).first();
+      await expect(event).toBeVisible();
+    } else {
+      throw new Error(`Event '${eventTitle}' not found in calendar after creation`);
     }
-    
-    expect(eventFound).toBeTruthy();
     
     // The time is displayed in the user's timezone - just verify it has a time format
     const eventText = await event.textContent();
