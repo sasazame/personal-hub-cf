@@ -10,8 +10,8 @@ export interface ComparisonResult {
 export interface Difference {
   path: string;
   type: 'missing' | 'type' | 'value' | 'status' | 'header';
-  oldValue: any;
-  newValue: any;
+  oldValue: unknown;
+  newValue: unknown;
   message: string;
 }
 
@@ -58,8 +58,8 @@ export function compareResponses(
 }
 
 function compareObjects(
-  oldObj: any,
-  newObj: any,
+  oldObj: unknown,
+  newObj: unknown,
   path: string,
   differences: Difference[]
 ): void {
@@ -105,46 +105,51 @@ function compareObjects(
 
   // Compare arrays
   if (Array.isArray(oldObj)) {
-    if (oldObj.length !== newObj.length) {
+    // TypeScript knows oldObj is an array, but we need to assert newObj is too
+    const newArr = newObj as unknown[];
+    if (oldObj.length !== newArr.length) {
       differences.push({
         path: `${path}.length`,
         type: 'value',
         oldValue: oldObj.length,
-        newValue: newObj.length,
-        message: `Array length mismatch at ${path}: ${oldObj.length} !== ${newObj.length}`,
+        newValue: newArr.length,
+        message: `Array length mismatch at ${path}: ${oldObj.length} !== ${newArr.length}`,
       });
     }
 
-    const minLength = Math.min(oldObj.length, newObj.length);
+    const minLength = Math.min(oldObj.length, newArr.length);
     for (let i = 0; i < minLength; i++) {
-      compareObjects(oldObj[i], newObj[i], `${path}[${i}]`, differences);
+      compareObjects(oldObj[i], newArr[i], `${path}[${i}]`, differences);
     }
     return;
   }
 
   // Compare objects
   if (typeof oldObj === 'object') {
-    const allKeys = new Set([...Object.keys(oldObj), ...Object.keys(newObj)]);
+    // Cast to Record for proper object operations
+    const oldRecord = oldObj as Record<string, unknown>;
+    const newRecord = newObj as Record<string, unknown>;
+    const allKeys = new Set([...Object.keys(oldRecord), ...Object.keys(newRecord)]);
     
     for (const key of allKeys) {
-      if (!(key in oldObj)) {
+      if (!(key in oldRecord)) {
         differences.push({
           path: `${path}.${key}`,
           type: 'missing',
           oldValue: undefined,
-          newValue: newObj[key],
+          newValue: newRecord[key],
           message: `Field missing in old response: ${path}.${key}`,
         });
-      } else if (!(key in newObj)) {
+      } else if (!(key in newRecord)) {
         differences.push({
           path: `${path}.${key}`,
           type: 'missing',
-          oldValue: oldObj[key],
+          oldValue: oldRecord[key],
           newValue: undefined,
           message: `Field missing in new response: ${path}.${key}`,
         });
       } else {
-        compareObjects(oldObj[key], newObj[key], `${path}.${key}`, differences);
+        compareObjects(oldRecord[key], newRecord[key], `${path}.${key}`, differences);
       }
     }
     return;
@@ -198,7 +203,7 @@ function compareHeaders(
   }
 }
 
-function shouldIgnoreDifference(path: string, oldValue: any, newValue: any): boolean {
+function shouldIgnoreDifference(path: string, oldValue: unknown, newValue: unknown): boolean {
   // Ignore timestamp differences
   if (path.includes('timestamp') || path.includes('createdAt') || path.includes('updatedAt')) {
     return true;

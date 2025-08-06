@@ -19,11 +19,12 @@ export const authTests: APITest[] = [
     expectedStatus: 201,
     validateResponse: (oldRes, _newRes) => {
       // Store tokens for subsequent tests
-      if (oldRes.data?.accessToken) {
-        authToken = oldRes.data.accessToken;
+      const response = oldRes as { data?: { accessToken?: string; refreshToken?: string } };
+      if (response.data?.accessToken) {
+        authToken = response.data.accessToken;
       }
-      if (oldRes.data?.refreshToken) {
-        refreshToken = oldRes.data.refreshToken;
+      if (response.data?.refreshToken) {
+        refreshToken = response.data.refreshToken;
       }
     },
   },
@@ -75,11 +76,12 @@ export const authTests: APITest[] = [
     expectedStatus: 200,
     validateResponse: (oldRes, _newRes) => {
       // Update auth token
-      if (oldRes.data?.accessToken) {
-        authToken = oldRes.data.accessToken;
+      const response = oldRes as { data?: { accessToken?: string; refreshToken?: string } };
+      if (response.data?.accessToken) {
+        authToken = response.data.accessToken;
       }
-      if (oldRes.data?.refreshToken) {
-        refreshToken = oldRes.data.refreshToken;
+      if (response.data?.refreshToken) {
+        refreshToken = response.data.refreshToken;
       }
     },
   },

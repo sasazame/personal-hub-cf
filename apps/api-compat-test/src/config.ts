@@ -17,11 +17,11 @@ export interface APITest {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   endpoint: string;
   headers?: Record<string, string>;
-  body?: any;
+  body?: unknown;
   expectedStatus?: number;
   requiresAuth?: boolean;
   authToken?: string;
-  validateResponse?: (oldResponse: any, newResponse: any) => void;
+  validateResponse?: (oldResponse: unknown, newResponse: unknown) => void;
   skip?: boolean;
   skipReason?: string;
 }

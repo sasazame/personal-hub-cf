@@ -4,13 +4,13 @@ import { config } from '../config';
 export interface APIResponse {
   status: number;
   headers: Record<string, string>;
-  data: any;
+  data: unknown;
   responseTime: number;
 }
 
 export interface APIError {
   status?: number;
-  data?: any;
+  data?: unknown;
   message: string;
 }
 
@@ -19,7 +19,7 @@ export async function makeAPIRequest(
   method: string,
   endpoint: string,
   headers?: Record<string, string>,
-  body?: any
+  body?: unknown
 ): Promise<APIResponse | APIError> {
   const startTime = Date.now();
   
