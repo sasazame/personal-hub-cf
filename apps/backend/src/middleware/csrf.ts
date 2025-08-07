@@ -74,7 +74,7 @@ export function setCSRFCookie(c: Context, token: string) {
   setCookie(c, CSRF_TOKEN_COOKIE, token, {
     httpOnly: false, // Must be accessible by JavaScript to read and send in header
     secure: isProduction,
-    sameSite: isProduction ? 'Strict' : 'Lax', // Use Lax for development/testing
+    sameSite: isProduction ? 'None' : 'Lax', // Use 'None' for cross-domain in production
     path: '/',
     maxAge: 86400, // 24 hours
   });

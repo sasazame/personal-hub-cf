@@ -38,7 +38,7 @@ function setAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variables }>
   setCookie(c, ACCESS_TOKEN_COOKIE, accessToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'Strict' : 'Lax',
+    sameSite: isProduction ? 'None' : 'Lax', // Use 'None' for cross-domain in production
     path: '/',
     maxAge: 15 * 60, // 15 minutes
   });
@@ -47,7 +47,7 @@ function setAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variables }>
   setCookie(c, REFRESH_TOKEN_COOKIE, refreshToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'Strict' : 'Lax',
+    sameSite: isProduction ? 'None' : 'Lax', // Use 'None' for cross-domain in production
     path: '/',
     maxAge: 7 * 24 * 60 * 60, // 7 days
   });
@@ -60,7 +60,7 @@ function setAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variables }>
   setCookie(c, SESSION_COOKIE, JSON.stringify(sessionData), {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'Strict' : 'Lax',
+    sameSite: isProduction ? 'None' : 'Lax', // Use 'None' for cross-domain in production
     path: '/',
     maxAge: 30 * 60, // 30 minutes
   });
