@@ -1,0 +1,97 @@
+{
+  "title": "TODO",
+  "addTodo": "TODOを追加",
+  "newTodo": "新しいTODO",
+  "editTodo": "TODOを編集",
+  "deleteTodo": "TODOを削除",
+  "todoList": "TODOリスト",
+  "myTodos": "マイTODO",
+  "allTodos": "すべてのTODO",
+  "activeTodos": "進行中のTODO",
+  "completedTodos": "完了済みTODO",
+  "form": {
+    "title": "タイトル",
+    "titlePlaceholder": "TODOのタイトルを入力",
+    "description": "説明",
+    "descriptionPlaceholder": "TODOの説明を入力",
+    "status": "ステータス",
+    "priority": "優先度",
+    "dueDate": "期限",
+    "tags": "タグ",
+    "tagsPlaceholder": "タグを追加",
+    "assignee": "担当者",
+    "category": "カテゴリー",
+    "reminder": "リマインダー設定",
+    "attachments": "添付ファイル",
+    "notes": "メモ",
+    "notesPlaceholder": "メモを追加"
+  },
+  "status": {
+    "todo": "未完了",
+    "inProgress": "進行中",
+    "done": "完了",
+    "cancelled": "キャンセル",
+    "onHold": "保留中"
+  },
+  "priority": {
+    "low": "低",
+    "medium": "中",
+    "high": "高",
+    "urgent": "緊急"
+  },
+  "filters": {
+    "all": "すべて",
+    "today": "今日",
+    "thisWeek": "今週",
+    "overdue": "期限切れ",
+    "upcoming": "予定",
+    "noDueDate": "期限なし",
+    "byStatus": "ステータス別",
+    "byPriority": "優先度別",
+    "byCategory": "カテゴリー別",
+    "byTag": "タグ別"
+  },
+  "sort": {
+    "sortBy": "並び替え",
+    "dueDate": "期限",
+    "priority": "優先度",
+    "title": "タイトル",
+    "createdDate": "作成日",
+    "status": "ステータス",
+    "ascending": "昇順",
+    "descending": "降順"
+  },
+  "actions": {
+    "markComplete": "完了にする",
+    "markIncomplete": "未完了にする",
+    "duplicate": "複製",
+    "move": "移動",
+    "archive": "アーカイブ",
+    "unarchive": "アーカイブ解除",
+    "share": "共有",
+    "export": "エクスポート",
+    "print": "印刷"
+  },
+  "messages": {
+    "todoCreated": "TODOを作成しました",
+    "todoUpdated": "TODOを更新しました",
+    "todoDeleted": "TODOを削除しました",
+    "todoCompleted": "TODOを完了にしました",
+    "todoReopened": "TODOを再開しました",
+    "todoArchived": "TODOをアーカイブしました",
+    "todoUnarchived": "TODOのアーカイブを解除しました",
+    "confirmDelete": "このTODOを削除してもよろしいですか？",
+    "confirmArchive": "このTODOをアーカイブしてもよろしいですか？",
+    "noTodos": "TODOがありません",
+    "createFirst": "最初のTODOを作成して始めましょう"
+  },
+  "stats": {
+    "total": "合計",
+    "completed": "完了済み",
+    "pending": "未完了",
+    "overdue": "期限切れ",
+    "completionRate": "完了率",
+    "todaysDue": "今日の期限",
+    "thisWeekDue": "今週の期限"
+  }
+}

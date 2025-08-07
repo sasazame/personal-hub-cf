@@ -6,6 +6,8 @@ import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { PublicRoute } from './components/PublicRoute'
+import { I18nextProvider, useTranslation } from 'react-i18next'
+import i18n from './i18n/config'
 
 // Lazy load all pages for better performance
 const Landing = lazy(() => import('./pages/Landing').then(m => ({ default: m.Landing })))
@@ -34,19 +36,23 @@ const queryClient = new QueryClient({
 })
 
 // Loading component for Suspense fallback
-const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <div className="text-lg text-muted-foreground">Loading...</div>
-  </div>
-)
+const PageLoader = () => {
+  const { t } = useTranslation('common')
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="text-lg text-muted-foreground">{t('app.loading')}</div>
+    </div>
+  )
+}
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <Router>
-          <AuthProvider>
-            <Suspense fallback={<PageLoader />}>
+    <I18nextProvider i18n={i18n}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <Router>
+            <AuthProvider>
+              <Suspense fallback={<PageLoader />}>
               <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -147,6 +153,7 @@ function App() {
       </Router>
     </ThemeProvider>
     </QueryClientProvider>
+    </I18nextProvider>
   )
 }
 

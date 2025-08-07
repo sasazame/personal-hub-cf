@@ -1,0 +1,174 @@
+{
+  "title": "設定",
+  "general": {
+    "title": "一般",
+    "language": "言語",
+    "languageDescription": "使用言語を選択してください",
+    "timezone": "タイムゾーン",
+    "timezoneDescription": "タイムゾーンを選択してください",
+    "dateFormat": "日付形式",
+    "dateFormatDescription": "日付の表示形式を選択してください",
+    "timeFormat": "時刻形式",
+    "timeFormatDescription": "12時間制と24時間制を選択してください",
+    "weekStart": "週の開始日",
+    "weekStartDescription": "週の最初の曜日を選択してください",
+    "theme": "テーマ",
+    "themeDescription": "お好みのテーマを選択してください",
+    "currency": "通貨",
+    "currencyDescription": "デフォルトの通貨を選択してください",
+    "languages": {
+      "en": "英語",
+      "ja": "日本語",
+      "zh": "中国語",
+      "es": "スペイン語",
+      "fr": "フランス語",
+      "de": "ドイツ語",
+      "ko": "韓国語",
+      "pt": "ポルトガル語",
+      "ru": "ロシア語",
+      "ar": "アラビア語"
+    },
+    "themes": {
+      "light": "ライト",
+      "dark": "ダーク",
+      "auto": "自動（システム）"
+    },
+    "weekDays": {
+      "sunday": "日曜日",
+      "monday": "月曜日",
+      "saturday": "土曜日"
+    },
+    "timeFormats": {
+      "12h": "12時間制（AM/PM）",
+      "24h": "24時間制"
+    }
+  },
+  "account": {
+    "title": "アカウント",
+    "profile": "プロフィール",
+    "email": "メールアドレス",
+    "username": "ユーザー名",
+    "fullName": "フルネーム",
+    "bio": "自己紹介",
+    "avatar": "アバター",
+    "changeAvatar": "アバター変更",
+    "removeAvatar": "アバター削除",
+    "changePassword": "パスワード変更",
+    "currentPassword": "現在のパスワード",
+    "newPassword": "新しいパスワード",
+    "confirmPassword": "パスワード確認",
+    "updateProfile": "プロフィール更新",
+    "deleteAccount": "アカウント削除",
+    "deleteAccountWarning": "この操作は取り消せません。すべてのデータが永久に削除されます。",
+    "exportData": "データをエクスポート",
+    "downloadData": "全データをダウンロード"
+  },
+  "notifications": {
+    "title": "通知",
+    "enableNotifications": "通知を有効にする",
+    "emailNotifications": "メール通知",
+    "pushNotifications": "プッシュ通知",
+    "desktopNotifications": "デスクトップ通知",
+    "soundNotifications": "音声通知",
+    "notificationTypes": {
+      "todos": "TODOリマインダー",
+      "calendar": "カレンダーイベント",
+      "goals": "目標の更新",
+      "achievements": "達成",
+      "systemUpdates": "システム更新",
+      "security": "セキュリティ警告"
+    },
+    "frequency": {
+      "title": "通知頻度",
+      "realtime": "リアルタイム",
+      "hourly": "1時間ごとの要約",
+      "daily": "日次ダイジェスト",
+      "weekly": "週次要約",
+      "never": "なし"
+    }
+  },
+  "privacy": {
+    "title": "プライバシー",
+    "dataCollection": "データ収集",
+    "analytics": "分析",
+    "shareData": "使用データの共有",
+    "personalizedAds": "パーソナライズ広告",
+    "thirdPartyAccess": "サードパーティアクセス",
+    "publicProfile": "公開プロフィール",
+    "showEmail": "メールアドレス表示",
+    "showActivity": "アクティビティ表示",
+    "allowIndexing": "検索エンジンによるインデックスを許可"
+  },
+  "security": {
+    "title": "セキュリティ",
+    "twoFactorAuth": "二段階認証",
+    "enable2FA": "2FAを有効にする",
+    "disable2FA": "2FAを無効にする",
+    "sessions": "アクティブセッション",
+    "viewSessions": "すべてのセッションを表示",
+    "terminateAllSessions": "他のすべてのセッションを終了",
+    "loginHistory": "ログイン履歴",
+    "securityLog": "セキュリティログ",
+    "trustedDevices": "信頼できるデバイス",
+    "manageTrustedDevices": "信頼できるデバイスを管理"
+  },
+  "integrations": {
+    "title": "連携",
+    "connectedApps": "接続済みアプリ",
+    "availableIntegrations": "利用可能な連携",
+    "google": "Google",
+    "github": "GitHub",
+    "slack": "Slack",
+    "discord": "Discord",
+    "notion": "Notion",
+    "calendar": "カレンダー同期",
+    "connect": "接続",
+    "disconnect": "切断",
+    "manage": "管理",
+    "permissions": "権限"
+  },
+  "appearance": {
+    "title": "外観",
+    "colorScheme": "カラースキーム",
+    "fontSize": "フォントサイズ",
+    "fontFamily": "フォントファミリー",
+    "compactMode": "コンパクトモード",
+    "showAnimations": "アニメーション表示",
+    "reduceMotion": "モーション削減",
+    "highContrast": "ハイコントラスト",
+    "colorBlindMode": "色覚異常対応モード"
+  },
+  "accessibility": {
+    "title": "アクセシビリティ",
+    "screenReader": "スクリーンリーダーサポート",
+    "keyboardNavigation": "キーボードナビゲーション",
+    "focusIndicators": "フォーカスインジケータ",
+    "largeText": "大きなテキスト",
+    "highContrastMode": "ハイコントラストモード",
+    "reduceTransparency": "透明度削減",
+    "announcements": "スクリーンリーダー読み上げ"
+  },
+  "storage": {
+    "title": "ストレージ",
+    "usage": "ストレージ使用量",
+    "usedOf": "{{total}}中{{used}}使用",
+    "clearCache": "キャッシュクリア",
+    "clearData": "ローカルデータクリア",
+    "manageStorage": "ストレージ管理",
+    "offlineData": "オフラインデータ",
+    "downloadOfflineData": "オフライン使用のためダウンロード"
+  },
+  "messages": {
+    "settingsSaved": "設定を保存しました",
+    "settingsError": "設定の保存に失敗しました",
+    "passwordChanged": "パスワードを変更しました",
+    "profileUpdated": "プロフィールを更新しました",
+    "avatarUpdated": "アバターを更新しました",
+    "accountDeleted": "アカウントを削除しました",
+    "sessionTerminated": "セッションを終了しました",
+    "integrationConnected": "連携を接続しました",
+    "integrationDisconnected": "連携を切断しました",
+    "cacheCleared": "キャッシュをクリアしました",
+    "dataExported": "データをエクスポートしました"
+  }
+}

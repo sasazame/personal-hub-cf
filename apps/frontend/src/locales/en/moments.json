@@ -1,0 +1,16 @@
+{
+  "title": "Moments",
+  "newMoment": "New Moment",
+  "editMoment": "Edit Moment",
+  "deleteMoment": "Delete Moment",
+  "momentTitle": "Title",
+  "description": "Description",
+  "date": "Date",
+  "tags": "Tags",
+  "attachments": "Attachments",
+  "visibility": "Visibility",
+  "public": "Public",
+  "private": "Private",
+  "noMoments": "No moments captured",
+  "captureFirstMoment": "Capture your first moment"
+}

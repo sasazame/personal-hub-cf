@@ -5,21 +5,25 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Eye, EyeOff, LogIn, CheckCircle, Mail, Lock, Sparkles } from 'lucide-react'
 import { z } from 'zod'
 import { useAuth } from '@/contexts/AuthContext'
+import { useTranslation } from 'react-i18next'
 
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
+const createLoginSchema = (t: (key: string) => string) => z.object({
+  email: z.string().email(t('validation.email')),
+  password: z.string().min(1, t('validation.required')),
 })
 
-type LoginFormData = z.infer<typeof loginSchema>
+type LoginFormData = z.infer<ReturnType<typeof createLoginSchema>>
 
 export function Login() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [showPassword, setShowPassword] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const { t } = useTranslation(['auth', 'common'])
   
   const { login, isLoading, isAuthenticated, clearError } = useAuth()
+
+  const loginSchema = createLoginSchema(t)
 
   const {
     register,
@@ -32,9 +36,9 @@ export function Login() {
   useEffect(() => {
     // Check for registration success message
     if (searchParams.get('registered') === 'true') {
-      setSuccessMessage('Registration successful! Please log in.')
+      setSuccessMessage(t('auth:login.registrationSuccess'))
     }
-  }, [searchParams])
+  }, [searchParams, t])
 
   // Redirect when authenticated
   useEffect(() => {
@@ -66,9 +70,9 @@ export function Login() {
                 <Sparkles className="h-10 w-10 text-primary-foreground" />
               </div>
             </div>
-            <h1 className="text-4xl font-bold text-foreground mb-2">Login</h1>
+            <h1 className="text-4xl font-bold text-foreground mb-2">{t('auth:login.title')}</h1>
             <p className="text-muted-foreground text-base">
-              Enter your credentials to access your account
+              {t('auth:login.subtitle')}
             </p>
           </div>
 
@@ -81,12 +85,12 @@ export function Login() {
             )}
             
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Email</label>
+              <label className="block text-sm font-medium text-foreground mb-2">{t('auth:login.email')}</label>
               <div className="relative">
                 <input
                   {...register('email')}
                   type="email"
-                  placeholder="Please enter your email address"
+                  placeholder={t('auth:login.emailPlaceholder')}
                   className="w-full px-4 py-3 pl-12 bg-input backdrop-blur-md border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-200"
                   autoComplete="email"
                   disabled={isLoading}
@@ -99,12 +103,12 @@ export function Login() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Password</label>
+              <label className="block text-sm font-medium text-foreground mb-2">{t('auth:login.password')}</label>
               <div className="relative">
                 <input
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Please enter your password"
+                  placeholder={t('auth:login.passwordPlaceholder')}
                   className="w-full px-4 py-3 pl-12 pr-12 bg-input backdrop-blur-md border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-200"
                   autoComplete="current-password"
                   disabled={isLoading}
@@ -133,7 +137,7 @@ export function Login() {
                 to="/forgot-password"
                 className="text-primary hover:text-primary/80 transition-colors"
               >
-                Forgot Password?
+                {t('auth:login.forgotPassword')}
               </Link>
             </div>
 
@@ -147,7 +151,7 @@ export function Login() {
               ) : (
                 <>
                   <LogIn className="h-5 w-5" />
-                  Login
+                  {t('auth:login.submit')}
                 </>
               )}
             </button>
@@ -157,7 +161,7 @@ export function Login() {
                 <div className="w-full border-t border-border"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-transparent px-2 text-muted-foreground">or</span>
+                <span className="bg-transparent px-2 text-muted-foreground">{t('auth:login.orContinueWith')}</span>
               </div>
             </div>
 
@@ -171,16 +175,16 @@ export function Login() {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              Continue with Google
+              {t('auth:login.continueWithGoogle')}
             </button>
 
             <div className="text-center text-sm text-muted-foreground mt-6">
-              Don't have an account?{' '}
+              {t('auth:login.noAccount')}{' '}
               <Link
                 to="/register"
                 className="text-primary hover:text-primary/80 transition-colors font-medium"
               >
-                Register
+                {t('auth:login.signUp')}
               </Link>
             </div>
           </form>

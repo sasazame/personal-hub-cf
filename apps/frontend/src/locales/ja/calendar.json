@@ -1,0 +1,21 @@
+{
+  "title": "カレンダー",
+  "today": "今日",
+  "month": "月",
+  "week": "週",
+  "day": "日",
+  "agenda": "予定",
+  "newEvent": "新しいイベント",
+  "editEvent": "イベントを編集",
+  "deleteEvent": "イベントを削除",
+  "eventTitle": "イベントタイトル",
+  "eventDescription": "説明",
+  "startTime": "開始時刻",
+  "endTime": "終了時刻",
+  "allDay": "終日",
+  "repeat": "繰り返し",
+  "reminder": "リマインダー",
+  "location": "場所",
+  "attendees": "参加者",
+  "noEvents": "予定されたイベントはありません"
+}

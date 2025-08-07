@@ -1,0 +1,43 @@
+{
+  "title": "分析",
+  "overview": "概要",
+  "productivity": "生産性",
+  "trends": "トレンド",
+  "insights": "洞察",
+  "timeRange": {
+    "today": "今日",
+    "yesterday": "昨日",
+    "last7Days": "過去7日間",
+    "last30Days": "過去30日間",
+    "thisMonth": "今月",
+    "lastMonth": "先月",
+    "thisYear": "今年",
+    "custom": "カスタム期間"
+  },
+  "metrics": {
+    "tasksCompleted": "完了したタスク",
+    "goalsAchieved": "達成した目標",
+    "notesCreated": "作成したノート",
+    "pomodoroSessions": "ポモドーロセッション",
+    "totalTime": "合計時間",
+    "averageCompletion": "平均完了時間",
+    "productivityScore": "生産性スコア",
+    "streakDays": "連続日数"
+  },
+  "charts": {
+    "taskCompletion": "タスク完了",
+    "timeDistribution": "時間配分",
+    "categoryBreakdown": "カテゴリー別内訳",
+    "weeklyProgress": "週次進捗",
+    "monthlyTrends": "月次トレンド"
+  },
+  "export": {
+    "title": "データエクスポート",
+    "format": "形式",
+    "csv": "CSV",
+    "json": "JSON",
+    "pdf": "PDF",
+    "exportButton": "エクスポート"
+  },
+  "noData": "選択された期間のデータがありません"
+}

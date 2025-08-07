@@ -1,0 +1,137 @@
+{
+  "general": {
+    "unknownError": "An unknown error occurred",
+    "somethingWentWrong": "Something went wrong",
+    "tryAgainLater": "Please try again later",
+    "contactSupport": "If the problem persists, please contact support",
+    "errorCode": "Error Code: {{code}}",
+    "details": "Details",
+    "reportIssue": "Report Issue"
+  },
+  "network": {
+    "offline": "You are offline",
+    "connectionLost": "Connection lost",
+    "slowConnection": "Slow connection detected",
+    "timeout": "Request timed out",
+    "cannotReachServer": "Cannot reach server",
+    "checkConnection": "Please check your internet connection",
+    "retrying": "Retrying..."
+  },
+  "auth": {
+    "unauthorized": "Unauthorized",
+    "forbidden": "Access forbidden",
+    "sessionExpired": "Your session has expired",
+    "invalidCredentials": "Invalid credentials",
+    "accountLocked": "Account has been locked",
+    "accountDisabled": "Account has been disabled",
+    "emailNotVerified": "Email not verified",
+    "tooManyAttempts": "Too many login attempts. Please try again later",
+    "invalidToken": "Invalid or expired token",
+    "authenticationFailed": "Authentication failed",
+    "permissionDenied": "You don't have permission to perform this action"
+  },
+  "validation": {
+    "invalidInput": "Invalid input",
+    "requiredField": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "invalidPassword": "Password does not meet requirements",
+    "passwordTooShort": "Password must be at least 8 characters long",
+    "passwordTooWeak": "Password is too weak",
+    "passwordMismatch": "Passwords do not match",
+    "invalidDate": "Invalid date",
+    "invalidFormat": "Invalid format",
+    "valueTooLong": "Value is too long",
+    "valueTooShort": "Value is too short",
+    "invalidNumber": "Invalid number",
+    "outOfRange": "Value is out of range",
+    "duplicateEntry": "This entry already exists",
+    "invalidUrl": "Invalid URL",
+    "invalidPhone": "Invalid phone number",
+    "invalidZipCode": "Invalid zip code"
+  },
+  "server": {
+    "internalError": "Internal server error",
+    "serviceUnavailable": "Service temporarily unavailable",
+    "maintenanceMode": "System is under maintenance",
+    "badGateway": "Bad gateway",
+    "serverOverloaded": "Server is overloaded",
+    "databaseError": "Database error",
+    "configurationError": "Server configuration error"
+  },
+  "data": {
+    "notFound": "Not found",
+    "dataNotFound": "Data not found",
+    "pageNotFound": "Page not found",
+    "userNotFound": "User not found",
+    "recordNotFound": "Record not found",
+    "fileNotFound": "File not found",
+    "resourceNotFound": "Resource not found",
+    "noResults": "No results found",
+    "emptyResponse": "Empty response from server",
+    "corruptedData": "Data appears to be corrupted",
+    "incompatibleVersion": "Incompatible version"
+  },
+  "file": {
+    "uploadFailed": "File upload failed",
+    "downloadFailed": "File download failed",
+    "fileTooLarge": "File is too large",
+    "invalidFileType": "Invalid file type",
+    "fileNotSupported": "File type not supported",
+    "maxFilesExceeded": "Maximum number of files exceeded",
+    "processingError": "Error processing file",
+    "readError": "Error reading file",
+    "writeError": "Error writing file"
+  },
+  "form": {
+    "invalidForm": "Please correct the errors in the form",
+    "missingRequiredFields": "Please fill in all required fields",
+    "unsavedChanges": "You have unsaved changes",
+    "confirmLeave": "Are you sure you want to leave without saving?",
+    "submitError": "Error submitting form",
+    "loadError": "Error loading form data"
+  },
+  "api": {
+    "badRequest": "Bad request",
+    "methodNotAllowed": "Method not allowed",
+    "notAcceptable": "Not acceptable",
+    "conflict": "Conflict with current state",
+    "gone": "Resource no longer available",
+    "unprocessableEntity": "Unprocessable entity",
+    "tooManyRequests": "Too many requests",
+    "quotaExceeded": "Quota exceeded",
+    "invalidApiKey": "Invalid API key",
+    "apiKeyExpired": "API key has expired",
+    "rateLimitExceeded": "Rate limit exceeded"
+  },
+  "business": {
+    "insufficientCredits": "Insufficient credits",
+    "subscriptionExpired": "Your subscription has expired",
+    "featureNotAvailable": "This feature is not available in your plan",
+    "limitReached": "You have reached your limit",
+    "paymentRequired": "Payment required",
+    "paymentFailed": "Payment failed",
+    "invalidPromoCode": "Invalid promo code",
+    "alreadyExists": "This item already exists",
+    "cannotDelete": "Cannot delete this item",
+    "dependencyError": "Cannot perform action due to dependencies"
+  },
+  "browser": {
+    "unsupportedBrowser": "Your browser is not supported",
+    "updateBrowser": "Please update your browser",
+    "enableJavaScript": "Please enable JavaScript",
+    "enableCookies": "Please enable cookies",
+    "storageQuotaExceeded": "Storage quota exceeded",
+    "popupBlocked": "Popup was blocked by your browser"
+  },
+  "actions": {
+    "retry": "Retry",
+    "goBack": "Go Back",
+    "goHome": "Go to Homepage",
+    "refresh": "Refresh Page",
+    "report": "Report Problem",
+    "dismiss": "Dismiss",
+    "learnMore": "Learn More",
+    "viewDetails": "View Details",
+    "contactSupport": "Contact Support"
+  }
+}

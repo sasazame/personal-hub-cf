@@ -1,0 +1,137 @@
+{
+  "general": {
+    "unknownError": "不明なエラーが発生しました",
+    "somethingWentWrong": "問題が発生しました",
+    "tryAgainLater": "後でもう一度お試しください",
+    "contactSupport": "問題が解決しない場合は、サポートにお問い合わせください",
+    "errorCode": "エラーコード: {{code}}",
+    "details": "詳細",
+    "reportIssue": "問題を報告"
+  },
+  "network": {
+    "offline": "オフラインです",
+    "connectionLost": "接続が失われました",
+    "slowConnection": "接続速度が遅いです",
+    "timeout": "リクエストがタイムアウトしました",
+    "cannotReachServer": "サーバーに接続できません",
+    "checkConnection": "インターネット接続を確認してください",
+    "retrying": "再試行中..."
+  },
+  "auth": {
+    "unauthorized": "認証されていません",
+    "forbidden": "アクセスが拒否されました",
+    "sessionExpired": "セッションが期限切れです",
+    "invalidCredentials": "認証情報が無効です",
+    "accountLocked": "アカウントがロックされています",
+    "accountDisabled": "アカウントが無効化されています",
+    "emailNotVerified": "メールアドレスが確認されていません",
+    "tooManyAttempts": "ログイン試行回数が上限を超えました。後でもう一度お試しください",
+    "invalidToken": "トークンが無効または期限切れです",
+    "authenticationFailed": "認証に失敗しました",
+    "permissionDenied": "この操作を実行する権限がありません"
+  },
+  "validation": {
+    "invalidInput": "無効な入力です",
+    "requiredField": "この項目は必須です",
+    "invalidEmail": "メールアドレスが無効です",
+    "invalidPassword": "パスワードが要件を満たしていません",
+    "passwordTooShort": "パスワードは8文字以上である必要があります",
+    "passwordTooWeak": "パスワードが弱すぎます",
+    "passwordMismatch": "パスワードが一致しません",
+    "invalidDate": "日付が無効です",
+    "invalidFormat": "形式が無効です",
+    "valueTooLong": "値が長すぎます",
+    "valueTooShort": "値が短すぎます",
+    "invalidNumber": "数値が無効です",
+    "outOfRange": "値が範囲外です",
+    "duplicateEntry": "この項目はすでに存在します",
+    "invalidUrl": "URLが無効です",
+    "invalidPhone": "電話番号が無効です",
+    "invalidZipCode": "郵便番号が無効です"
+  },
+  "server": {
+    "internalError": "サーバー内部エラー",
+    "serviceUnavailable": "サービスが一時的に利用できません",
+    "maintenanceMode": "システムはメンテナンス中です",
+    "badGateway": "不正なゲートウェイ",
+    "serverOverloaded": "サーバーが過負荷状態です",
+    "databaseError": "データベースエラー",
+    "configurationError": "サーバー設定エラー"
+  },
+  "data": {
+    "notFound": "見つかりません",
+    "dataNotFound": "データが見つかりません",
+    "pageNotFound": "ページが見つかりません",
+    "userNotFound": "ユーザーが見つかりません",
+    "recordNotFound": "レコードが見つかりません",
+    "fileNotFound": "ファイルが見つかりません",
+    "resourceNotFound": "リソースが見つかりません",
+    "noResults": "結果が見つかりません",
+    "emptyResponse": "サーバーからの応答が空です",
+    "corruptedData": "データが破損している可能性があります",
+    "incompatibleVersion": "互換性のないバージョンです"
+  },
+  "file": {
+    "uploadFailed": "ファイルのアップロードに失敗しました",
+    "downloadFailed": "ファイルのダウンロードに失敗しました",
+    "fileTooLarge": "ファイルが大きすぎます",
+    "invalidFileType": "ファイル形式が無効です",
+    "fileNotSupported": "サポートされていないファイル形式です",
+    "maxFilesExceeded": "最大ファイル数を超えました",
+    "processingError": "ファイルの処理中にエラーが発生しました",
+    "readError": "ファイルの読み込みエラー",
+    "writeError": "ファイルの書き込みエラー"
+  },
+  "form": {
+    "invalidForm": "フォームのエラーを修正してください",
+    "missingRequiredFields": "必須項目をすべて入力してください",
+    "unsavedChanges": "保存されていない変更があります",
+    "confirmLeave": "保存せずに離れてもよろしいですか？",
+    "submitError": "フォームの送信エラー",
+    "loadError": "フォームデータの読み込みエラー"
+  },
+  "api": {
+    "badRequest": "不正なリクエスト",
+    "methodNotAllowed": "許可されていないメソッド",
+    "notAcceptable": "受け入れられません",
+    "conflict": "現在の状態と競合しています",
+    "gone": "リソースは利用できなくなりました",
+    "unprocessableEntity": "処理できないエンティティ",
+    "tooManyRequests": "リクエストが多すぎます",
+    "quotaExceeded": "クォータを超えました",
+    "invalidApiKey": "APIキーが無効です",
+    "apiKeyExpired": "APIキーが期限切れです",
+    "rateLimitExceeded": "レート制限を超えました"
+  },
+  "business": {
+    "insufficientCredits": "クレジットが不足しています",
+    "subscriptionExpired": "サブスクリプションが期限切れです",
+    "featureNotAvailable": "この機能はお客様のプランでは利用できません",
+    "limitReached": "制限に達しました",
+    "paymentRequired": "支払いが必要です",
+    "paymentFailed": "支払いに失敗しました",
+    "invalidPromoCode": "プロモコードが無効です",
+    "alreadyExists": "この項目はすでに存在します",
+    "cannotDelete": "この項目は削除できません",
+    "dependencyError": "依存関係のため操作を実行できません"
+  },
+  "browser": {
+    "unsupportedBrowser": "お使いのブラウザはサポートされていません",
+    "updateBrowser": "ブラウザを更新してください",
+    "enableJavaScript": "JavaScriptを有効にしてください",
+    "enableCookies": "Cookieを有効にしてください",
+    "storageQuotaExceeded": "ストレージクォータを超えました",
+    "popupBlocked": "ポップアップがブラウザによってブロックされました"
+  },
+  "actions": {
+    "retry": "再試行",
+    "goBack": "戻る",
+    "goHome": "ホームに戻る",
+    "refresh": "ページを更新",
+    "report": "問題を報告",
+    "dismiss": "閉じる",
+    "learnMore": "詳細を見る",
+    "viewDetails": "詳細を表示",
+    "contactSupport": "サポートに問い合わせ"
+  }
+}

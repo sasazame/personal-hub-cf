@@ -1,0 +1,16 @@
+{
+  "title": "Goals",
+  "newGoal": "New Goal",
+  "editGoal": "Edit Goal",
+  "deleteGoal": "Delete Goal",
+  "goalTitle": "Goal Title",
+  "description": "Description",
+  "targetDate": "Target Date",
+  "progress": "Progress",
+  "milestones": "Milestones",
+  "category": "Category",
+  "status": "Status",
+  "priority": "Priority",
+  "noGoals": "No goals set",
+  "createFirstGoal": "Set your first goal"
+}

@@ -1,0 +1,97 @@
+{
+  "title": "TODOs",
+  "addTodo": "Add Todo",
+  "newTodo": "New Todo",
+  "editTodo": "Edit Todo",
+  "deleteTodo": "Delete Todo",
+  "todoList": "Todo List",
+  "myTodos": "My Todos",
+  "allTodos": "All Todos",
+  "activeTodos": "Active Todos",
+  "completedTodos": "Completed Todos",
+  "form": {
+    "title": "Title",
+    "titlePlaceholder": "Enter todo title",
+    "description": "Description",
+    "descriptionPlaceholder": "Enter todo description",
+    "status": "Status",
+    "priority": "Priority",
+    "dueDate": "Due Date",
+    "tags": "Tags",
+    "tagsPlaceholder": "Add tags",
+    "assignee": "Assignee",
+    "category": "Category",
+    "reminder": "Set Reminder",
+    "attachments": "Attachments",
+    "notes": "Notes",
+    "notesPlaceholder": "Add notes"
+  },
+  "status": {
+    "todo": "To Do",
+    "inProgress": "In Progress",
+    "done": "Done",
+    "cancelled": "Cancelled",
+    "onHold": "On Hold"
+  },
+  "priority": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "urgent": "Urgent"
+  },
+  "filters": {
+    "all": "All",
+    "today": "Today",
+    "thisWeek": "This Week",
+    "overdue": "Overdue",
+    "upcoming": "Upcoming",
+    "noDueDate": "No Due Date",
+    "byStatus": "By Status",
+    "byPriority": "By Priority",
+    "byCategory": "By Category",
+    "byTag": "By Tag"
+  },
+  "sort": {
+    "sortBy": "Sort By",
+    "dueDate": "Due Date",
+    "priority": "Priority",
+    "title": "Title",
+    "createdDate": "Created Date",
+    "status": "Status",
+    "ascending": "Ascending",
+    "descending": "Descending"
+  },
+  "actions": {
+    "markComplete": "Mark as Complete",
+    "markIncomplete": "Mark as Incomplete",
+    "duplicate": "Duplicate",
+    "move": "Move",
+    "archive": "Archive",
+    "unarchive": "Unarchive",
+    "share": "Share",
+    "export": "Export",
+    "print": "Print"
+  },
+  "messages": {
+    "todoCreated": "Todo created successfully",
+    "todoUpdated": "Todo updated successfully",
+    "todoDeleted": "Todo deleted successfully",
+    "todoCompleted": "Todo marked as complete",
+    "todoReopened": "Todo reopened",
+    "todoArchived": "Todo archived",
+    "todoUnarchived": "Todo unarchived",
+    "confirmDelete": "Are you sure you want to delete this todo?",
+    "confirmArchive": "Are you sure you want to archive this todo?",
+    "noTodos": "No todos found",
+    "createFirst": "Create your first todo to get started"
+  },
+  "stats": {
+    "total": "Total",
+    "completed": "Completed",
+    "pending": "Pending",
+    "overdue": "Overdue",
+    "completionRate": "Completion Rate",
+    "todaysDue": "Due Today",
+    "thisWeekDue": "Due This Week"
+  }
+}

@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Menu, User, LogOut, Settings, ChevronDown, Sun, Moon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -12,6 +13,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const { t } = useTranslation('common');
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border">
@@ -31,7 +33,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 <span className="text-primary-foreground font-bold text-lg">P</span>
               </div>
               <h1 className="text-xl font-semibold text-foreground">
-                Personal Hub
+                {t('app.name')}
               </h1>
             </Link>
           </div>
@@ -81,7 +83,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                       onClick={() => setIsUserMenuOpen(false)}
                     >
                       <User className="h-4 w-4" />
-                      Profile
+                      {t('navigation.profile')}
                     </Link>
                     <Link
                       to="/settings"
@@ -89,7 +91,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                       onClick={() => setIsUserMenuOpen(false)}
                     >
                       <Settings className="h-4 w-4" />
-                      Settings
+                      {t('navigation.settings')}
                     </Link>
                     <hr className="my-1 border-border" />
                     <button
@@ -100,7 +102,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                       className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted"
                     >
                       <LogOut className="h-4 w-4" />
-                      Logout
+                      {t('navigation.logout')}
                     </button>
                   </div>
                 </div>
