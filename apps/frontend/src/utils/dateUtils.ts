@@ -87,5 +87,4 @@ export function formatShortDate(date: Date | string): string {
 export function updateDateLocale(): void {
   // This function can be called when the language changes
   // The getCurrentLocale function will automatically use the new language
-  console.log('Date locale updated to:', i18n.language);
 }

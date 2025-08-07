@@ -7,22 +7,24 @@ import { z } from 'zod'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTranslation } from 'react-i18next'
 
-const createRegisterSchema = (t: (key: string) => string) => z.object({
-  username: z.string()
-    .min(3, t('auth:register.validation.usernameMinLength'))
-    .max(20, t('auth:register.validation.usernameMaxLength')),
-  email: z.string().email(t('validation.email')),
-  password: z.string()
-    .min(8, t('auth:register.validation.passwordMinLength'))
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).*$/,
-      t('auth:register.validation.passwordComplexity')
-    ),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: t('auth:register.passwordMismatch'),
-  path: ['confirmPassword'],
-})
+const createRegisterSchema = (t: (key: string) => string) => {
+  return z.object({
+    username: z.string()
+      .min(3, t('auth:register.validation.usernameMinLength'))
+      .max(20, t('auth:register.validation.usernameMaxLength')),
+    email: z.string().email(t('validation.email')),
+    password: z.string()
+      .min(8, t('auth:register.validation.passwordMinLength'))
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).*$/,
+        t('auth:register.validation.passwordComplexity')
+      ),
+    confirmPassword: z.string(),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: t('auth:register.passwordMismatch'),
+    path: ['confirmPassword'],
+  })
+}
 
 type RegisterFormData = z.infer<ReturnType<typeof createRegisterSchema>>
 

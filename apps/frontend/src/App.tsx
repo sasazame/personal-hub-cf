@@ -6,7 +6,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { PublicRoute } from './components/PublicRoute'
-import { I18nextProvider } from 'react-i18next'
+import { I18nextProvider, useTranslation } from 'react-i18next'
 import i18n from './i18n/config'
 
 // Lazy load all pages for better performance
@@ -36,11 +36,14 @@ const queryClient = new QueryClient({
 })
 
 // Loading component for Suspense fallback
-const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <div className="text-lg text-muted-foreground">Loading...</div>
-  </div>
-)
+const PageLoader = () => {
+  const { t } = useTranslation('common')
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="text-lg text-muted-foreground">{t('app.loading')}</div>
+    </div>
+  )
+}
 
 function App() {
   return (
