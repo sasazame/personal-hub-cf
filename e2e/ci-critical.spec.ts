@@ -17,13 +17,15 @@ interface TestData {
 
 // Helper function to generate unique test data
 function getTestData(): TestData {
-  const timestamp = Date.now().toString().slice(-8);
+  const timestamp = Date.now().toString().slice(-10);
+  const random = Math.random().toString(36).substring(2, 5);
+  const uniqueId = `${timestamp}${random}`;
   return {
-    username: `user${timestamp}`,
-    email: `user${timestamp}@test.com`,
+    username: `user${uniqueId}`,
+    email: `user${uniqueId}@test.com`,
     password: 'Test123456!',
-    todoTitle: `Todo ${timestamp}`,
-    noteTitle: `Note ${timestamp}`,
+    todoTitle: `Todo ${uniqueId}`,
+    noteTitle: `Note ${uniqueId}`,
   };
 }
 
@@ -171,7 +173,10 @@ test.describe('CI Critical Path Tests', () => {
     await page.waitForResponse(
       response => response.url().includes('/api/v1/notes') && response.status() === 200,
       { timeout: 5000 }
-    ).catch(() => {}); // Optional: notes might already be loaded
+    ).catch((error) => {
+      // Optional: notes might already be loaded
+      console.log('Note refresh response not received (may already be loaded):', error.message);
+    });
     
     // Verify note appears
     await page.waitForSelector(`h3:has-text("${testData.noteTitle}")`, { timeout: 10000 });
