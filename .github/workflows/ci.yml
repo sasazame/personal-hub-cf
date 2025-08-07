@@ -212,8 +212,8 @@ jobs:
           # Verify the server is accessible
           curl -f http://localhost:$ACTUAL_PORT || (echo "Frontend server not accessible" && exit 1)
           
-          # Run E2E tests
-          SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:$ACTUAL_PORT VITE_API_BASE_URL=http://localhost:8788 pnpm playwright test --config=playwright.ci.config.ts --reporter=html
+          # Run E2E tests with extended coverage
+          SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:$ACTUAL_PORT VITE_API_BASE_URL=http://localhost:8788 pnpm playwright test --config=playwright.ci.extended.config.ts --reporter=html
 
       - name: Upload test results
         if: always()
