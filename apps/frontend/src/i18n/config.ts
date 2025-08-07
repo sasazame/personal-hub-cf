@@ -14,6 +14,7 @@ import enPomodoro from '../locales/en/pomodoro.json';
 import enAnalytics from '../locales/en/analytics.json';
 import enSettings from '../locales/en/settings.json';
 import enErrors from '../locales/en/errors.json';
+import enLanding from '../locales/en/landing.json';
 
 import jaCommon from '../locales/ja/common.json';
 import jaAuth from '../locales/ja/auth.json';
@@ -26,6 +27,7 @@ import jaPomodoro from '../locales/ja/pomodoro.json';
 import jaAnalytics from '../locales/ja/analytics.json';
 import jaSettings from '../locales/ja/settings.json';
 import jaErrors from '../locales/ja/errors.json';
+import jaLanding from '../locales/ja/landing.json';
 
 export const defaultNS = 'common';
 export const resources = {
@@ -41,6 +43,7 @@ export const resources = {
     analytics: enAnalytics,
     settings: enSettings,
     errors: enErrors,
+    landing: enLanding,
   },
   ja: {
     common: jaCommon,
@@ -54,6 +57,7 @@ export const resources = {
     analytics: jaAnalytics,
     settings: jaSettings,
     errors: jaErrors,
+    landing: jaLanding,
   },
 } as const;
 
@@ -73,7 +77,7 @@ i18n
     fallbackLng: 'en',
     lng: getInitialLanguage(),
     debug: false,
-    ns: ['common', 'auth', 'todos', 'calendar', 'notes', 'goals', 'moments', 'pomodoro', 'analytics', 'settings', 'errors'],
+    ns: ['common', 'auth', 'todos', 'calendar', 'notes', 'goals', 'moments', 'pomodoro', 'analytics', 'settings', 'errors', 'landing'],
     defaultNS,
     resources,
     

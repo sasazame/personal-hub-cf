@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Eye, EyeOff, LogIn, CheckCircle, Mail, Lock, Sparkles } from 'lucide-react'
+import { Eye, EyeOff, LogIn, CheckCircle, Mail, Lock, Sparkles, ArrowLeft } from 'lucide-react'
 import { z } from 'zod'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTranslation } from 'react-i18next'
@@ -60,6 +60,15 @@ export function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-card to-background">
+      {/* Back to Home Link */}
+      <Link
+        to="/"
+        className="absolute top-4 left-4 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        <span className="text-sm font-medium">Back to Home</span>
+      </Link>
+      
       {/* Premium Glass Card */}
       <div className="w-full max-w-md">
         <div className="bg-card backdrop-blur-2xl border border-border rounded-3xl p-10 shadow-2xl">

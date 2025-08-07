@@ -1,0 +1,68 @@
+{
+  "hero": {
+    "badge": "Welcome to your productivity powerhouse",
+    "title": "Your Life,\nOrganized & Amplified",
+    "subtitle": "Transform chaos into clarity with the ultimate personal productivity suite. Manage tasks, track goals, and unlock your potential—all in one beautiful hub.",
+    "cta": {
+      "primary": "Start Free Today",
+      "secondary": "Sign In"
+    }
+  },
+  "navigation": {
+    "signIn": "Sign In",
+    "getStarted": "Get Started"
+  },
+  "features": {
+    "title": "Everything You Need to Excel",
+    "subtitle": "Powerful features designed to help you stay organized, focused, and achieving more every day",
+    "todos": {
+      "title": "Todo Management",
+      "description": "Organize your tasks with powerful todo lists and smart categorization"
+    },
+    "calendar": {
+      "title": "Calendar Integration",
+      "description": "Visualize your schedule and never miss an important date"
+    },
+    "goals": {
+      "title": "Goal Tracking",
+      "description": "Set meaningful goals and track your progress over time"
+    },
+    "notes": {
+      "title": "Smart Notes",
+      "description": "Capture ideas and insights with our intelligent note-taking system"
+    },
+    "pomodoro": {
+      "title": "Pomodoro Timer",
+      "description": "Boost productivity with built-in focus sessions and breaks"
+    },
+    "analytics": {
+      "title": "Analytics Dashboard",
+      "description": "Gain insights into your productivity patterns and habits"
+    }
+  },
+  "benefits": {
+    "fast": {
+      "title": "Lightning Fast",
+      "description": "Built on Cloudflare's edge network for instant global access"
+    },
+    "secure": {
+      "title": "Secure by Design",
+      "description": "Your data is encrypted and protected with enterprise-grade security"
+    },
+    "accessible": {
+      "title": "Access Anywhere",
+      "description": "Work seamlessly across all your devices, anytime, anywhere"
+    }
+  },
+  "cta": {
+    "title": "Ready to Transform Your Productivity?",
+    "subtitle": "Join thousands who've already discovered the power of organized living. Start your journey today—it's free!",
+    "button": "Create Your Free Account",
+    "disclaimer": "No credit card required • Free forever"
+  },
+  "footer": {
+    "copyright": "© 2025 Personal Hub. All rights reserved.",
+    "terms": "Terms",
+    "privacy": "Privacy"
+  }
+}

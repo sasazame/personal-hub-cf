@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Menu, User, LogOut, Settings, ChevronDown, Sun, Moon } from 'lucide-react';
+import { Menu, User, LogOut, Settings, ChevronDown, Sun, Moon, Languages } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -13,7 +13,11 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
+  
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border">
@@ -40,6 +44,19 @@ export function Header({ onMenuClick }: HeaderProps) {
 
           {/* Right side actions */}
           <div className="flex items-center gap-2">
+            {/* Language Switcher */}
+            <div className="flex items-center">
+              <Languages className="w-5 h-5 text-muted-foreground mr-2" />
+              <select
+                value={i18n.language}
+                onChange={(e) => changeLanguage(e.target.value)}
+                className="bg-transparent border border-border rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="en">EN</option>
+                <option value="ja">日本語</option>
+              </select>
+            </div>
+            
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}

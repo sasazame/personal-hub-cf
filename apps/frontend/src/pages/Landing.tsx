@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { 
   CheckCircle2, 
   Calendar, 
@@ -12,7 +13,8 @@ import {
   Sparkles,
   Zap,
   Shield,
-  Globe
+  Globe,
+  Languages
 } from 'lucide-react'
 
 const fadeInUp = {
@@ -30,40 +32,46 @@ const stagger = {
 }
 
 export function Landing() {
+  const { t, i18n } = useTranslation('landing')
+  
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng)
+  }
+  
   const features = [
     {
-      title: 'Todo Management',
-      description: 'Organize your tasks with powerful todo lists and smart categorization',
+      title: t('features.todos.title'),
+      description: t('features.todos.description'),
       icon: ListTodo,
       gradient: 'from-blue-500 to-cyan-500'
     },
     {
-      title: 'Calendar Integration',
-      description: 'Visualize your schedule and never miss an important date',
+      title: t('features.calendar.title'),
+      description: t('features.calendar.description'),
       icon: Calendar,
       gradient: 'from-purple-500 to-pink-500'
     },
     {
-      title: 'Goal Tracking',
-      description: 'Set meaningful goals and track your progress over time',
+      title: t('features.goals.title'),
+      description: t('features.goals.description'),
       icon: Target,
       gradient: 'from-green-500 to-emerald-500'
     },
     {
-      title: 'Smart Notes',
-      description: 'Capture ideas and insights with our intelligent note-taking system',
+      title: t('features.notes.title'),
+      description: t('features.notes.description'),
       icon: FileText,
       gradient: 'from-orange-500 to-red-500'
     },
     {
-      title: 'Pomodoro Timer',
-      description: 'Boost productivity with built-in focus sessions and breaks',
+      title: t('features.pomodoro.title'),
+      description: t('features.pomodoro.description'),
       icon: Timer,
       gradient: 'from-indigo-500 to-purple-500'
     },
     {
-      title: 'Analytics Dashboard',
-      description: 'Gain insights into your productivity patterns and habits',
+      title: t('features.analytics.title'),
+      description: t('features.analytics.description'),
       icon: ChartBar,
       gradient: 'from-teal-500 to-cyan-500'
     }
@@ -72,18 +80,18 @@ export function Landing() {
   const benefits = [
     {
       icon: Zap,
-      title: 'Lightning Fast',
-      description: 'Built on Cloudflare\'s edge network for instant global access'
+      title: t('benefits.fast.title'),
+      description: t('benefits.fast.description')
     },
     {
       icon: Shield,
-      title: 'Secure by Design',
-      description: 'Your data is encrypted and protected with enterprise-grade security'
+      title: t('benefits.secure.title'),
+      description: t('benefits.secure.description')
     },
     {
       icon: Globe,
-      title: 'Access Anywhere',
-      description: 'Work seamlessly across all your devices, anytime, anywhere'
+      title: t('benefits.accessible.title'),
+      description: t('benefits.accessible.description')
     }
   ]
 
@@ -108,17 +116,29 @@ export function Landing() {
               animate={{ opacity: 1, x: 0 }}
               className="flex items-center space-x-4"
             >
+              {/* Language Switcher */}
+              <div className="flex items-center gap-2">
+                <Languages className="w-5 h-5 text-muted-foreground" />
+                <select
+                  value={i18n.language}
+                  onChange={(e) => changeLanguage(e.target.value)}
+                  className="bg-transparent border border-border rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="en">English</option>
+                  <option value="ja">日本語</option>
+                </select>
+              </div>
               <Link 
                 to="/login" 
                 className="px-4 py-2 text-foreground hover:text-primary transition-colors"
               >
-                Sign In
+                {t('navigation.signIn')}
               </Link>
               <Link 
                 to="/register" 
                 className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all transform hover:scale-105"
               >
-                Get Started
+                {t('navigation.getStarted')}
               </Link>
             </motion.div>
           </div>
@@ -136,15 +156,14 @@ export function Landing() {
             <div className="flex justify-center mb-6">
               <div className="px-4 py-1 bg-primary/10 rounded-full text-primary text-sm font-medium flex items-center space-x-2">
                 <Sparkles className="w-4 h-4" />
-                <span>Welcome to your productivity powerhouse</span>
+                <span>{t('hero.badge')}</span>
               </div>
             </div>
             <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
-              Your Life,<br />Organized & Amplified
+              {t('hero.title')}
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto">
-              Transform chaos into clarity with the ultimate personal productivity suite. 
-              Manage tasks, track goals, and unlock your potential—all in one beautiful hub.
+              {t('hero.subtitle')}
             </p>
             <motion.div 
               className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4"
@@ -156,13 +175,13 @@ export function Landing() {
                 to="/register" 
                 className="px-8 py-4 bg-primary text-primary-foreground rounded-lg text-lg font-semibold hover:bg-primary/90 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
-                Start Free Today
+                {t('hero.cta.primary')}
               </Link>
               <Link 
                 to="/login" 
                 className="px-8 py-4 bg-muted text-foreground rounded-lg text-lg font-semibold hover:bg-muted/80 transition-all"
               >
-                Sign In
+                {t('hero.cta.secondary')}
               </Link>
             </motion.div>
           </motion.div>
@@ -179,10 +198,10 @@ export function Landing() {
             viewport={{ once: true }}
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Everything You Need to Excel
+              {t('features.title')}
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Powerful features designed to help you stay organized, focused, and achieving more every day
+              {t('features.subtitle')}
             </p>
           </motion.div>
 
@@ -257,21 +276,20 @@ export function Landing() {
         >
           <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl p-12 md:p-16">
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Ready to Transform Your Productivity?
+              {t('cta.title')}
             </h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join thousands who've already discovered the power of organized living. 
-              Start your journey today—it's free!
+              {t('cta.subtitle')}
             </p>
             <Link 
               to="/register" 
               className="inline-flex items-center px-8 py-4 bg-primary text-primary-foreground rounded-lg text-lg font-semibold hover:bg-primary/90 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
-              <span>Create Your Free Account</span>
+              <span>{t('cta.button')}</span>
               <CheckCircle2 className="ml-2 w-5 h-5" />
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
-              No credit card required • Free forever
+              {t('cta.disclaimer')}
             </p>
           </div>
         </motion.div>
@@ -283,14 +301,14 @@ export function Landing() {
           <div className="flex flex-col md:flex-row items-center justify-between text-sm text-muted-foreground">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
               <Brain className="w-5 h-5" />
-              <span>© 2025 Personal Hub. All rights reserved.</span>
+              <span>{t('footer.copyright')}</span>
             </div>
             <div className="flex items-center space-x-6">
               <Link to="/terms" className="hover:text-foreground transition-colors">
-                Terms
+                {t('footer.terms')}
               </Link>
               <Link to="/privacy" className="hover:text-foreground transition-colors">
-                Privacy
+                {t('footer.privacy')}
               </Link>
             </div>
           </div>
