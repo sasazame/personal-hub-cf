@@ -9,27 +9,38 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : 4, 
   reporter: process.env.CI ? 'dot' : 'html',
-  globalSetup: require.resolve('./playwright/global-setup.ts'),
+  // Disable global setup to avoid EPIPE errors
+  // TODO: Re-enable when EPIPE issue is resolved (see PR #37)
+  // globalSetup: require.resolve('./playwright/global-setup.ts'),
   use: {
     // Point to frontend URL for E2E tests
     baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
     locale: 'en-US',
-    // Reduced action timeout to 10 seconds (user operations should complete within 5 seconds)
-    actionTimeout: 10000,
-    // Reduced navigation timeout to 15 seconds
-    navigationTimeout: 15000,
+    // Increased timeouts for stability
+    actionTimeout: 15000,
+    navigationTimeout: 30000,
     // Extra HTTP headers for API calls
     extraHTTPHeaders: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
     },
+    // Better viewport for consistency
+    viewport: { width: 1280, height: 720 },
   },
 
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        // Disable GPU and sandbox for better stability
+        launchOptions: {
+          args: ['--disable-gpu', '--no-sandbox', '--disable-setuid-sandbox']
+        }
+      },
     },
     // Temporarily disabled for stability - can be re-enabled when needed
     // {

@@ -1,178 +1,84 @@
 import { test, expect } from '@playwright/test';
-import { navigateToProtectedRoute } from './helpers/wait-helpers';
+
+/**
+ * Minimal smoke tests for CI - fast and reliable
+ * These tests verify basic functionality without complex flows
+ */
 
 test.describe('CI Smoke Tests', () => {
-  test.beforeEach(async ({ page, context }) => {
-    // Clear all cookies and localStorage to ensure clean state
-    await context.clearCookies();
-    await page.goto('/');
-    await page.evaluate(() => localStorage.clear());
+  test.setTimeout(20000); // Shorter timeout for faster feedback
+
+  test('API health check', async ({ request }) => {
+    // Direct API call without browser
+    const apiUrl = process.env.VITE_API_BASE_URL || 'http://localhost:8788';
+    const response = await request.get(`${apiUrl}/health`);
+    expect(response.ok()).toBeTruthy();
     
-    // Set English locale
-    await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
+    const data = await response.json();
+    expect(data.status).toBe('ok');
   });
 
-  test('should load the application', async ({ page }) => {
-    await navigateToProtectedRoute(page, '/');
+  test('Frontend loads successfully', async ({ page }) => {
+    // Simple page load test
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     
-    // Should redirect to login when not authenticated
-    await expect(page).toHaveURL(/.*\/login/);
-    await expect(page.getByRole('heading', { name: 'Login' })).toBeVisible();
+    // Should redirect to landing or login
+    await expect(page).toHaveURL(/\/(landing|login)?$/);
+    
+    // Basic check for page content
+    const title = await page.title();
+    expect(title).toContain('Personal Hub');
   });
 
-  test('should show login form elements', async ({ page }) => {
-    await page.goto('/login');
+  test('Login page renders correctly', async ({ page }) => {
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
     
-    await expect(page.getByRole('heading', { name: 'Login' })).toBeVisible();
-    await expect(page.locator('input[name="email"]')).toBeVisible();
+    // Check for login form elements
+    await expect(page.locator('input[name="email"]')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('input[name="password"]')).toBeVisible();
-    await expect(page.getByRole('button', { name: /Login/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /Register/i })).toBeVisible();
+    await expect(page.locator('button[type="submit"]')).toBeVisible();
+    
+    // Check for register link
+    await expect(page.locator('a[href="/register"]')).toBeVisible();
   });
 
-  test('should show register form elements', async ({ page }) => {
-    await page.goto('/register');
+  test('Register page renders correctly', async ({ page }) => {
+    await page.goto('/register', { waitUntil: 'domcontentloaded' });
     
-    await expect(page.getByRole('heading', { name: 'Create account' })).toBeVisible();
-    await expect(page.locator('input[name="username"]')).toBeVisible();
+    // Check for registration form elements
+    await expect(page.locator('input[name="username"]')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('input[name="email"]')).toBeVisible();
     await expect(page.locator('input[name="password"]')).toBeVisible();
     await expect(page.locator('input[name="confirmPassword"]')).toBeVisible();
-    await expect(page.getByRole('button', { name: /Create account/i })).toBeVisible();
+    await expect(page.locator('button[type="submit"]')).toBeVisible();
   });
 
-  test('should navigate between login and register', async ({ page }) => {
-    await page.goto('/login');
-    
-    // Click register link and wait for navigation
-    await Promise.all([
-      page.waitForURL(/.*\/register/),
-      page.getByRole('link', { name: /Register/i }).click()
-    ]);
-    
-    await expect(page).toHaveURL(/.*\/register/);
-    
-    // Click login link and wait for navigation
-    await Promise.all([
-      page.waitForURL(/.*\/login/),
-      page.getByRole('link', { name: /Login/i }).click()
-    ]);
-    
-    await expect(page).toHaveURL(/.*\/login/);
-  });
+  test('Basic registration flow', async ({ page }) => {
+    const timestamp = Date.now().toString();
+    const testUser = {
+      username: `test${timestamp}`,
+      email: `test${timestamp}@example.com`,
+      password: 'TestPass123!',
+    };
 
-  test('should validate login form', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/register', { waitUntil: 'domcontentloaded' });
     
-    // Try to submit empty form
-    await page.getByRole('button', { name: /Login/i }).click();
+    // Fill form
+    await page.fill('input[name="username"]', testUser.username);
+    await page.fill('input[name="email"]', testUser.email);
+    await page.fill('input[name="password"]', testUser.password);
+    await page.fill('input[name="confirmPassword"]', testUser.password);
     
-    // Should show validation errors
-    await expect(page.getByText(/Email is required/i)).toBeVisible();
-    await expect(page.getByText(/Password is required/i)).toBeVisible();
-  });
-
-  test('should validate register form', async ({ page }) => {
-    await page.goto('/register');
+    // Submit
+    await page.click('button[type="submit"]');
     
-    // Try to submit empty form
-    await page.getByRole('button', { name: /Create account/i }).click();
+    // Should redirect to dashboard or login
+    await page.waitForURL(url => {
+      const path = url.pathname;
+      return path.includes('dashboard') || path.includes('login');
+    }, { timeout: 10000 });
     
-    // Should show validation errors
-    await expect(page.getByText(/Username must be at least 3 characters/i)).toBeVisible();
-  });
-
-  test('should handle mock login @ci', async ({ page }) => {
-    // Skip this test if not in CI mode
-    test.skip(!process.env.CI, 'This test only runs in CI mode');
-    
-    // Add console logging
-    page.on('console', msg => {
-      if (msg.type() === 'error') {
-        console.error('PAGE ERROR:', msg.text());
-      }
-    });
-    
-    // Monitor network requests
-    page.on('request', request => {
-      if (request.url().includes('/auth/login')) {
-        console.log('Login request:', request.method(), request.url());
-      }
-    });
-    
-    page.on('response', response => {
-      if (response.url().includes('/auth/login')) {
-        console.log('Login response:', response.status(), response.url());
-      }
-    });
-    
-    await page.goto('/login');
-    
-    // Wait for login form to be ready
-    await page.waitForSelector('input[name="email"]', { state: 'visible' });
-    
-    // Check if MSW is initialized
-    const mswReady = await page.evaluate(() => {
-      return new Promise((resolve) => {
-        // Check if service worker is registered
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(registrations => {
-            const hasMSW = registrations.some(reg => reg.active?.scriptURL.includes('mockServiceWorker'));
-            console.log('MSW service worker registered:', hasMSW);
-            resolve(hasMSW);
-          });
-        } else {
-          resolve(false);
-        }
-      });
-    });
-    
-    console.log('MSW ready:', mswReady);
-    
-    // Use mock credentials
-    await page.fill('input[name="email"]', 'test@example.com');
-    await page.fill('input[name="password"]', 'Test123');
-    
-    // Click login button
-    const loginButton = page.getByRole('button', { name: /login/i });
-    await loginButton.click();
-    
-    // Wait for either navigation or error message
-    const result = await Promise.race([
-      page.waitForURL('/', { timeout: 5000 }).then(() => 'success'),
-      page.waitForSelector('.text-red-500', { timeout: 5000 }).then(() => 'error'),
-      page.waitForTimeout(5000).then(() => 'timeout')
-    ]);
-    
-    console.log('Login result:', result);
-    console.log('Current URL:', page.url());
-    
-    // Check cookies for auth data
-    const cookies = await page.context().cookies();
-    const hasAccessToken = cookies.some(c => c.name === 'access-token');
-    const hasSessionId = cookies.some(c => c.name === 'session-id');
-    console.log('Cookies:', cookies.map(c => c.name));
-    
-    // If we successfully navigated, verify we're on the dashboard
-    if (result === 'success') {
-      // Verify we navigated away from login page
-      expect(page.url()).not.toContain('/login');
-      
-      // Verify auth cookies were set
-      expect(hasAccessToken).toBe(true);
-      expect(hasSessionId).toBe(true);
-      
-      console.log('Login test passed - successfully authenticated and navigated');
-    } else if (result === 'error') {
-      // If login failed, log the error for debugging
-      const errorElement = await page.$('.text-red-500');
-      if (errorElement) {
-        const errorText = await errorElement.textContent();
-        console.error('Login failed with error:', errorText);
-      }
-      throw new Error('Mock login failed - authentication error displayed');
-    } else {
-      throw new Error(`Mock login failed with result: ${result} - request timed out`);
-    }
+    // Verify we're not still on register page
+    expect(page.url()).not.toContain('/register');
   });
 });

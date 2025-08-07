@@ -14,6 +14,8 @@
     "test:e2e:report": "playwright show-report",
     "test:e2e:with-servers": "./scripts/run-e2e-tests.sh",
     "test:ci": "playwright test --config=playwright.ci.config.ts",
+    "test:ci:extended": "playwright test --config=playwright.ci.extended.config.ts",
+    "test:ci:critical": "playwright test e2e/ci-critical.spec.ts",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
     "format": "prettier --write .",
