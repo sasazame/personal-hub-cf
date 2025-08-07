@@ -1,0 +1,16 @@
+{
+  "title": "目標",
+  "newGoal": "新しい目標",
+  "editGoal": "目標を編集",
+  "deleteGoal": "目標を削除",
+  "goalTitle": "目標タイトル",
+  "description": "説明",
+  "targetDate": "目標達成日",
+  "progress": "進捗",
+  "milestones": "マイルストーン",
+  "category": "カテゴリー",
+  "status": "ステータス",
+  "priority": "優先度",
+  "noGoals": "設定された目標はありません",
+  "createFirstGoal": "最初の目標を設定しましょう"
+}

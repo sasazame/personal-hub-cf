@@ -2,8 +2,9 @@ import { AppLayout } from '@/components/layout';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Switch } from '@radix-ui/react-switch';
 import { Sun, Moon, Monitor, Bell, Globe, Clock, Palette, Save } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface SettingsSwitchProps {
   checked: boolean;
@@ -38,6 +39,7 @@ function SettingsSwitch({ checked, onCheckedChange, label, description }: Settin
 
 export function Settings() {
   const { theme, setTheme } = useTheme();
+  const { t, i18n } = useTranslation(['settings', 'common']);
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
@@ -49,11 +51,22 @@ export function Settings() {
     showSeconds: true,
     use24Hour: true,
   });
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState(i18n.language);
+
+  useEffect(() => {
+    setLanguage(i18n.language);
+  }, [i18n.language]);
+
+  const handleLanguageChange = (newLanguage: string) => {
+    setLanguage(newLanguage);
+    i18n.changeLanguage(newLanguage);
+    localStorage.setItem('i18nextLng', newLanguage);
+    toast.success(t('messages.settingsSaved'));
+  };
 
   const handleSaveSettings = () => {
     // In a real app, this would save to the backend
-    toast.success('Settings saved successfully');
+    toast.success(t('messages.settingsSaved'));
   };
 
   return (
@@ -180,17 +193,17 @@ export function Settings() {
             />
 
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">Language</label>
+              <label className="text-sm font-medium text-foreground mb-2 block">{t('general.language')}</label>
               <div className="flex items-center gap-2">
                 <Globe className="h-4 w-4 text-muted-foreground" />
                 <select
                   value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
+                  onChange={(e) => handleLanguageChange(e.target.value)}
                   className="flex-1 px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   aria-label="Select language"
                 >
                   <option value="en">English</option>
-                  <option value="ja" disabled>日本語 (Coming soon)</option>
+                  <option value="ja">日本語</option>
                   <option value="zh" disabled>中文 (Coming soon)</option>
                   <option value="es" disabled>Español (Coming soon)</option>
                 </select>

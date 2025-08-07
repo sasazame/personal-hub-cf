@@ -1,0 +1,16 @@
+{
+  "title": "思い出",
+  "newMoment": "新しい思い出",
+  "editMoment": "思い出を編集",
+  "deleteMoment": "思い出を削除",
+  "momentTitle": "タイトル",
+  "description": "説明",
+  "date": "日付",
+  "tags": "タグ",
+  "attachments": "添付ファイル",
+  "visibility": "公開設定",
+  "public": "公開",
+  "private": "非公開",
+  "noMoments": "記録された思い出はありません",
+  "captureFirstMoment": "最初の思い出を記録しましょう"
+}

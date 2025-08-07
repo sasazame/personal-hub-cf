@@ -1,0 +1,15 @@
+{
+  "title": "ノート",
+  "newNote": "新しいノート",
+  "editNote": "ノートを編集",
+  "deleteNote": "ノートを削除",
+  "searchNotes": "ノートを検索",
+  "noteTitle": "ノートタイトル",
+  "noteContent": "ノート内容",
+  "tags": "タグ",
+  "category": "カテゴリー",
+  "lastModified": "最終更新",
+  "created": "作成日",
+  "noNotes": "ノートが見つかりません",
+  "createFirstNote": "最初のノートを作成しましょう"
+}

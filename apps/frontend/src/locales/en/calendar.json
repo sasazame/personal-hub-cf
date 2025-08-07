@@ -1,0 +1,21 @@
+{
+  "title": "Calendar",
+  "today": "Today",
+  "month": "Month",
+  "week": "Week",
+  "day": "Day",
+  "agenda": "Agenda",
+  "newEvent": "New Event",
+  "editEvent": "Edit Event",
+  "deleteEvent": "Delete Event",
+  "eventTitle": "Event Title",
+  "eventDescription": "Description",
+  "startTime": "Start Time",
+  "endTime": "End Time",
+  "allDay": "All Day",
+  "repeat": "Repeat",
+  "reminder": "Reminder",
+  "location": "Location",
+  "attendees": "Attendees",
+  "noEvents": "No events scheduled"
+}

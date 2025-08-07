@@ -5,32 +5,36 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Eye, EyeOff, UserPlus, Mail, Lock, User, Sparkles } from 'lucide-react'
 import { z } from 'zod'
 import { useAuth } from '@/contexts/AuthContext'
+import { useTranslation } from 'react-i18next'
 
-const registerSchema = z.object({
+const createRegisterSchema = (t: (key: string) => string) => z.object({
   username: z.string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(20, 'Username must be at most 20 characters'),
-  email: z.string().email('Invalid email address'),
+    .min(3, t('auth:register.validation.usernameMinLength'))
+    .max(20, t('auth:register.validation.usernameMaxLength')),
+  email: z.string().email(t('validation.email')),
   password: z.string()
-    .min(8, 'Password must be at least 8 characters')
+    .min(8, t('auth:register.validation.passwordMinLength'))
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).*$/,
-      'Password must contain uppercase, lowercase, digit, and special character'
+      t('auth:register.validation.passwordComplexity')
     ),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
+  message: t('auth:register.passwordMismatch'),
   path: ['confirmPassword'],
 })
 
-type RegisterFormData = z.infer<typeof registerSchema>
+type RegisterFormData = z.infer<ReturnType<typeof createRegisterSchema>>
 
 export function Register() {
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const { t } = useTranslation(['auth', 'common'])
   
   const { register: registerUser, isLoading, isAuthenticated, clearError } = useAuth()
+  
+  const registerSchema = createRegisterSchema(t)
 
   const {
     register,
@@ -69,20 +73,20 @@ export function Register() {
                 <Sparkles className="h-10 w-10 text-primary-foreground" />
               </div>
             </div>
-            <h1 className="text-4xl font-bold text-foreground mb-2">Create account</h1>
+            <h1 className="text-4xl font-bold text-foreground mb-2">{t('auth:register.title')}</h1>
             <p className="text-muted-foreground text-base">
-              Enter your information to get started
+              {t('auth:register.subtitle')}
             </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Username</label>
+              <label className="block text-sm font-medium text-foreground mb-2">{t('auth:register.username')}</label>
               <div className="relative">
                 <input
                   {...register('username')}
                   type="text"
-                  placeholder="Please enter your username"
+                  placeholder={t('auth:register.usernamePlaceholder')}
                   className="w-full px-4 py-3 pl-12 bg-input backdrop-blur-md border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-200"
                   autoComplete="username"
                   disabled={isLoading}
@@ -95,12 +99,12 @@ export function Register() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Email</label>
+              <label className="block text-sm font-medium text-foreground mb-2">{t('auth:register.email')}</label>
               <div className="relative">
                 <input
                   {...register('email')}
                   type="email"
-                  placeholder="Please enter your email address"
+                  placeholder={t('auth:register.emailPlaceholder')}
                   className="w-full px-4 py-3 pl-12 bg-input backdrop-blur-md border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-200"
                   autoComplete="email"
                   disabled={isLoading}
@@ -113,12 +117,12 @@ export function Register() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Password</label>
+              <label className="block text-sm font-medium text-foreground mb-2">{t('auth:register.password')}</label>
               <div className="relative">
                 <input
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Please enter your password"
+                  placeholder={t('auth:register.passwordPlaceholder')}
                   className="w-full px-4 py-3 pl-12 pr-12 bg-input backdrop-blur-md border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-200"
                   autoComplete="new-password"
                   disabled={isLoading}
@@ -143,12 +147,12 @@ export function Register() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Confirm Password</label>
+              <label className="block text-sm font-medium text-foreground mb-2">{t('auth:register.confirmPassword')}</label>
               <div className="relative">
                 <input
                   {...register('confirmPassword')}
                   type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="Please enter your password"
+                  placeholder={t('auth:register.confirmPasswordPlaceholder')}
                   className="w-full px-4 py-3 pl-12 pr-12 bg-input backdrop-blur-md border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-200"
                   autoComplete="new-password"
                   disabled={isLoading}
@@ -173,9 +177,9 @@ export function Register() {
             </div>
 
             <div className="text-xs text-muted-foreground text-center">
-              By creating an account, you agree to our{' '}
-              <Link to="/terms" className="text-primary hover:text-primary/80">Terms of Service</Link>{' '}
-              <Link to="/privacy" className="text-primary hover:text-primary/80">Privacy Policy</Link>
+              {t('auth:register.agreeToTerms')}{' '}
+              <Link to="/terms" className="text-primary hover:text-primary/80">{t('auth:register.termsOfService')}</Link>{' '}
+              <Link to="/privacy" className="text-primary hover:text-primary/80">{t('auth:register.privacyPolicy')}</Link>
             </div>
 
             <button
@@ -188,18 +192,18 @@ export function Register() {
               ) : (
                 <>
                   <UserPlus className="h-5 w-5" />
-                  Create account
+                  {t('auth:register.submit')}
                 </>
               )}
             </button>
 
             <div className="text-center text-sm text-muted-foreground">
-              Already have an account?{' '}
+              {t('auth:register.haveAccount')}{' '}
               <Link
                 to="/login"
                 className="text-primary hover:text-primary/80 transition-colors font-medium"
               >
-                Login
+                {t('auth:register.signIn')}
               </Link>
             </div>
           </form>

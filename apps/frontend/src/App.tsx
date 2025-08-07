@@ -6,6 +6,8 @@ import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { PublicRoute } from './components/PublicRoute'
+import { I18nextProvider } from 'react-i18next'
+import i18n from './i18n/config'
 
 // Lazy load all pages for better performance
 const Landing = lazy(() => import('./pages/Landing').then(m => ({ default: m.Landing })))
@@ -42,11 +44,12 @@ const PageLoader = () => (
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <Router>
-          <AuthProvider>
-            <Suspense fallback={<PageLoader />}>
+    <I18nextProvider i18n={i18n}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <Router>
+            <AuthProvider>
+              <Suspense fallback={<PageLoader />}>
               <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -147,6 +150,7 @@ function App() {
       </Router>
     </ThemeProvider>
     </QueryClientProvider>
+    </I18nextProvider>
   )
 }
 

@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Home, 
   CheckSquare, 
@@ -26,6 +27,7 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const location = useLocation();
+  const { t } = useTranslation('common');
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -37,42 +39,42 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const navItems: NavItem[] = [
     {
       href: '/dashboard',
-      label: 'Dashboard',
+      label: t('navigation.dashboard'),
       icon: <Home className="h-5 w-5" />
     },
     {
       href: '/todos',
-      label: 'TODOs',
+      label: t('navigation.todos'),
       icon: <CheckSquare className="h-5 w-5" />
     },
     {
       href: '/calendar',
-      label: 'Calendar',
+      label: t('navigation.calendar'),
       icon: <Calendar className="h-5 w-5" />
     },
     {
       href: '/notes',
-      label: 'Notes',
+      label: t('navigation.notes'),
       icon: <FileText className="h-5 w-5" />
     },
     {
       href: '/moments',
-      label: 'Moments',
+      label: t('navigation.moments'),
       icon: <Clock className="h-5 w-5" />
     },
     {
       href: '/goals',
-      label: 'Goals',
+      label: t('navigation.goals'),
       icon: <Target className="h-5 w-5" />
     },
     {
       href: '/pomodoro',
-      label: 'Pomodoro',
+      label: t('navigation.pomodoro'),
       icon: <Timer className="h-5 w-5" />
     },
     {
       href: '/analytics',
-      label: 'Analytics',
+      label: t('navigation.analytics'),
       icon: <BarChart3 className="h-5 w-5" />
     }
   ];
@@ -80,7 +82,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const bottomNavItems: NavItem[] = [
     {
       href: '/settings',
-      label: 'Settings',
+      label: t('navigation.settings'),
       icon: <Settings className="h-5 w-5" />
     }
   ];
@@ -113,7 +115,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       >
         {/* Mobile close button */}
         <div className="flex items-center justify-between p-4 md:hidden">
-          <h2 className="text-lg font-semibold">Menu</h2>
+          <h2 className="text-lg font-semibold">{t('app.menu')}</h2>
           <button
             onClick={onClose}
             className="p-2 rounded-md text-foreground hover:bg-muted"

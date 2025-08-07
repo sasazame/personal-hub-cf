@@ -1,0 +1,32 @@
+{
+  "title": "Pomodoro Timer",
+  "start": "Start",
+  "pause": "Pause",
+  "resume": "Resume",
+  "stop": "Stop",
+  "reset": "Reset",
+  "skip": "Skip",
+  "workTime": "Work Time",
+  "breakTime": "Break Time",
+  "longBreak": "Long Break",
+  "sessions": "Sessions",
+  "sessionCompleted": "Session Completed!",
+  "takeBreak": "Time for a break!",
+  "backToWork": "Back to work!",
+  "settings": {
+    "workDuration": "Work Duration (minutes)",
+    "shortBreakDuration": "Short Break (minutes)",
+    "longBreakDuration": "Long Break (minutes)",
+    "sessionsBeforeLongBreak": "Sessions Before Long Break",
+    "autoStartBreaks": "Auto-start Breaks",
+    "autoStartWork": "Auto-start Work Sessions",
+    "notifications": "Enable Notifications",
+    "sound": "Enable Sound"
+  },
+  "stats": {
+    "todaysSessions": "Today's Sessions",
+    "totalTime": "Total Time",
+    "averageSession": "Average Session",
+    "completionRate": "Completion Rate"
+  }
+}

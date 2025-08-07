@@ -1,0 +1,174 @@
+{
+  "title": "Settings",
+  "general": {
+    "title": "General",
+    "language": "Language",
+    "languageDescription": "Select your preferred language",
+    "timezone": "Timezone",
+    "timezoneDescription": "Select your timezone",
+    "dateFormat": "Date Format",
+    "dateFormatDescription": "Choose how dates are displayed",
+    "timeFormat": "Time Format",
+    "timeFormatDescription": "Choose between 12-hour and 24-hour format",
+    "weekStart": "Week Starts On",
+    "weekStartDescription": "Choose the first day of the week",
+    "theme": "Theme",
+    "themeDescription": "Choose your preferred theme",
+    "currency": "Currency",
+    "currencyDescription": "Select your default currency",
+    "languages": {
+      "en": "English",
+      "ja": "Japanese",
+      "zh": "Chinese",
+      "es": "Spanish",
+      "fr": "French",
+      "de": "German",
+      "ko": "Korean",
+      "pt": "Portuguese",
+      "ru": "Russian",
+      "ar": "Arabic"
+    },
+    "themes": {
+      "light": "Light",
+      "dark": "Dark",
+      "auto": "Auto (System)"
+    },
+    "weekDays": {
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "saturday": "Saturday"
+    },
+    "timeFormats": {
+      "12h": "12-hour (AM/PM)",
+      "24h": "24-hour"
+    }
+  },
+  "account": {
+    "title": "Account",
+    "profile": "Profile",
+    "email": "Email",
+    "username": "Username",
+    "fullName": "Full Name",
+    "bio": "Bio",
+    "avatar": "Avatar",
+    "changeAvatar": "Change Avatar",
+    "removeAvatar": "Remove Avatar",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "updateProfile": "Update Profile",
+    "deleteAccount": "Delete Account",
+    "deleteAccountWarning": "This action cannot be undone. All your data will be permanently deleted.",
+    "exportData": "Export My Data",
+    "downloadData": "Download All Data"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "enableNotifications": "Enable Notifications",
+    "emailNotifications": "Email Notifications",
+    "pushNotifications": "Push Notifications",
+    "desktopNotifications": "Desktop Notifications",
+    "soundNotifications": "Sound Notifications",
+    "notificationTypes": {
+      "todos": "Todo Reminders",
+      "calendar": "Calendar Events",
+      "goals": "Goal Updates",
+      "achievements": "Achievements",
+      "systemUpdates": "System Updates",
+      "security": "Security Alerts"
+    },
+    "frequency": {
+      "title": "Notification Frequency",
+      "realtime": "Real-time",
+      "hourly": "Hourly Summary",
+      "daily": "Daily Digest",
+      "weekly": "Weekly Summary",
+      "never": "Never"
+    }
+  },
+  "privacy": {
+    "title": "Privacy",
+    "dataCollection": "Data Collection",
+    "analytics": "Analytics",
+    "shareData": "Share Usage Data",
+    "personalizedAds": "Personalized Ads",
+    "thirdPartyAccess": "Third-party Access",
+    "publicProfile": "Public Profile",
+    "showEmail": "Show Email",
+    "showActivity": "Show Activity",
+    "allowIndexing": "Allow Search Engine Indexing"
+  },
+  "security": {
+    "title": "Security",
+    "twoFactorAuth": "Two-Factor Authentication",
+    "enable2FA": "Enable 2FA",
+    "disable2FA": "Disable 2FA",
+    "sessions": "Active Sessions",
+    "viewSessions": "View All Sessions",
+    "terminateAllSessions": "Terminate All Other Sessions",
+    "loginHistory": "Login History",
+    "securityLog": "Security Log",
+    "trustedDevices": "Trusted Devices",
+    "manageTrustedDevices": "Manage Trusted Devices"
+  },
+  "integrations": {
+    "title": "Integrations",
+    "connectedApps": "Connected Apps",
+    "availableIntegrations": "Available Integrations",
+    "google": "Google",
+    "github": "GitHub",
+    "slack": "Slack",
+    "discord": "Discord",
+    "notion": "Notion",
+    "calendar": "Calendar Sync",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "manage": "Manage",
+    "permissions": "Permissions"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "colorScheme": "Color Scheme",
+    "fontSize": "Font Size",
+    "fontFamily": "Font Family",
+    "compactMode": "Compact Mode",
+    "showAnimations": "Show Animations",
+    "reduceMotion": "Reduce Motion",
+    "highContrast": "High Contrast",
+    "colorBlindMode": "Color Blind Mode"
+  },
+  "accessibility": {
+    "title": "Accessibility",
+    "screenReader": "Screen Reader Support",
+    "keyboardNavigation": "Keyboard Navigation",
+    "focusIndicators": "Focus Indicators",
+    "largeText": "Large Text",
+    "highContrastMode": "High Contrast Mode",
+    "reduceTransparency": "Reduce Transparency",
+    "announcements": "Screen Reader Announcements"
+  },
+  "storage": {
+    "title": "Storage",
+    "usage": "Storage Usage",
+    "usedOf": "{{used}} of {{total}} used",
+    "clearCache": "Clear Cache",
+    "clearData": "Clear Local Data",
+    "manageStorage": "Manage Storage",
+    "offlineData": "Offline Data",
+    "downloadOfflineData": "Download for Offline Use"
+  },
+  "messages": {
+    "settingsSaved": "Settings saved successfully",
+    "settingsError": "Failed to save settings",
+    "passwordChanged": "Password changed successfully",
+    "profileUpdated": "Profile updated successfully",
+    "avatarUpdated": "Avatar updated successfully",
+    "accountDeleted": "Account deleted successfully",
+    "sessionTerminated": "Session terminated successfully",
+    "integrationConnected": "Integration connected successfully",
+    "integrationDisconnected": "Integration disconnected successfully",
+    "cacheCleared": "Cache cleared successfully",
+    "dataExported": "Data exported successfully"
+  }
+}

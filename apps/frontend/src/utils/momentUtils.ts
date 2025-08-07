@@ -1,5 +1,6 @@
 import { Moment } from '../types/moment'
-import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns'
+import { format } from 'date-fns'
+import { formatDateHeader as formatDateHeaderI18n, formatRelativeTime, formatTime as formatTimeI18n } from './dateUtils'
 
 const TAG_COLOR_MAP = {
   Ideas: 'tag-blue',
@@ -56,13 +57,7 @@ export function formatDateHeader(dateString: string): string {
       return dateString
     }
     
-    if (isToday(date)) {
-      return 'Today'
-    }
-    if (isYesterday(date)) {
-      return 'Yesterday'
-    }
-    return format(date, 'MMMM d, yyyy')
+    return formatDateHeaderI18n(date)
   } catch (error) {
     console.error(`Error formatting date header for ${dateString}:`, error)
     return dateString
@@ -78,10 +73,12 @@ export function formatTime(dateString: string): string {
       return ''
     }
     
-    if (isToday(date)) {
-      return formatDistanceToNow(date, { addSuffix: true })
+    // Use relative time for today's dates, otherwise use formatted time
+    const today = new Date()
+    if (date.toDateString() === today.toDateString()) {
+      return formatRelativeTime(date)
     }
-    return format(date, 'HH:mm')
+    return formatTimeI18n(date)
   } catch (error) {
     console.error(`Error formatting time for ${dateString}:`, error)
     return ''

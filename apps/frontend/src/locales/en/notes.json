@@ -1,0 +1,15 @@
+{
+  "title": "Notes",
+  "newNote": "New Note",
+  "editNote": "Edit Note",
+  "deleteNote": "Delete Note",
+  "searchNotes": "Search notes",
+  "noteTitle": "Note Title",
+  "noteContent": "Note Content",
+  "tags": "Tags",
+  "category": "Category",
+  "lastModified": "Last Modified",
+  "created": "Created",
+  "noNotes": "No notes found",
+  "createFirstNote": "Create your first note"
+}
