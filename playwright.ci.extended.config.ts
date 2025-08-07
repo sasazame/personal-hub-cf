@@ -6,12 +6,10 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
-  // Include critical tests from multiple files
+  // Include critical tests that work independently
   testMatch: [
     'ci.spec.ts',
-    'auth-basic.spec.ts', 
-    'todo-basic.spec.ts',
-    'smoke.spec.ts',
+    'ci-critical.spec.ts',
     'api-health.spec.ts'
   ],
   timeout: 30 * 1000,

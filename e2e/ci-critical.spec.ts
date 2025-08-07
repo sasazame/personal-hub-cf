@@ -22,7 +22,7 @@ function getTestData() {
 async function registerAndLogin(page, testData) {
   // Navigate to register page
   await page.goto('/register');
-  await page.waitForLoadState('networkidle');
+  await page.waitForSelector('form', { state: 'visible', timeout: 5000 });
   
   // Fill registration form
   await page.fill('input[name="username"]', testData.username);
@@ -48,11 +48,8 @@ async function registerAndLogin(page, testData) {
   }
   
   // Wait for authentication to be established
-  // Wait for auth token to be stored or dashboard elements to appear
-  await page.waitForSelector('h1:has-text("Welcome back")', { timeout: 5000 }).catch(() => {
-    // Fallback to small wait if selector not available
-    return page.waitForTimeout(500);
-  });
+  // Wait for dashboard to fully load
+  await page.waitForSelector('h1', { timeout: 10000 });
   
   return testData;
 }
@@ -187,7 +184,7 @@ test.describe('CI Critical Path Tests', () => {
     
     for (const section of sections) {
       await page.click(`a:has-text("${section.link}")`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForURL(section.url, { timeout: 5000 });
       await expect(page).toHaveURL(section.url);
       
       // Verify page loaded by checking for a heading
@@ -204,7 +201,7 @@ test.describe('CI Critical Path Tests', () => {
     
     // Reload page
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('h1', { timeout: 5000 });
     
     // Should still be on dashboard (not redirected to login)
     await expect(page).toHaveURL(/.*dashboard/);
