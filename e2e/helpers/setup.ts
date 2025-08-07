@@ -16,11 +16,17 @@ export async function createUniqueTestUser(page: Page) {
     password: 'Password123!'
   };
   
-  // Set English locale
-  await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
-  
   try {
     await page.goto('/register');
+    
+    // Set English locale for i18n
+    await page.evaluate(() => {
+      localStorage.setItem('i18nextLng', 'en');
+    });
+    
+    // Reload to apply language setting
+    await page.reload();
+    
     // Wait for the form to be ready with more flexible selectors and increased timeout
     await page.waitForSelector('input[type="text"]', { timeout: 10000 });
     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
@@ -43,17 +49,8 @@ export async function createUniqueTestUser(page: Page) {
     // Wait for page to stabilize properly
     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     
-    // Try to find and click user menu to show logout button
-    const userMenu = page.locator('button').filter({ has: page.locator('.rounded-full') });
-    const menuVisible = await userMenu.isVisible({ timeout: 5000 }).catch(() => false);
-    
-    if (menuVisible) {
-      await userMenu.click();
-      // Now click logout button in dropdown
-      const logoutButton = page.locator('button:has-text("Logout")');
-      await logoutButton.click();
-      await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 10000 });
-    }
+    // Don't try to logout - the tests will handle this
+    // Just return the user credentials
     
     return uniqueUser;
   } catch (error) {
@@ -67,12 +64,18 @@ export async function createUniqueTestUser(page: Page) {
  * Only use this for tests that specifically need the TEST_USER
  */
 export async function setupTestUser(page: Page) {
-  // Set English locale
-  await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
-  
   // Check if user already exists by trying to login
   try {
     await page.goto('/login');
+    
+    // Set English locale for i18n
+    await page.evaluate(() => {
+      localStorage.setItem('i18nextLng', 'en');
+    });
+    
+    // Reload to apply language setting
+    await page.reload();
+    
     await page.waitForSelector('input[type="email"]', { timeout: 10000 });
     
     await page.fill('input[type="email"]', TEST_USER.email);
@@ -146,6 +149,13 @@ export async function setupTestUser(page: Page) {
 }
 
 export async function waitForApp(page: Page) {
+  // Ensure i18n is initialized with English locale
+  await page.evaluate(() => {
+    if (!localStorage.getItem('i18nextLng')) {
+      localStorage.setItem('i18nextLng', 'en');
+    }
+  });
+  
   // Wait for DOM to be ready (recommended instead of networkidle)
   await page.waitForLoadState('domcontentloaded');
   

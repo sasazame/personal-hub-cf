@@ -4,13 +4,22 @@ import { Page } from '@playwright/test';
  * Login helper with better error detection and handling
  */
 export async function login(page: Page, email: string, password: string) {
-  // Set English locale and navigate to login page if not already there
-  await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
-  
+  // Navigate to login page if not already there
   const currentUrl = page.url();
   if (!currentUrl.includes('/login')) {
-    await page.goto('/login');
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    
+    // Set English locale in localStorage for i18n
+    await page.evaluate(() => {
+      localStorage.setItem('i18nextLng', 'en');
+    });
+    
+    // Reload to apply language setting
+    await page.reload({ waitUntil: 'domcontentloaded' });
   }
+  
+  // Wait for the page to stabilize
+  await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
   
   // Wait for login form to be visible with increased timeout
   await page.waitForSelector('input[type="email"]', { timeout: 15000 });
@@ -103,12 +112,15 @@ export async function logout(page: Page) {
   
   if (menuVisible) {
     await userMenu.click();
-    // Wait for dropdown to open by waiting for the logout button to be visible
-    await page.waitForSelector('button:has-text("Logout")', { timeout: 5000 });
+    // Wait for dropdown to open
+    await page.waitForTimeout(500);
     
-    // Now click logout button in dropdown
-    const logoutButton = page.getByRole('button', { name: 'Logout' });
-    await logoutButton.click();
+    // Click the last button in the dropdown (logout is always last)
+    const dropdownButtons = page.locator('button').filter({ hasText: /.+/ });
+    const lastButton = await dropdownButtons.last();
+    await lastButton.click();
+    
+    // Wait for redirect to login
     await page.waitForURL(/.*\/login/, { timeout: 10000 });
   }
 }
@@ -117,38 +129,25 @@ export async function logout(page: Page) {
  * Ensures user is logged out and clears all authentication state
  */
 export async function ensureLoggedOut(page: Page) {
-  // Set English locale
-  await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
+  // Navigate to login page first to have a page context
+  await page.goto('/login', { waitUntil: 'domcontentloaded' });
   
-  // Clear authentication state first before navigation
-  try {
-    await page.evaluate(() => {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.clear();
-      }
-      if (typeof sessionStorage !== 'undefined') {
-        sessionStorage.clear();
-      }
-    });
-  } catch {
-    // If we can't clear storage, navigate to login first
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    await page.evaluate(() => {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.clear();
-      }
-      if (typeof sessionStorage !== 'undefined') {
-        sessionStorage.clear();
-      }
-    });
-  }
+  // Clear all storage and set i18n language
+  await page.evaluate(() => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.clear();
+      localStorage.setItem('i18nextLng', 'en');
+    }
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.clear();
+    }
+  });
   
-  // Navigate to login page if not already there
-  if (!page.url().includes('/login')) {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    // Wait for any potential redirects or page stabilization
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-  }
+  // Reload the page to ensure clean state and i18n initializes properly
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  
+  // Wait for the page to stabilize
+  await page.waitForTimeout(500); // Give i18n time to initialize
   
   // Wait for login form to be ready with increased timeout
   await page.waitForSelector('input[type="email"]', { timeout: 15000 });

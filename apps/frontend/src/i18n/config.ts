@@ -1,7 +1,6 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import HttpApi from 'i18next-http-backend';
 
 // Import translation resources
 import enCommon from '../locales/en/common.json';
@@ -58,13 +57,21 @@ export const resources = {
   },
 } as const;
 
+// Safe localStorage access
+const getInitialLanguage = (): string => {
+  try {
+    return localStorage.getItem('i18nextLng') || 'en';
+  } catch {
+    return 'en';
+  }
+};
+
 i18n
-  .use(HttpApi)
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     fallbackLng: 'en',
-    lng: localStorage.getItem('i18nextLng') || 'en',
+    lng: getInitialLanguage(),
     debug: false,
     ns: ['common', 'auth', 'todos', 'calendar', 'notes', 'goals', 'moments', 'pomodoro', 'analytics', 'settings', 'errors'],
     defaultNS,

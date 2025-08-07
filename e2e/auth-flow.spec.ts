@@ -5,8 +5,7 @@ import { navigateToProtectedRoute } from './helpers/wait-helpers';
 
 test.describe('Authentication Flow', () => {
   test.beforeEach(async ({ page }) => {
-    // Set English locale and ensure clean state
-    await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
+    // Ensure clean state
     await ensureLoggedOut(page);
   });
 
@@ -60,8 +59,8 @@ test.describe('Authentication Flow', () => {
     // Create a unique user for this test
     const uniqueUser = await createUniqueTestUser(page);
     
-    await page.goto('/login');
-    await waitForApp(page);
+    // Ensure we're logged out before trying to login
+    await ensureLoggedOut(page);
     
     console.log('Before login with unique user - URL:', page.url());
     
@@ -90,9 +89,8 @@ test.describe('Authentication Flow', () => {
     // Create a unique user for this test
     const uniqueUser = await createUniqueTestUser(page);
     
-    // First login
-    await page.goto('/login');
-    await waitForApp(page);
+    // Ensure we're logged out before trying to login
+    await ensureLoggedOut(page);
     await login(page, uniqueUser.email, uniqueUser.password);
     
     // Wait for app to load
@@ -111,9 +109,8 @@ test.describe('Authentication Flow', () => {
     // Create a unique user for this test
     const uniqueUser = await createUniqueTestUser(page);
     
-    // Login
-    await page.goto('/login');
-    await waitForApp(page);
+    // Ensure we're logged out before trying to login
+    await ensureLoggedOut(page);
     await login(page, uniqueUser.email, uniqueUser.password);
     
     // Verify logged in

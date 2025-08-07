@@ -4,8 +4,7 @@ import { ensureLoggedOut, login, TEST_USER } from './helpers/auth';
 
 test.describe('Auth E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
-    // Set English locale and ensure clean state
-    await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
+    // Ensure clean state and set English locale
     await ensureLoggedOut(page);
   });
 
@@ -23,6 +22,17 @@ test.describe('Auth E2E Tests', () => {
 
   test('should show login form', async ({ page }) => {
     await page.goto('/login');
+    
+    // Set language preference
+    await page.evaluate(() => {
+      localStorage.setItem('i18nextLng', 'en');
+    });
+    
+    // Reload to ensure i18n is initialized with English
+    await page.reload();
+    
+    // Wait for form to be ready
+    await page.waitForLoadState('networkidle');
     
     // Check form elements are visible
     await expect(page.locator('input[type="email"]')).toBeVisible();
@@ -59,8 +69,8 @@ test.describe('Auth E2E Tests', () => {
     // Create a unique user for this test
     const uniqueUser = await createUniqueTestUser(page);
     
-    // Now test login with the unique user
-    await page.goto('/login');
+    // Ensure we're logged out before trying to login
+    await ensureLoggedOut(page);
     
     try {
       await login(page, uniqueUser.email, uniqueUser.password);
