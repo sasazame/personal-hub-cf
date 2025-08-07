@@ -184,4 +184,72 @@ describe('CSRF Middleware', () => {
       expect(setCookieHeader).toContain('Path=/');
     });
   });
+
+  describe('CSRF token validation edge cases', () => {
+    it('should reject requests with empty CSRF token in header', async () => {
+      const response = await app.request('/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': '',
+          'Cookie': 'csrf-token=valid-token',
+        },
+        body: JSON.stringify({ data: 'test' }),
+      });
+      
+      expect(response.status).toBe(403);
+      const data = await response.json() as { code: string; message: string };
+      expect(data.message).toBe('CSRF token missing');
+    });
+
+    it('should reject requests with empty CSRF token in cookie', async () => {
+      const response = await app.request('/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': 'valid-token',
+          'Cookie': 'csrf-token=',
+        },
+        body: JSON.stringify({ data: 'test' }),
+      });
+      
+      expect(response.status).toBe(403);
+      const data = await response.json() as { code: string; message: string };
+      expect(data.message).toBe('CSRF token missing');
+    });
+
+    it('should accept case-insensitive CSRF header', async () => {
+      const token = 'test-csrf-token';
+      
+      const response = await app.request('/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': token, // lowercase header
+          'Cookie': `csrf-token=${token}`,
+        },
+        body: JSON.stringify({ data: 'test' }),
+      });
+      
+      expect(response.status).toBe(200);
+      const data = await response.json() as { message: string };
+      expect(data.message).toBe('POST success');
+    });
+
+    it('should reject requests with malformed CSRF tokens', async () => {
+      const response = await app.request('/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': 'token-with-special-chars-<script>',
+          'Cookie': 'csrf-token=different-token',
+        },
+        body: JSON.stringify({ data: 'test' }),
+      });
+      
+      expect(response.status).toBe(403);
+      const data = await response.json() as { code: string; message: string };
+      expect(data.message).toBe('CSRF token invalid');
+    });
+  });
 });
