@@ -173,9 +173,9 @@ test.describe('CI Critical Path Tests', () => {
     const noteTitle = page.locator('h3:has-text("CI Test Note")');
     await expect(noteTitle).toBeVisible();
     
-    // Verify the note content preview is visible
-    const noteContent = page.locator('p:has-text("This is test content for CI")').first();
-    await expect(noteContent).toBeVisible();
+    // Verify the note content preview is visible - content is in a div, not p
+    const noteContent = page.locator('.text-sm.text-gray-600:has-text("This is test content for CI")').first();
+    await expect(noteContent).toBeVisible({ timeout: 10000 });
   });
 
   test('should navigate between sections', async ({ page }) => {

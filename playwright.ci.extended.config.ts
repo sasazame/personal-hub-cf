@@ -6,10 +6,9 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
-  // Include only the most reliable tests
+  // Include only the CI-specific tests
   testMatch: [
-    'ci.spec.ts',
-    'api-health.spec.ts'
+    'ci.spec.ts'
   ],
   timeout: 30 * 1000,
   expect: {

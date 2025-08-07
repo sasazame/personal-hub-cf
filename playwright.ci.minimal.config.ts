@@ -6,8 +6,8 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
-  // Only run the minimal smoke tests
-  testMatch: ['ci-smoke.spec.ts'],
+  // Only run the minimal smoke tests and API health checks
+  testMatch: ['ci-smoke.spec.ts', 'api-health.spec.ts'],
   
   // Fast timeouts
   timeout: 20 * 1000,
