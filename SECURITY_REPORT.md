@@ -31,10 +31,11 @@ This report provides a comprehensive security analysis of the Personal Hub appli
 
 ### Areas for Improvement
 
-1. **Rate Limiting** - No evidence of rate limiting on authentication endpoints
-2. **Account Lockout** - No account lockout mechanism after failed attempts
-3. **Multi-Factor Authentication** - No 2FA implementation
-4. **Token Blacklisting** - No mechanism to invalidate access tokens before expiry
+1. **Account Lockout** - No account lockout mechanism after failed attempts
+2. **Multi-Factor Authentication** - No 2FA implementation
+3. **Token Blacklisting** - No mechanism to invalidate access tokens before expiry
+
+**Note**: Rate limiting is implemented for authentication endpoints (5 requests per 15 minutes per IP) using Cloudflare KV storage.
 
 ## 2. Session Management
 
@@ -64,12 +65,19 @@ This report provides a comprehensive security analysis of the Personal Hub appli
 2. **CORS Configuration**
    - Credentials support enabled (apps/backend/src/index.ts:31)
    - Controlled allowed headers and methods (apps/backend/src/index.ts:32-33)
+   - Whitelisted origins for production environment (apps/backend/wrangler.toml:39)
+
+3. **Cross-Domain Cookie Security**
+   - Production deployment requires cross-domain cookies (frontend: personal-hub.pages.dev, backend: workers.dev)
+   - SameSite=None with Secure flag ensures cookies work across domains while requiring HTTPS
+   - CSRF protection via double-submit cookie pattern mitigates cross-site request forgery risks
+   - All auth cookies (access, refresh, session) configured with httpOnly flag to prevent XSS access
 
 ### Areas for Improvement
 
-1. **CORS Origin Validation** - Currently allows all origins (apps/backend/src/index.ts:24-30)
-2. **Security Headers** - Missing headers like X-Content-Type-Options, X-Frame-Options, CSP
-3. **Request Size Limits** - No explicit request size limits configured
+1. **Security Headers** - Missing headers like X-Content-Type-Options, X-Frame-Options, CSP
+2. **Request Size Limits** - No explicit request size limits configured
+3. **Origin Validation Enhancement** - Consider implementing additional origin validation beyond CORS for sensitive operations
 
 ## 4. Data Protection
 
@@ -133,17 +141,7 @@ This report provides a comprehensive security analysis of the Personal Hub appli
 
 ### High Priority
 
-1. **Implement Rate Limiting**
-   ```typescript
-   // Add rate limiting middleware for auth endpoints
-   const rateLimiter = createRateLimiter({
-     windowMs: 15 * 60 * 1000, // 15 minutes
-     max: 5, // 5 requests per window
-     keyGenerator: (c) => c.req.header('CF-Connecting-IP') || 'unknown'
-   })
-   ```
-
-2. **Add Security Headers**
+1. **Add Security Headers**
    ```typescript
    app.use('*', async (c, next) => {
      await next()
@@ -154,7 +152,7 @@ This report provides a comprehensive security analysis of the Personal Hub appli
    })
    ```
 
-3. **Restrict CORS Origins**
+2. **Enhance CORS Origin Validation**
    ```typescript
    cors({
      origin: (origin) => {
@@ -172,9 +170,14 @@ This report provides a comprehensive security analysis of the Personal Hub appli
    - Lock account after 5 failed attempts
    - Require email verification to unlock
 
-2. **Add CSRF Protection**
-   - Implement CSRF tokens for state-changing operations
-   - Use SameSite cookie attribute
+2. **CSRF Protection** ✅ **IMPLEMENTED**
+   - Double-submit cookie pattern with CSRF tokens for state-changing operations
+   - Timing-safe token comparison to prevent timing attacks
+   - SameSite cookie attributes configured appropriately:
+     - Development: `SameSite=Lax` for same-origin protection
+     - Production: `SameSite=None` required for cross-domain architecture (frontend on pages.dev, backend on workers.dev)
+   - CSRF middleware validates tokens on all non-safe HTTP methods
+   - Comprehensive test coverage for CSRF scenarios
 
 3. **Enhance Session Management**
    - Switch to httpOnly cookies for token storage
