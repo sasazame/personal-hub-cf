@@ -37,6 +37,14 @@ This file tracks pending tasks organized by feature.
 ## Profile Feature
 
 ## Testing
+- [HIGH] Fix CI E2E test configuration - Currently only runs ci.spec.ts with 4 basic tests
+- [HIGH] Fix failing note creation test in ci.spec.ts - Test times out waiting for API response
+- [HIGH] Expand CI test coverage - Include critical path tests from other spec files
+- [HIGH] Optimize E2E test performance - Tests run slowly when multiple execute in parallel
+- [MEDIUM] Review and consolidate duplicate E2E test files (38 spec files, many overlapping)
+- [MEDIUM] Create focused CI test suites for different scenarios (smoke, critical, full)
+- [MEDIUM] Fix global setup issues causing EPIPE errors in some environments
+- [LOW] Add E2E test documentation explaining test organization and running locally
 
 ## i18n (Internationalization)
 - [HIGH] Install and configure react-i18next in frontend with i18n provider setup
