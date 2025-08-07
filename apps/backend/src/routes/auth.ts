@@ -130,10 +130,8 @@ app.post('/register', authRateLimiter, zValidator('json', registerSchema, spring
     // Check if username is taken
     const existingUsername = await db.select().from(users).where(eq(users.username, username)).get();
     if (existingUsername) {
-      const language = getUserLanguage(c);
-      const message = language === 'ja' ? 'ユーザー名は既に使用されています' : 'Username is already taken';
       return c.json(
-        createLocalizedValidationError({ username: message }, c),
+        createLocalizedValidationError({ username: 'USERNAME_ALREADY_EXISTS' }, c),
         400 as ContentfulStatusCode
       );
     }
@@ -224,10 +222,8 @@ app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootVa
     
     if (!user.password) {
       // User registered via OAuth
-      const language = getUserLanguage(c);
-      const message = language === 'ja' ? 'ソーシャルアカウントでログインしてください' : 'Please login using your social account';
       return c.json(
-        createLocalizedError('AUTHENTICATION_FAILED', c, { detail: message }),
+        createLocalizedError('OAUTH_LOGIN_REQUIRED', c),
         StatusCodes.AUTHENTICATION_FAILED as ContentfulStatusCode
       );
     }

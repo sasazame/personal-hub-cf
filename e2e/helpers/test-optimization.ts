@@ -5,7 +5,18 @@ import { Page, APIRequestContext, test as base } from '@playwright/test';
  */
 
 // Cache for authenticated sessions to avoid repeated logins
-const sessionCache = new Map<string, { cookies: any[], localStorage: any }>();
+interface CachedSession {
+  cookies: any[];
+  localStorage: any;
+  timestamp: number;
+}
+
+const sessionCache = new Map<string, CachedSession>();
+const SESSION_TTL = 30 * 60 * 1000; // 30 minutes
+
+function isSessionValid(session: CachedSession): boolean {
+  return Date.now() - session.timestamp < SESSION_TTL;
+}
 
 export interface OptimizedFixtures {
   authenticatedPage: Page;
@@ -51,10 +62,15 @@ export const test = base.extend<OptimizedFixtures>({
     // Check if we have cached session
     if (sessionCache.has(cacheKey)) {
       const cached = sessionCache.get(cacheKey)!;
-      await page.context().addCookies(cached.cookies);
-      await page.goto('/dashboard');
-      await use(page);
-      return;
+      if (isSessionValid(cached)) {
+        await page.context().addCookies(cached.cookies);
+        await page.goto('/dashboard');
+        await use(page);
+        return;
+      } else {
+        // Session expired, remove from cache
+        sessionCache.delete(cacheKey);
+      }
     }
 
     // Register via API (faster than UI)
@@ -67,10 +83,13 @@ export const test = base.extend<OptimizedFixtures>({
     });
 
     if (registerResponse.ok()) {
-      // Get cookies from the response
+      // Navigate to dashboard first to establish session
+      await page.goto('/dashboard');
+      
+      // Now get cookies and localStorage after navigation
       const cookies = await page.context().cookies();
       
-      // Cache the session
+      // Cache the session with timestamp
       sessionCache.set(cacheKey, {
         cookies,
         localStorage: await page.evaluate(() => {
@@ -81,9 +100,9 @@ export const test = base.extend<OptimizedFixtures>({
           }
           return items;
         }),
+        timestamp: Date.now(),
       });
 
-      await page.goto('/dashboard');
       await use(page);
     } else {
       // Fallback to UI registration if API fails
@@ -105,47 +124,60 @@ export const test = base.extend<OptimizedFixtures>({
 export class TestDataHelper {
   constructor(private apiContext: APIRequestContext) {}
 
-  async createMultipleTodos(userId: string, count: number) {
+  async createMultipleTodos(count: number) {
+    const timestamp = Date.now();
     const todos = [];
     for (let i = 0; i < count; i++) {
       todos.push({
-        title: `Test Todo ${i}`,
-        description: `Description ${i}`,
+        title: `Test Todo ${i}-${timestamp}`,
+        description: `Description ${i}-${timestamp}`,
         priority: 'MEDIUM',
       });
     }
 
-    // Create all todos in parallel
-    const promises = todos.map(todo =>
-      this.apiContext.post('/api/v1/todos', { data: todo })
-    );
+    // Create all todos in parallel with error handling
+    const promises = todos.map(async todo => {
+      const response = await this.apiContext.post('/api/v1/todos', { data: todo });
+      if (!response.ok()) {
+        throw new Error(`Failed to create todo: ${response.status()}`);
+      }
+      return response;
+    });
     
     return Promise.all(promises);
   }
 
-  async createMultipleNotes(userId: string, count: number) {
+  async createMultipleNotes(count: number) {
+    const timestamp = Date.now();
     const notes = [];
     for (let i = 0; i < count; i++) {
       notes.push({
-        title: `Test Note ${i}`,
-        content: `Content ${i}`,
+        title: `Test Note ${i}-${timestamp}`,
+        content: `Content ${i}-${timestamp}`,
       });
     }
 
-    // Create all notes in parallel
-    const promises = notes.map(note =>
-      this.apiContext.post('/api/v1/notes', { data: note })
-    );
+    // Create all notes in parallel with error handling
+    const promises = notes.map(async note => {
+      const response = await this.apiContext.post('/api/v1/notes', { data: note });
+      if (!response.ok()) {
+        throw new Error(`Failed to create note: ${response.status()}`);
+      }
+      return response;
+    });
     
     return Promise.all(promises);
   }
 
   async cleanupTestData(userId: string) {
-    // Clean up test data in parallel
+    // Clean up test data in parallel with error logging
     await Promise.all([
-      this.apiContext.delete(`/api/v1/todos/user/${userId}`).catch(() => {}),
-      this.apiContext.delete(`/api/v1/notes/user/${userId}`).catch(() => {}),
-      this.apiContext.delete(`/api/v1/goals/user/${userId}`).catch(() => {}),
+      this.apiContext.delete(`/api/v1/todos/user/${userId}`)
+        .catch(err => console.error('Cleanup todos failed:', err)),
+      this.apiContext.delete(`/api/v1/notes/user/${userId}`)
+        .catch(err => console.error('Cleanup notes failed:', err)),
+      this.apiContext.delete(`/api/v1/goals/user/${userId}`)
+        .catch(err => console.error('Cleanup goals failed:', err)),
     ]);
   }
 }
@@ -164,8 +196,8 @@ export class PerformanceMonitor {
     const start = this.marks.get(startMark);
     const end = endMark ? this.marks.get(endMark) : Date.now();
     
-    if (start) {
-      const duration = (end || Date.now()) - start;
+    if (start && end) {
+      const duration = end - start;
       console.log(`[PERF] ${name}: ${duration}ms`);
       return duration;
     }

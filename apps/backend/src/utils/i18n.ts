@@ -85,6 +85,14 @@ const errorTranslations: Translations = {
     en: 'This email address is already in use',
     ja: 'このメールアドレスは既に使用されています'
   },
+  USERNAME_ALREADY_EXISTS: {
+    en: 'Username is already taken',
+    ja: 'ユーザー名は既に使用されています'
+  },
+  OAUTH_LOGIN_REQUIRED: {
+    en: 'Please login using your social account',
+    ja: 'ソーシャルアカウントでログインしてください'
+  },
   OAUTH2_REQUIRED: {
     en: 'OAuth2 authentication required',
     ja: 'OAuth2認証が必要です'

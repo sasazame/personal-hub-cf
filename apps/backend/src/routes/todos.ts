@@ -7,7 +7,7 @@ import { todos } from '../db/schema';
 import type { Bindings, Variables } from '../types';
 import { authMiddleware } from '../middleware/auth';
 import { springBootValidator } from '../utils/validation';
-import { createErrorResponse, ErrorCodes, StatusCodes } from '../utils/spring-boot-compat';
+import { StatusCodes } from '../utils/spring-boot-compat';
 import { createLocalizedError } from '../utils/i18n';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
@@ -139,7 +139,7 @@ app.get('/:id', async (c) => {
     
     if (!todo) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Todo not found'),
+        createLocalizedError('TODO_NOT_FOUND', c),
         404 as ContentfulStatusCode
       );
     }
@@ -201,7 +201,7 @@ app.put('/:id', zValidator('json', updateTodoSchema, springBootValidator), async
     
     if (!existing) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Todo not found'),
+        createLocalizedError('TODO_NOT_FOUND', c),
         404 as ContentfulStatusCode
       );
     }
@@ -243,7 +243,7 @@ app.delete('/:id', async (c) => {
     
     if (!existing) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Todo not found'),
+        createLocalizedError('TODO_NOT_FOUND', c),
         404 as ContentfulStatusCode
       );
     }
@@ -279,7 +279,7 @@ app.post('/:id/complete', async (c) => {
     const resultArray = Array.isArray(result) ? result : [];
     if (!resultArray.length) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Todo not found'),
+        createLocalizedError('TODO_NOT_FOUND', c),
         404 as ContentfulStatusCode
       );
     }

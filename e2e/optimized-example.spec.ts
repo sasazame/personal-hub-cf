@@ -16,7 +16,7 @@ test.describe('Optimized Todo Tests', () => {
     
     // Create test data via API (much faster than UI)
     perf.mark('api-setup-start');
-    await dataHelper.createMultipleTodos('test-user', 5);
+    await dataHelper.createMultipleTodos(5);
     perf.measure('API Setup', 'api-setup-start');
     
     // Navigate to todos page
@@ -38,8 +38,8 @@ test.describe('Optimized Todo Tests', () => {
     
     // Perform multiple operations in parallel for speed
     await Promise.all([
-      dataHelper.createMultipleTodos('test-user', 3),
-      dataHelper.createMultipleNotes('test-user', 3),
+      dataHelper.createMultipleTodos(3),
+      dataHelper.createMultipleNotes(3),
       authenticatedPage.goto('/dashboard'),
     ]);
     
