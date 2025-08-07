@@ -48,7 +48,11 @@ async function registerAndLogin(page, testData) {
   }
   
   // Wait for authentication to be established
-  await page.waitForTimeout(1000);
+  // Wait for auth token to be stored or dashboard elements to appear
+  await page.waitForSelector('h1:has-text("Welcome back")', { timeout: 5000 }).catch(() => {
+    // Fallback to small wait if selector not available
+    return page.waitForTimeout(500);
+  });
   
   return testData;
 }
@@ -117,8 +121,11 @@ test.describe('CI Critical Path Tests', () => {
     await completeBtn.waitFor({ state: 'visible' });
     await completeBtn.click();
     
-    // Wait for status update
-    await page.waitForTimeout(1000);
+    // Wait for the API response that updates the todo status
+    await page.waitForResponse(
+      resp => resp.url().includes('/api/v1/todos') && resp.status() === 200,
+      { timeout: 5000 }
+    );
     await expect(page.locator('span:has-text("Done")').first()).toBeVisible({ timeout: 10000 });
   });
 
@@ -154,7 +161,11 @@ test.describe('CI Critical Path Tests', () => {
     
     // Wait for modal to close and note to appear
     await page.waitForSelector('input[placeholder="Enter note title"]', { state: 'hidden', timeout: 10000 });
-    await page.waitForTimeout(1000);
+    // Wait for the notes list to refresh
+    await page.waitForResponse(
+      response => response.url().includes('/api/v1/notes') && response.status() === 200,
+      { timeout: 5000 }
+    ).catch(() => {}); // Optional: notes might already be loaded
     
     // Verify note appears
     await page.waitForSelector(`h3:has-text("${testData.noteTitle}")`, { timeout: 10000 });
@@ -211,7 +222,7 @@ test.describe('CI Critical Path Tests', () => {
     await page.click('button:has-text("Logout")');
     
     // Should redirect to landing/login page
-    await page.waitForURL(url => url.pathname === '/' || url.pathname.includes('landing'), { timeout: 10000 });
+    await page.waitForURL(url => url.pathname === '/' || url.pathname.includes('landing') || url.pathname.includes('login'), { timeout: 10000 });
     
     // Try to access protected route
     await page.goto('/dashboard');

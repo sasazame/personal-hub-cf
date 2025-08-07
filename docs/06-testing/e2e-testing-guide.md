@@ -8,7 +8,7 @@ This project uses Playwright for end-to-end testing. Tests are organized to ensu
 
 ### Test Files Structure
 
-```
+```plaintext
 e2e/
 ├── ci-critical.spec.ts      # Comprehensive CI test suite (NEW)
 ├── ci.spec.ts               # Basic CI smoke tests
@@ -111,8 +111,8 @@ The CI workflow runs E2E tests on every push and pull request:
 
 ### Environment Variables
 
-- `E2E_BASE_URL` - Frontend URL (default: http://localhost:3000)
-- `VITE_API_BASE_URL` - Backend API URL (default: http://localhost:8787)
+- `E2E_BASE_URL` - Frontend URL (default: `http://localhost:3000`)
+- `VITE_API_BASE_URL` - Backend API URL (default: `http://localhost:8787`)
 - `SKIP_WEBSERVER` - Skip automatic server startup
 - `CI` - Set in CI environment for optimized configuration
 

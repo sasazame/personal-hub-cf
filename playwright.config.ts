@@ -10,6 +10,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : 4, 
   reporter: process.env.CI ? 'dot' : 'html',
   // Disable global setup to avoid EPIPE errors
+  // TODO: Re-enable when EPIPE issue is resolved (see PR #37)
   // globalSetup: require.resolve('./playwright/global-setup.ts'),
   use: {
     // Point to frontend URL for E2E tests
