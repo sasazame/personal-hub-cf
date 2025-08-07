@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
 /**
  * Critical Path E2E Tests for CI
@@ -6,8 +6,17 @@ import { test, expect } from '@playwright/test';
  * Focused on core functionality that must work in production
  */
 
+// Type definition for test data
+interface TestData {
+  username: string;
+  email: string;
+  password: string;
+  todoTitle: string;
+  noteTitle: string;
+}
+
 // Helper function to generate unique test data
-function getTestData() {
+function getTestData(): TestData {
   const timestamp = Date.now().toString().slice(-8);
   return {
     username: `user${timestamp}`,
@@ -19,7 +28,7 @@ function getTestData() {
 }
 
 // Helper to register and login
-async function registerAndLogin(page, testData) {
+async function registerAndLogin(page: Page, testData: TestData): Promise<TestData> {
   // Navigate to register page
   await page.goto('/register');
   await page.waitForSelector('form', { state: 'visible', timeout: 5000 });
