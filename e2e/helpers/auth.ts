@@ -130,7 +130,7 @@ export async function logout(page: Page) {
  */
 export async function ensureLoggedOut(page: Page) {
   // Navigate to login page first to have a page context
-  await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  await page.goto('/login', { waitUntil: 'networkidle' });
   
   // Clear all storage and set i18n language
   await page.evaluate(() => {
@@ -144,13 +144,20 @@ export async function ensureLoggedOut(page: Page) {
   });
   
   // Reload the page to ensure clean state and i18n initializes properly
-  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.reload({ waitUntil: 'networkidle' });
   
   // Wait for the page to stabilize
-  await page.waitForTimeout(500); // Give i18n time to initialize
+  await page.waitForTimeout(1000); // Give i18n and React time to initialize
   
   // Wait for login form to be ready with increased timeout
-  await page.waitForSelector('input[type="email"]', { timeout: 15000 });
+  // Try multiple selectors as the form might render differently
+  try {
+    await page.waitForSelector('input[type="email"]', { timeout: 15000, state: 'visible' });
+  } catch (error) {
+    // If email input not found, try alternative selectors
+    console.log('Email input not found with type selector, trying alternatives...');
+    await page.waitForSelector('input[placeholder*="email" i]', { timeout: 5000, state: 'visible' });
+  }
 }
 
 // Test user credentials

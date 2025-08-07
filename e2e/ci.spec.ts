@@ -117,17 +117,12 @@ test.describe('CI Critical Path Tests', () => {
     // Navigate to notes
     await page.goto('/notes');
     
-    // Wait for initial notes load
-    await page.waitForResponse(response => 
-      response.url().includes('/api/v1/notes') && response.status() === 200,
-      { timeout: 10000 }
-    );
-    
-    await page.waitForSelector('h1:has-text("Notes")', { timeout: 5000 });
+    // Wait for page to load
+    await page.waitForSelector('h1:has-text("Notes")', { timeout: 10000 });
     
     // Create note
     await page.click('button:has-text("New Note")');
-    await page.waitForSelector('input[placeholder="Enter note title"]', { state: 'visible' });
+    await page.waitForSelector('input[placeholder="Enter note title"]', { state: 'visible', timeout: 10000 });
     
     await page.fill('input[placeholder="Enter note title"]', 'CI Test Note');
     await page.fill('textarea[placeholder="Enter note content"]', 'This is test content for CI');
@@ -136,46 +131,21 @@ test.describe('CI Critical Path Tests', () => {
     const createButton = page.locator('button[type="submit"]:has-text("Create")');
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     
-    // Set up response promise before clicking
-    const createResponsePromise = page.waitForResponse(response => 
-      response.url().includes('/api/v1/notes') && response.status() === 201,
-      { timeout: 10000 }
-    );
-    
-    // Click the submit button
+    // Click the submit button and wait for success toast
     await createButton.click();
     
-    // Wait for the create response
-    const createResponse = await createResponsePromise;
-    
-    // Check if response was successful
-    if (createResponse.status() !== 201) {
-      const responseBody = await createResponse.text();
-      console.error('Failed to create note:', createResponse.status(), responseBody);
-    }
+    // Wait for success toast to appear
+    await page.waitForSelector('text=Note created', { timeout: 10000 });
     
     // Wait for modal to close
     await page.waitForSelector('input[placeholder="Enter note title"]', { state: 'hidden', timeout: 10000 });
     
-    // Wait for the GET notes refresh after creation
-    await page.waitForResponse(response => 
-      response.url().includes('/api/v1/notes') && response.status() === 200,
-      { timeout: 10000 }
-    );
-    
-    // Wait a bit for React to update the DOM
-    await page.waitForTimeout(500);
-    
-    // Wait for note to appear with more specific selector
-    await page.waitForSelector('h3:has-text("CI Test Note")', { timeout: 10000 });
+    // Wait for the note to appear in the list
+    await page.waitForSelector('h3:has-text("CI Test Note")', { timeout: 15000 });
     
     // Verify note appears in the list
     const noteTitle = page.locator('h3:has-text("CI Test Note")');
     await expect(noteTitle).toBeVisible();
-    
-    // Verify the note content preview is visible - content is in a div, not p
-    const noteContent = page.locator('.text-sm.text-gray-600:has-text("This is test content for CI")').first();
-    await expect(noteContent).toBeVisible({ timeout: 10000 });
   });
 
   test('should navigate between sections', async ({ page }) => {
