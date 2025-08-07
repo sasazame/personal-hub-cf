@@ -10,12 +10,11 @@ import { createHash } from '../utils/crypto';
 import { hashPassword, verifyPassword, generateTokens, verifyToken } from '../utils/auth';
 import { 
   createErrorResponse, 
-  createValidationError,
   ErrorCodes,
-  ErrorMessages,
   ValidationMessages,
   StatusCodes
 } from '../utils/spring-boot-compat';
+import { createLocalizedError, createLocalizedValidationError, getUserLanguage } from '../utils/i18n';
 import { springBootValidator } from '../utils/validation';
 import { authRateLimiter } from '../middleware/rate-limiter';
 import { generateAndSetCSRFToken } from '../middleware/csrf';
@@ -68,9 +67,21 @@ function setAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variables }>
 
 // Helper function to clear auth cookies
 function clearAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variables }>) {
-  setCookie(c, ACCESS_TOKEN_COOKIE, '', { maxAge: 0 });
-  setCookie(c, REFRESH_TOKEN_COOKIE, '', { maxAge: 0 });
-  setCookie(c, SESSION_COOKIE, '', { maxAge: 0 });
+  const isProduction = c.env?.ENVIRONMENT === 'production';
+  
+  // Clear cookies with the same attributes used when setting them
+  const sameSite = isProduction ? 'None' : 'Lax';
+  const cookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: sameSite as 'None' | 'Lax',
+    path: '/',
+    maxAge: 0, // This immediately expires the cookie
+  };
+  
+  setCookie(c, ACCESS_TOKEN_COOKIE, '', cookieOptions);
+  setCookie(c, REFRESH_TOKEN_COOKIE, '', cookieOptions);
+  setCookie(c, SESSION_COOKIE, '', cookieOptions);
 }
 
 // Validation schemas - matching Spring Boot requirements
@@ -111,7 +122,7 @@ app.post('/register', authRateLimiter, zValidator('json', registerSchema, spring
     const existing = await db.select().from(users).where(eq(users.email, email)).get();
     if (existing) {
       return c.json(
-        createErrorResponse(ErrorCodes.EMAIL_ALREADY_EXISTS, ErrorMessages.EMAIL_ALREADY_EXISTS),
+        createLocalizedError('EMAIL_ALREADY_EXISTS', c),
         StatusCodes.USER_EXISTS as ContentfulStatusCode
       );
     }
@@ -119,8 +130,10 @@ app.post('/register', authRateLimiter, zValidator('json', registerSchema, spring
     // Check if username is taken
     const existingUsername = await db.select().from(users).where(eq(users.username, username)).get();
     if (existingUsername) {
+      const language = getUserLanguage(c);
+      const message = language === 'ja' ? 'ユーザー名は既に使用されています' : 'Username is already taken';
       return c.json(
-        createValidationError({ username: 'Username is already taken' }),
+        createLocalizedValidationError({ username: message }, c),
         400 as ContentfulStatusCode
       );
     }
@@ -204,15 +217,17 @@ app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootVa
     if (!user) {
       // Match Spring Boot behavior - returns AUTHENTICATION_FAILED for non-existent user
       return c.json(
-        createErrorResponse(ErrorCodes.AUTHENTICATION_FAILED),
+        createLocalizedError('AUTHENTICATION_FAILED', c),
         StatusCodes.AUTHENTICATION_FAILED as ContentfulStatusCode
       );
     }
     
     if (!user.password) {
       // User registered via OAuth
+      const language = getUserLanguage(c);
+      const message = language === 'ja' ? 'ソーシャルアカウントでログインしてください' : 'Please login using your social account';
       return c.json(
-        createErrorResponse(ErrorCodes.AUTHENTICATION_FAILED, 'Please login using your social account'),
+        createLocalizedError('AUTHENTICATION_FAILED', c, { detail: message }),
         StatusCodes.AUTHENTICATION_FAILED as ContentfulStatusCode
       );
     }
@@ -221,15 +236,17 @@ app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootVa
     const valid = await verifyPassword(password, user.password);
     if (!valid) {
       return c.json(
-        createErrorResponse(ErrorCodes.AUTHENTICATION_FAILED),
+        createLocalizedError('AUTHENTICATION_FAILED', c),
         StatusCodes.AUTHENTICATION_FAILED as ContentfulStatusCode
       );
     }
     
     // Check if user is enabled
     if (!user.enabled) {
+      const language = getUserLanguage(c);
+      const message = language === 'ja' ? 'アカウントが無効です' : 'Account is disabled';
       return c.json(
-        createErrorResponse(ErrorCodes.FORBIDDEN, 'Account is disabled'),
+        createLocalizedError('FORBIDDEN', c, { detail: message }),
         StatusCodes.FORBIDDEN as ContentfulStatusCode as ContentfulStatusCode
       );
     }
@@ -422,7 +439,10 @@ app.post('/forgot-password', authRateLimiter, zValidator('json', forgotPasswordS
     const user = await db.select().from(users).where(eq(users.email, email)).get();
     
     // Always return same message to prevent email enumeration
-    const message = 'If an account with this email exists, you will receive a password reset email.';
+    const language = getUserLanguage(c);
+    const message = language === 'ja' 
+      ? 'このメールアドレスのアカウントが存在する場合、パスワードリセット用のメールが送信されます。'
+      : 'If an account with this email exists, you will receive a password reset email.';
     
     if (user) {
       // Generate reset token
@@ -490,7 +510,9 @@ app.post('/reset-password', zValidator('json', resetPasswordSchema, springBootVa
       .set({ used: true })
       .where(eq(passwordResetTokens.id, resetToken.id));
     
-    return c.json({ success: true, message: 'Password has been reset successfully' });
+    const language = getUserLanguage(c);
+    const message = language === 'ja' ? 'パスワードがリセットされました' : 'Password has been reset successfully';
+    return c.json({ success: true, message });
   } catch (error) {
     console.error('Reset password error:', error);
     return c.json(
@@ -571,7 +593,9 @@ app.post('/logout', async (c) => {
     }
   }
   
-  return c.json({ success: true, message: 'Logged out successfully' });
+  const language = getUserLanguage(c);
+  const message = language === 'ja' ? 'ログアウトしました' : 'Logged out successfully';
+  return c.json({ success: true, message });
 });
 
 // GET /auth/validate-reset-token
