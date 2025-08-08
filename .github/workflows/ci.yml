@@ -198,8 +198,8 @@ jobs:
           echo "Vite output:"
           cat /tmp/vite.log
           
-          # Extract the actual port from vite output - updated pattern to match actual format
-          ACTUAL_PORT=$(grep -oP 'http://localhost:\K\d+' /tmp/vite.log | head -1)
+          # Extract the actual port from vite output - handle both formats
+          ACTUAL_PORT=$(grep -o 'http://localhost:[0-9]*' /tmp/vite.log | head -1 | sed 's/.*://')
           
           # Fallback to default port if extraction fails
           if [ -z "$ACTUAL_PORT" ]; then
