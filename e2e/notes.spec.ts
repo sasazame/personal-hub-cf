@@ -49,8 +49,8 @@ test.describe('Notes Feature E2E Tests', () => {
     // Wait for modal to close
     await page.waitForTimeout(1000);
     
-    // Verify note appears in list
-    await expect(page.locator('.bg-card').filter({ hasText: noteTitle })).toBeVisible({ timeout: 10000 });
+    // Verify note appears in list - look for heading with note title
+    await expect(page.locator('h3').filter({ hasText: noteTitle })).toBeVisible({ timeout: 10000 });
   });
 
   test('should view note details', async ({ page }) => {
@@ -65,12 +65,11 @@ test.describe('Notes Feature E2E Tests', () => {
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     await createButton.click();
     
-    // Wait for note to appear
-    const noteCard = page.locator('.bg-card').filter({ hasText: noteTitle });
-    await expect(noteCard).toBeVisible();
+    // Wait for note to appear - look for the heading with the note title
+    await expect(page.locator('h3').filter({ hasText: noteTitle })).toBeVisible({ timeout: 10000 });
     
-    // Click on the note card to view details
-    await noteCard.click();
+    // Click on the note heading to view details
+    await page.locator('h3').filter({ hasText: noteTitle }).click();
     
     // Check viewer modal - use dialog role to avoid strict mode violation
     await expect(page.getByRole('dialog').getByRole('heading', { name: noteTitle })).toBeVisible();
@@ -91,12 +90,13 @@ test.describe('Notes Feature E2E Tests', () => {
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     await createButton.click();
     
-    // Wait for note to appear
-    const noteCard = page.locator('.bg-card').filter({ hasText: noteTitle });
-    await expect(noteCard).toBeVisible();
+    // Wait for note to appear - look for the heading with the note title
+    await expect(page.locator('h3').filter({ hasText: noteTitle })).toBeVisible({ timeout: 10000 });
     
-    // Click edit button
-    await noteCard.locator('button svg.lucide-pencil').click();
+    // Find the note container that has both the title and the edit button
+    // Click edit button that appears near the note title
+    const editButton = page.locator('button[title="Edit"]').first();
+    await editButton.click();
     
     // Wait for edit form to appear
     await page.waitForSelector('input[placeholder="Enter note title"]', { state: 'visible', timeout: 10000 });
@@ -115,8 +115,8 @@ test.describe('Notes Feature E2E Tests', () => {
     await expect(updateButton).toBeEnabled({ timeout: 5000 });
     await updateButton.click();
     
-    // Verify changes
-    await expect(page.locator('.bg-card').filter({ hasText: newTitle })).toBeVisible();
+    // Verify changes - wait for the updated title to appear
+    await expect(page.locator('h3').filter({ hasText: newTitle })).toBeVisible({ timeout: 10000 });
     await expect(page.locator('span').filter({ hasText: 'edited' })).toBeVisible();
   });
 
@@ -130,19 +130,19 @@ test.describe('Notes Feature E2E Tests', () => {
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     await createButton.click();
     
-    // Wait for note to appear
-    const noteCard = page.locator('.bg-card').filter({ hasText: noteTitle });
-    await expect(noteCard).toBeVisible();
+    // Wait for note to appear - look for the heading with the note title
+    await expect(page.locator('h3').filter({ hasText: noteTitle })).toBeVisible({ timeout: 10000 });
     
-    // Click delete button
-    await noteCard.locator('button svg.lucide-trash-2').click();
+    // Click delete button that appears near the note title
+    const deleteButton = page.locator('button[title="Delete"]').first();
+    await deleteButton.click();
     
     // Confirm deletion - the text includes the note title
     await expect(page.getByText(new RegExp(`Are you sure you want to delete.*${noteTitle}`, 'i'))).toBeVisible();
     await page.getByRole('button', { name: 'Delete' }).nth(1).click();
     
     // Verify note is removed
-    await expect(page.locator('.bg-card').filter({ hasText: noteTitle })).not.toBeVisible();
+    await expect(page.locator('h3').filter({ hasText: noteTitle })).not.toBeVisible();
   });
 
   test('should search notes by title and content', async ({ page }) => {
@@ -168,9 +168,9 @@ test.describe('Notes Feature E2E Tests', () => {
     await page.waitForTimeout(500); // Debounce delay
     
     // Should show only JavaScript-related notes
-    await expect(page.locator('.bg-card').filter({ hasText: 'JavaScript Guide' })).toBeVisible();
-    await expect(page.locator('.bg-card').filter({ hasText: 'Testing Best Practices' })).toBeVisible();
-    await expect(page.locator('.bg-card').filter({ hasText: 'Python Tutorial' })).not.toBeVisible();
+    await expect(page.locator('[class*="card"]').filter({ hasText: 'JavaScript Guide' })).toBeVisible();
+    await expect(page.locator('[class*="card"]').filter({ hasText: 'Testing Best Practices' })).toBeVisible();
+    await expect(page.locator('[class*="card"]').filter({ hasText: 'Python Tutorial' })).not.toBeVisible();
     
     // Clear search
     await page.fill('input[placeholder*="Search"]', '');
@@ -178,7 +178,7 @@ test.describe('Notes Feature E2E Tests', () => {
     
     // All notes should be visible again
     for (const note of notes) {
-      await expect(page.locator('.bg-card').filter({ hasText: note.title })).toBeVisible();
+      await expect(page.locator('[class*="card"]').filter({ hasText: note.title })).toBeVisible();
     }
   });
 
@@ -212,9 +212,9 @@ test.describe('Notes Feature E2E Tests', () => {
     await page.waitForTimeout(500);
     
     // Should show only work-related notes
-    await expect(page.locator('.bg-card').filter({ hasText: 'Work Meeting Notes' })).toBeVisible();
-    await expect(page.locator('.bg-card').filter({ hasText: 'Work Project Ideas' })).toBeVisible();
-    await expect(page.locator('.bg-card').filter({ hasText: 'Personal Todo List' })).not.toBeVisible();
+    await expect(page.locator('[class*="card"]').filter({ hasText: 'Work Meeting Notes' })).toBeVisible();
+    await expect(page.locator('[class*="card"]').filter({ hasText: 'Work Project Ideas' })).toBeVisible();
+    await expect(page.locator('[class*="card"]').filter({ hasText: 'Personal Todo List' })).not.toBeVisible();
     
     // Reset filter
     await page.selectOption('select', '');
@@ -222,7 +222,7 @@ test.describe('Notes Feature E2E Tests', () => {
     
     // All notes should be visible
     for (const note of notesWithTags) {
-      await expect(page.locator('.bg-card').filter({ hasText: note.title })).toBeVisible();
+      await expect(page.locator('[class*="card"]').filter({ hasText: note.title })).toBeVisible();
     }
   });
 
@@ -250,7 +250,7 @@ test.describe('Notes Feature E2E Tests', () => {
     }
     
     // Edit note to remove a tag
-    const noteCard = page.locator('.bg-card').filter({ hasText: noteTitle });
+    const noteCard = page.locator('[class*="card"]').filter({ hasText: noteTitle });
     await noteCard.locator('button svg.lucide-pencil').click();
     
     // Remove 'urgent' tag by clicking its X button
@@ -297,7 +297,7 @@ test.describe('Notes Feature E2E Tests', () => {
     await createButton.click();
     
     // Should successfully create
-    await expect(page.locator('.bg-card').filter({ hasText: 'Test Title' })).toBeVisible();
+    await expect(page.locator('[class*="card"]').filter({ hasText: 'Test Title' })).toBeVisible();
   });
 
   test('should handle long content gracefully', async ({ page }) => {
@@ -314,7 +314,7 @@ test.describe('Notes Feature E2E Tests', () => {
     await createButton.click();
     
     // Verify note card shows truncated content
-    const noteCard = page.locator('.bg-card').filter({ hasText: noteTitle });
+    const noteCard = page.locator('[class*="card"]').filter({ hasText: noteTitle });
     await expect(noteCard).toBeVisible();
     
     // Content should be truncated in card view
@@ -342,10 +342,10 @@ test.describe('Notes Feature E2E Tests', () => {
     await createButton.click();
     
     // Verify special characters are properly displayed
-    await expect(page.locator('.bg-card').filter({ hasText: specialTitle })).toBeVisible();
+    await expect(page.locator('h3').filter({ hasText: specialTitle })).toBeVisible({ timeout: 10000 });
     
-    // View note
-    await page.locator('.bg-card').filter({ hasText: specialTitle }).click();
+    // View note by clicking the title
+    await page.locator('h3').filter({ hasText: specialTitle }).click();
     await expect(page.locator('text=' + specialContent)).toBeVisible();
   });
 });

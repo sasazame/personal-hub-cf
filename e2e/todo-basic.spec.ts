@@ -3,9 +3,10 @@ import { registerAndLogin } from './helpers/auth-helpers';
 
 // Helper function to click kebab menu and select an option
 async function clickTodoMenuOption(page: Page, todoTitle: string, optionName: string) {
-  const todoContainer = page.locator('.bg-card').filter({ hasText: todoTitle });
-  // Click the kebab menu (ellipsis icon)
-  await todoContainer.locator('button svg').last().click();
+  // Find the todo item that contains both the title and has action buttons
+  const todoItem = page.locator('[class*="card"], [class*="todo-item"], div').filter({ hasText: todoTitle }).first();
+  // Click the kebab menu (ellipsis icon) - usually the last button in the todo item
+  await todoItem.locator('button').last().click();
   // Click the menu option
   await page.locator('button').filter({ hasText: optionName }).click();
 }
@@ -37,7 +38,8 @@ test.describe('Todo Basic Operations', () => {
     await page.click('button:has-text("Add Todo")');
     
     // Wait for form to appear
-    await page.waitForSelector('[role="dialog"]');
+    // Wait for form to appear - could be inline or in a dialog
+    await page.waitForSelector('h2:has-text("New Todo")', { state: 'visible', timeout: 10000 });
     
     // Fill form
     const title = `Test Todo ${Date.now()}`;
@@ -62,7 +64,8 @@ test.describe('Todo Basic Operations', () => {
     
     // First create a todo
     await page.click('button:has-text("Add Todo")');
-    await page.waitForSelector('[role="dialog"]');
+    // Wait for form to appear - could be inline or in a dialog
+    await page.waitForSelector('h2:has-text("New Todo")', { state: 'visible', timeout: 10000 });
     
     const title = `Delete Test ${Date.now()}`;
     await page.fill('input[name="title"]', title);
@@ -92,7 +95,8 @@ test.describe('Todo Basic Operations', () => {
     
     // First create a todo
     await page.click('button:has-text("Add Todo")');
-    await page.waitForSelector('[role="dialog"]');
+    // Wait for form to appear - could be inline or in a dialog
+    await page.waitForSelector('h2:has-text("New Todo")', { state: 'visible', timeout: 10000 });
     
     const title = `Status Test ${Date.now()}`;
     await page.fill('input[name="title"]', title);
