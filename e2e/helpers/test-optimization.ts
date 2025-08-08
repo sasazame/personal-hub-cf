@@ -225,24 +225,20 @@ export async function runInParallel<T>(
   maxConcurrency = 4
 ): Promise<T[]> {
   const results: (T | undefined)[] = new Array(tasks.length);
-  const executing: Promise<void>[] = [];
+  const executing = new Set<Promise<void>>();
   
   for (let i = 0; i < tasks.length; i++) {
     const index = i;
     const promise = tasks[index]().then(result => {
       results[index] = result;
+    }).finally(() => {
+      executing.delete(promise);
     });
     
-    executing.push(promise);
+    executing.add(promise);
     
-    if (executing.length >= maxConcurrency) {
+    if (executing.size >= maxConcurrency) {
       await Promise.race(executing);
-      // Remove completed promises
-      const settledPromises = await Promise.allSettled(executing);
-      const completedIndex = settledPromises.findIndex(p => p.status === 'fulfilled');
-      if (completedIndex >= 0) {
-        executing.splice(completedIndex, 1);
-      }
     }
   }
   

@@ -227,23 +227,33 @@ test.describe('CI Critical Path Tests', () => {
     const testData = getTestData();
     await registerAndLogin(page, testData);
     
+    // Wait for page to be fully loaded and interactive
+    await page.waitForLoadState('networkidle');
+    
     // Find and click user menu button (chevron icon)
-    await page.waitForTimeout(1000); // Wait for UI to be stable
     const userMenuButton = page.locator('button').filter({ has: page.locator('[class*="ChevronDown"]') }).first();
+    await expect(userMenuButton).toBeVisible();
     await userMenuButton.click();
     
     // Wait for dropdown menu to appear
-    await page.waitForTimeout(500);
+    const logoutButton = page.locator('button').filter({ hasText: /logout/i }).first();
+    await expect(logoutButton).toBeVisible({ timeout: 5000 });
+    
+    // Set up promise to wait for navigation
+    const navigationPromise = page.waitForURL(/\/$/, { timeout: 10000 });
     
     // Click logout button
-    const logoutButton = page.locator('button').filter({ hasText: /logout/i }).first();
     await logoutButton.click();
     
-    // Wait for navigation to complete (force redirect happens via window.location.href)
-    await page.waitForTimeout(2000);
+    // Wait for navigation to complete
+    await navigationPromise;
     
-    // Should be on landing page now
+    // Verify logout was successful
     await expect(page).toHaveURL(/\/$/);
+    
+    // Verify session is cleared by checking for landing page elements
+    await expect(page.locator('h1').first()).toBeVisible();
+    await expect(page.locator('text=/Get Started|Sign Up|Login/i')).toBeVisible();
     
     // Try to access protected route
     await page.goto('/dashboard');

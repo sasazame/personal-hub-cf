@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { registerAndLogin } from './helpers/auth-helpers';
 
 // Helper function to click kebab menu and select an option
 async function clickTodoMenuOption(page: Page, todoTitle: string, optionName: string) {
@@ -7,40 +8,6 @@ async function clickTodoMenuOption(page: Page, todoTitle: string, optionName: st
   await todoContainer.locator('button svg').last().click();
   // Click the menu option
   await page.locator('button').filter({ hasText: optionName }).click();
-}
-
-// Helper function to register and login
-async function registerAndLogin(page: Page) {
-  const timestamp = Date.now().toString().slice(-6);
-  const username = `user${timestamp}`;
-  const email = `${username}@test.com`;
-  const password = 'Test123456!';
-  
-  // Register
-  await page.goto('/register');
-  await page.waitForLoadState('networkidle');
-  
-  await page.fill('input[name="username"]', username);
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', password);
-  await page.fill('input[name="confirmPassword"]', password);
-  await page.click('button[type="submit"]');
-  
-  // Wait for redirect to dashboard or login
-  await Promise.race([
-    page.waitForURL('**/dashboard', { timeout: 5000 }),
-    page.waitForURL('**/login**', { timeout: 5000 })
-  ]);
-  
-  // If on login page, login
-  if (page.url().includes('/login')) {
-    await page.fill('input[name="email"]', email);
-    await page.fill('input[name="password"]', password);
-    await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard', { timeout: 5000 });
-  }
-  
-  return { username, email, password };
 }
 
 test.describe('Todo Basic Operations', () => {
