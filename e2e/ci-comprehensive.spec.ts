@@ -44,45 +44,36 @@ test.describe('CI Comprehensive Tests', () => {
     });
 
     test('should handle logout correctly', async ({ page }) => {
-      await registerAndLogin(page);
+      // Register and login, capturing the user data
+      const testData = await registerAndLogin(page);
       
       // Wait for dashboard to fully load
       await page.waitForLoadState('networkidle');
       
-      // Find and click user menu or logout button - try multiple strategies
-      const userMenuButton = page.locator('button').filter({ has: page.locator('.rounded-full, [class*="avatar"], img[alt*="avatar"], img[alt*="user"]') });
+      // Find and click user menu button using the username (like ci-critical test does)
+      const userMenuButton = page.locator('button').filter({ hasText: testData.username });
+      await expect(userMenuButton).toBeVisible({ timeout: 10000 });
+      await userMenuButton.click();
       
-      // Try to find and click the user menu first
-      const menuVisible = await userMenuButton.first().isVisible({ timeout: 3000 }).catch(() => false);
+      // Wait for dropdown menu to appear
+      await page.waitForTimeout(500);
       
-      if (menuVisible) {
-        await userMenuButton.first().click();
-        await page.waitForTimeout(500);
-        
-        // Now look for logout in the dropdown
-        const dropdownLogout = page.locator('button:has-text("Logout"), button:has-text("Sign out"), a:has-text("Logout"), a:has-text("Sign out")');
-        await dropdownLogout.first().click();
-      } else {
-        // Try direct logout button if no dropdown
-        const directLogout = page.locator('button:has-text("Logout"), button:has-text("Sign out"), a:has-text("Logout"), a:has-text("Sign out")');
-        
-        if (await directLogout.first().isVisible({ timeout: 2000 }).catch(() => false)) {
-          await directLogout.first().click();
-        } else {
-          // Last resort - navigate to logout URL if available
-          await page.goto('/logout').catch(() => {});
-        }
-      }
+      // Find and click logout button in dropdown
+      const logoutButton = page.locator('button').filter({ hasText: /logout/i }).first();
+      await expect(logoutButton).toBeVisible({ timeout: 5000 });
       
-      // Wait for redirect
-      await page.waitForTimeout(1000);
+      // Click logout
+      await logoutButton.click();
       
-      // Should redirect to landing or login
-      await expect(page).toHaveURL(/\/(landing|login|\/)/, { timeout: 10000 });
+      // Wait for redirect to landing/login page
+      await page.waitForURL(url => {
+        const path = url.pathname;
+        return path === '/' || path === '/landing' || path === '/login';
+      }, { timeout: 10000 });
       
-      // Verify user is logged out by checking for login form
-      await page.goto('/login');
-      await expect(page.locator('input[name="email"]')).toBeVisible({ timeout: 5000 });
+      // Verify we're on the landing or login page
+      const currentUrl = page.url();
+      expect(currentUrl).toMatch(/\/(landing|login|$)/);
     });
   });
 
@@ -156,7 +147,8 @@ test.describe('CI Comprehensive Tests', () => {
 
   test.describe('API Health Checks', () => {
     test('should verify API endpoints are responsive', async ({ request }) => {
-      const apiUrl = process.env.VITE_API_BASE_URL || 'http://localhost:8788';
+      // Use the correct port based on environment
+      const apiUrl = process.env.VITE_API_BASE_URL || (process.env.CI ? 'http://localhost:8788' : 'http://localhost:8787');
       
       // Health check
       const healthResponse = await request.get(`${apiUrl}/health`);
