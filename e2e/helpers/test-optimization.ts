@@ -32,7 +32,7 @@ export interface OptimizedFixtures {
  * Optimized test fixture that provides pre-authenticated pages
  */
 export const test = base.extend<OptimizedFixtures>({
-  testUser: async (_, use) => {
+  testUser: async ({}, use) => {
     // Generate unique test user data
     const timestamp = Date.now().toString().slice(-10);
     const testUser = {

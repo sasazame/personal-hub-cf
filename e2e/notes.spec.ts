@@ -1,18 +1,49 @@
 import { test, expect } from '@playwright/test';
-import { login, TEST_USER, ensureLoggedOut } from './helpers/auth';
+
+// Helper function to register and login
+async function registerAndLogin(page) {
+  const timestamp = Date.now().toString().slice(-6);
+  const username = `user${timestamp}`;
+  const email = `${username}@test.com`;
+  const password = 'Test123456!';
+  
+  // Register
+  await page.goto('/register');
+  await page.waitForLoadState('networkidle');
+  
+  await page.fill('input[name="username"]', username);
+  await page.fill('input[name="email"]', email);
+  await page.fill('input[name="password"]', password);
+  await page.fill('input[name="confirmPassword"]', password);
+  await page.click('button[type="submit"]');
+  
+  // Wait for redirect to dashboard or login
+  await Promise.race([
+    page.waitForURL('**/dashboard', { timeout: 5000 }),
+    page.waitForURL('**/login**', { timeout: 5000 })
+  ]);
+  
+  // If on login page, login
+  if (page.url().includes('/login')) {
+    await page.fill('input[name="email"]', email);
+    await page.fill('input[name="password"]', password);
+    await page.click('button[type="submit"]');
+    await page.waitForURL('**/dashboard', { timeout: 5000 });
+  }
+  
+  return { username, email, password };
+}
 
 test.describe('Notes Feature E2E Tests', () => {
+  let testUser;
+  
   test.beforeEach(async ({ page }) => {
-    // Set English locale
-    await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
-    
-    // Ensure clean state and login
-    await ensureLoggedOut(page);
-    await page.goto('/login');
-    await login(page, TEST_USER.email, TEST_USER.password);
+    // Register and login
+    testUser = await registerAndLogin(page);
     
     // Navigate to notes
     await page.goto('/notes');
+    await page.waitForLoadState('networkidle');
     await expect(page.getByRole('heading', { name: 'Notes' })).toBeVisible();
   });
 

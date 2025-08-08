@@ -8,7 +8,7 @@ test.describe('Basic Authentication Flow', () => {
     await page.waitForLoadState('networkidle');
     
     // Should show landing page
-    expect(page.url()).toBe('http://localhost:3000/');
+    expect(page.url()).toMatch(/\/$/);
     
     // Check for landing page elements
     await expect(page.locator('h1:has-text("Your Life,")')).toBeVisible();

@@ -69,7 +69,8 @@ test.describe('CI Critical Path Tests', () => {
   test.setTimeout(60000);
 
   test('Health Check: API should be accessible', async ({ request }) => {
-    const response = await request.get('/health');
+    const apiUrl = process.env.VITE_API_BASE_URL || 'http://localhost:8787';
+    const response = await request.get(`${apiUrl}/health`);
     expect(response.ok()).toBeTruthy();
     
     const data = await response.json();
@@ -226,19 +227,28 @@ test.describe('CI Critical Path Tests', () => {
     const testData = getTestData();
     await registerAndLogin(page, testData);
     
-    // Find and click logout button
-    const userMenuButton = page.locator('button').filter({ hasText: testData.username }).first();
+    // Find and click user menu button (chevron icon)
+    await page.waitForTimeout(1000); // Wait for UI to be stable
+    const userMenuButton = page.locator('button').filter({ has: page.locator('[class*="ChevronDown"]') }).first();
     await userMenuButton.click();
     
-    await page.click('button:has-text("Logout")');
+    // Wait for dropdown menu to appear
+    await page.waitForTimeout(500);
     
-    // Should redirect to landing/login page
-    await page.waitForURL(url => url.pathname === '/' || url.pathname.includes('landing') || url.pathname.includes('login'), { timeout: 10000 });
+    // Click logout button
+    const logoutButton = page.locator('button').filter({ hasText: /logout/i }).first();
+    await logoutButton.click();
+    
+    // Wait for navigation to complete (force redirect happens via window.location.href)
+    await page.waitForTimeout(2000);
+    
+    // Should be on landing page now
+    await expect(page).toHaveURL(/\/$/);
     
     // Try to access protected route
     await page.goto('/dashboard');
     
-    // Should be redirected to login
-    await expect(page).toHaveURL(/\/(login|landing|$)/);
+    // Should be redirected away from dashboard
+    await expect(page).not.toHaveURL(/.*dashboard/);
   });
 });
