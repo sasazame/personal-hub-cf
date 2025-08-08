@@ -282,7 +282,7 @@ test.describe('Notes Feature E2E Tests', () => {
     
     // Fill only title
     await page.fill('input[name="title"]', 'Test Title');
-    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    let createButton = page.locator('button[type="submit"]:has-text("Create")');
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     await createButton.click();
     
@@ -292,7 +292,7 @@ test.describe('Notes Feature E2E Tests', () => {
     
     // Fill content
     await page.fill('textarea[name="content"]', 'Test content');
-    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    createButton = page.locator('button[type="submit"]:has-text("Create")');
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     await createButton.click();
     
