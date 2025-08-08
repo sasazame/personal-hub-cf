@@ -1,57 +1,11 @@
 import { test, expect } from '@playwright/test';
-
-// Helper function to register and login
-async function registerAndLogin(page, timestamp: string) {
-  // Register
-  await page.goto('/register');
-  await page.waitForLoadState('networkidle');
-  
-  const username = `user${timestamp}`;
-  const email = `${username}@test.com`;
-  const password = 'Test123456!';
-  
-  await page.fill('input[name="username"]', username);
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', password);
-  await page.fill('input[name="confirmPassword"]', password);
-  await page.click('button[type="submit"]');
-  
-  // Wait for redirect - could be either dashboard (auto-login) or login page
-  await Promise.race([
-    page.waitForURL('**/dashboard', { timeout: 5000 }),
-    page.waitForURL('**/login**', { timeout: 5000 })
-  ]);
-  
-  // If we're on login page, need to login
-  if (page.url().includes('/login')) {
-    await page.fill('input[name="email"]', email);
-    await page.fill('input[name="password"]', password);
-    await page.click('button[type="submit"]');
-    
-    // Wait for the login API to succeed
-    await page.waitForResponse(response =>
-      response.url().endsWith('/api/v1/auth/login') && response.status() === 200
-    );
-    
-    // Wait for dashboard after login
-    await page.waitForURL('**/dashboard', { timeout: 5000 });
-  }
-  
-  // Wait until the CSRF cookie is set in the browser
-  await page.waitForFunction(() => document.cookie.includes('csrf-token'));
-  
-  
-  return { username, email, password };
-}
+import { registerAndLogin } from './helpers/auth-helpers';
 
 test.describe('CI Critical Path Tests', () => {
   test.setTimeout(120000);
-  
-  // Use same timestamp for all tests in the suite to maintain session
-  const suiteTimestamp = Date.now().toString().slice(-6);
 
   test('should register and login', async ({ page }) => {
-    await registerAndLogin(page, suiteTimestamp);
+    await registerAndLogin(page);
     
     // Verify we're on dashboard
     await expect(page).toHaveURL(/.*dashboard/);
@@ -60,8 +14,7 @@ test.describe('CI Critical Path Tests', () => {
 
   test('should create and complete a todo', async ({ page }) => {
     // Register and login
-    const timestamp = Date.now().toString().slice(-6);
-    await registerAndLogin(page, timestamp);
+    await registerAndLogin(page);
     
     // Navigate to todos
     await page.goto('/todos');
@@ -111,8 +64,7 @@ test.describe('CI Critical Path Tests', () => {
 
   test('should create a note', async ({ page }) => {
     // Register and login
-    const timestamp = Date.now().toString().slice(-6);
-    await registerAndLogin(page, timestamp);
+    await registerAndLogin(page);
     
     // Navigate to notes
     await page.goto('/notes');
