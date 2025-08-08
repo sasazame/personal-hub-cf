@@ -175,7 +175,7 @@ app.post('/sessions', zValidator('json', createSessionSchema, springBootValidato
     if (activeSession) {
       return c.json(
         createLocalizedError('CONFLICT', c, { detail: 'Already have an active session' }),
-        StatusCodes.CONFLICT as ContentfulStatusCode as ContentfulStatusCode
+        StatusCodes.CONFLICT as ContentfulStatusCode
       );
     }
     
@@ -514,7 +514,7 @@ app.put('/config', zValidator('json', configSchema, springBootValidator), async 
       };
       
       const result = await db.insert(pomodoroConfigs).values(newConfig).returning();
-      return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode as ContentfulStatusCode);
+      return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
     }
   } catch (error) {
     console.error('Update config error:', error);

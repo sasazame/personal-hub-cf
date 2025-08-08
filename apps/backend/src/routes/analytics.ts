@@ -332,7 +332,9 @@ app.get('/goals-progress', async (c) => {
         elapsedDays,
         expectedAchievements,
         actualAchievements: goal.achievementCount,
-        progressPercentage: (goal.achievementCount / expectedAchievements) * 100 || 0,
+        progressPercentage: expectedAchievements
+          ? (goal.achievementCount / expectedAchievements) * 100
+          : 0,
         isOnTrack: goal.achievementCount >= expectedAchievements,
       };
     });

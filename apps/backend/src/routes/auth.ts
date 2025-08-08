@@ -77,6 +77,7 @@ function clearAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variables 
     sameSite: sameSite as 'None' | 'Lax',
     path: '/',
     maxAge: 0, // This immediately expires the cookie
+    expires: new Date(0), // Also set expires for older browsers
   };
   
   // Clear cookies by setting them to empty values with immediate expiration
@@ -261,7 +262,7 @@ app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootVa
       const message = language === 'ja' ? 'アカウントが無効です' : 'Account is disabled';
       return c.json(
         createLocalizedError('FORBIDDEN', c, { detail: message }),
-        StatusCodes.FORBIDDEN as ContentfulStatusCode as ContentfulStatusCode
+        StatusCodes.FORBIDDEN as ContentfulStatusCode
       );
     }
     
@@ -579,12 +580,12 @@ app.get('/oidc/github/authorize', (c) => {
 // Placeholder for OAuth callbacks
 app.post('/oidc/google/callback', (c) => {
   // Match Spring Boot - returns 403 for invalid callback
-  return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode as ContentfulStatusCode);
+  return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode);
 });
 
 app.post('/oidc/github/callback', (c) => {
   // Match Spring Boot - returns 403 for invalid callback
-  return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode as ContentfulStatusCode);
+  return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode);
 });
 
 // POST /auth/logout - Spring Boot endpoint

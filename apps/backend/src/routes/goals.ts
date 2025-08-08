@@ -105,7 +105,7 @@ app.post('/', zValidator('json', createGoalSchema, springBootValidator), async (
     
     const result = await db.insert(goals).values(newGoal).returning();
     
-    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode as ContentfulStatusCode);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Create goal error:', error);
     return c.json(
@@ -261,7 +261,7 @@ app.post('/:id/achievements', zValidator('json', achievementSchema, springBootVa
     if (existing) {
       return c.json(
         createLocalizedError('CONFLICT', c, { detail: 'Achievement already recorded for this date' }),
-        StatusCodes.CONFLICT as ContentfulStatusCode as ContentfulStatusCode
+        StatusCodes.CONFLICT as ContentfulStatusCode
       );
     }
     
@@ -273,7 +273,7 @@ app.post('/:id/achievements', zValidator('json', achievementSchema, springBootVa
       })
       .returning();
     
-    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode as ContentfulStatusCode);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Create achievement error:', error);
     return c.json(

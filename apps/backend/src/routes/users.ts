@@ -99,7 +99,7 @@ app.put('/profile', zValidator('json', updateProfileSchema, springBootValidator)
       if (existing && existing.id !== userId) {
         return c.json(
           createValidationError({ username: 'Username already taken' }),
-          StatusCodes.CONFLICT as ContentfulStatusCode as ContentfulStatusCode
+          StatusCodes.CONFLICT as ContentfulStatusCode
         );
       }
     }
@@ -217,7 +217,7 @@ app.put('/email', zValidator('json', updateEmailSchema, springBootValidator), as
     if (existing) {
       return c.json(
         createLocalizedError('CONFLICT', c, { detail: 'Email already in use' }),
-        StatusCodes.CONFLICT as ContentfulStatusCode as ContentfulStatusCode
+        StatusCodes.CONFLICT as ContentfulStatusCode
       );
     }
     
@@ -322,11 +322,9 @@ app.delete('/social-accounts/:provider', async (c) => {
     // Don't allow removing last auth method
     if (!user.password && socialAccounts.length <= 1) {
       return c.json(
-        {
-          code: 'VALIDATION_ERROR',
-          message: 'Cannot remove the last authentication method. Please set a password first.',
-          timestamp: new Date().toISOString()
-        },
+        createLocalizedError('VALIDATION_ERROR', c, {
+          detail: 'Cannot remove the last authentication method. Please set a password first.'
+        }),
         400
       );
     }
@@ -380,7 +378,7 @@ app.delete('/account', zValidator('json', z.object({ password: z.string() }), sp
       if (!valid) {
         return c.json(
           createValidationError({ password: 'Password is incorrect' }),
-          StatusCodes.UNAUTHORIZED as ContentfulStatusCode as ContentfulStatusCode
+          StatusCodes.UNAUTHORIZED as ContentfulStatusCode
         );
       }
     }

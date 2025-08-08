@@ -59,7 +59,7 @@ export async function authMiddleware(
       setCookie(c, SESSION_COOKIE, JSON.stringify(updatedSession), {
         httpOnly: true,
         secure: c.env?.ENVIRONMENT === 'production',
-        sameSite: c.env?.ENVIRONMENT === 'production' ? 'Strict' : 'Lax',
+        sameSite: c.env?.ENVIRONMENT === 'production' ? 'None' : 'Lax',
         path: '/',
         maxAge: 30 * 60,
       });
@@ -117,7 +117,7 @@ export async function authMiddleware(
           setCookie(c, SESSION_COOKIE, JSON.stringify(session), {
             httpOnly: true,
             secure: c.env?.ENVIRONMENT === 'production',
-            sameSite: c.env?.ENVIRONMENT === 'production' ? 'Strict' : 'Lax',
+            sameSite: c.env?.ENVIRONMENT === 'production' ? 'None' : 'Lax',
             path: '/',
             maxAge: 30 * 60,
           });

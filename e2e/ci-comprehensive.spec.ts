@@ -87,7 +87,9 @@ test.describe('CI Comprehensive Tests', () => {
       await page.waitForSelector('h1:has-text("TODO"), h1:has-text("Tasks")', { timeout: 10000 });
       
       // Create todo
-      const addButton = page.locator('button:has-text("Add Todo"), button:has-text("New Todo"), button:has-text("Create Todo")');
+      const addButton = page.locator('button:has-text("Add Todo")')
+        .or(page.locator('button:has-text("New Todo")'))
+        .or(page.locator('button:has-text("Create Todo")'));
       await addButton.click();
       
       await page.fill('input[name="title"]', 'CI Todo Test');
@@ -100,8 +102,10 @@ test.describe('CI Comprehensive Tests', () => {
       await expect(page.locator('text="CI Todo Test"')).toBeVisible({ timeout: 10000 });
       
       // Mark as complete if possible
-      const completeButton = page.locator('button:has-text("Complete"), button:has-text("Mark complete"), input[type="checkbox"]');
-      if (await completeButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+      const completeButton = page.locator('button:has-text("Complete")')
+        .or(page.locator('button:has-text("Mark complete")'))
+        .or(page.locator('input[type="checkbox"]'));
+      if (await completeButton.isVisible()) {
         await completeButton.first().click();
         await page.waitForTimeout(1000);
       }
@@ -119,7 +123,7 @@ test.describe('CI Comprehensive Tests', () => {
         // Find navigation link - try multiple selectors
         const navLink = page.locator(`a:has-text("${section.name}"), nav >> text="${section.name}"`);
         
-        if (await navLink.isVisible({ timeout: 2000 }).catch(() => false)) {
+        if (await navLink.isVisible()) {
           await navLink.click();
           await expect(page).toHaveURL(section.url, { timeout: 10000 });
           
@@ -135,7 +139,7 @@ test.describe('CI Comprehensive Tests', () => {
       await expect(userIndicator.first()).toBeVisible({ timeout: 10000 });
       
       // Try to navigate to profile if available
-      if (await page.locator('a[href*="profile"]').isVisible({ timeout: 2000 }).catch(() => false)) {
+      if (await page.locator('a[href*="profile"]').isVisible()) {
         await page.click('a[href*="profile"]');
         await page.waitForLoadState('networkidle');
         
@@ -183,9 +187,10 @@ test.describe('CI Comprehensive Tests', () => {
       
       // Try to create a todo
       await page.goto('/todos');
-      const addButton = page.locator('button:has-text("Add Todo"), button:has-text("New Todo")');
+      const addButton = page.locator('button:has-text("Add Todo")')
+        .or(page.locator('button:has-text("New Todo")'));
       
-      if (await addButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+      if (await addButton.isVisible()) {
         await addButton.click();
         await page.fill('input[name="title"]', 'Network Test');
         await page.click('button[type="submit"]');

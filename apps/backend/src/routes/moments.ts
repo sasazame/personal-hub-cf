@@ -312,7 +312,7 @@ app.post('/', zValidator('json', createMomentSchema, springBootValidator), async
     
     const result = await db.insert(moments).values(newMoment).returning();
     
-    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode as ContentfulStatusCode);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Create moment error:', error);
     return c.json(

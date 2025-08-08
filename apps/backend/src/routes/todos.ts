@@ -175,7 +175,7 @@ app.post('/', zValidator('json', createTodoSchema, springBootValidator), async (
     const result = await db.insert(todos).values(newTodo).returning();
     const insertedTodo = Array.isArray(result) ? result[0] : result;
     
-    return c.json(insertedTodo, StatusCodes.CREATED as ContentfulStatusCode as ContentfulStatusCode);
+    return c.json(insertedTodo, StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Create todo error:', error);
     return c.json(
