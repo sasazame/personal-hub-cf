@@ -24,15 +24,15 @@ test.describe('Notes Feature E2E Tests', () => {
     // Click add note button
     await page.getByRole('button', { name: 'New Note' }).click();
     
-    // Check modal appears
-    await expect(page.getByRole('heading', { name: 'Add Note' })).toBeVisible();
+    // Wait for modal to appear
+    await page.waitForSelector('input[placeholder="Enter note title"]', { state: 'visible', timeout: 10000 });
     
     // Fill form
     const noteTitle = `Test Note ${Date.now()}`;
     const noteContent = 'This is a test note content with some **markdown** text.';
     
-    await page.fill('input[name="title"]', noteTitle);
-    await page.fill('textarea[name="content"]', noteContent);
+    await page.fill('input[placeholder="Enter note title"]', noteTitle);
+    await page.fill('textarea[placeholder="Enter note content"]', noteContent);
     
     // Add tags
     await page.fill('input[placeholder="Enter new tag"]', 'test-tag');
@@ -41,7 +41,9 @@ test.describe('Notes Feature E2E Tests', () => {
     await page.keyboard.press('Enter');
     
     // Submit form
-    await page.getByRole('button', { name: 'Create' }).click();
+    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    await expect(createButton).toBeEnabled({ timeout: 5000 });
+    await createButton.click();
     
     // Verify note appears in list
     await expect(page.locator('.bg-card').filter({ hasText: noteTitle })).toBeVisible();
@@ -57,9 +59,11 @@ test.describe('Notes Feature E2E Tests', () => {
     const noteTitle = `View Test ${Date.now()}`;
     const noteContent = 'This note has detailed content that should be viewable.';
     
-    await page.fill('input[name="title"]', noteTitle);
-    await page.fill('textarea[name="content"]', noteContent);
-    await page.getByRole('button', { name: 'Create' }).click();
+    await page.fill('input[placeholder="Enter note title"]', noteTitle);
+    await page.fill('textarea[placeholder="Enter note content"]', noteContent);
+    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    await expect(createButton).toBeEnabled({ timeout: 5000 });
+    await createButton.click();
     
     // Wait for note to appear
     const noteCard = page.locator('.bg-card').filter({ hasText: noteTitle });
@@ -83,7 +87,9 @@ test.describe('Notes Feature E2E Tests', () => {
     const noteTitle = `Edit Test ${Date.now()}`;
     await page.fill('input[name="title"]', noteTitle);
     await page.fill('textarea[name="content"]', 'Original content');
-    await page.getByRole('button', { name: 'Create' }).click();
+    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    await expect(createButton).toBeEnabled({ timeout: 5000 });
+    await createButton.click();
     
     // Wait for note to appear
     const noteCard = page.locator('.bg-card').filter({ hasText: noteTitle });
@@ -92,20 +98,22 @@ test.describe('Notes Feature E2E Tests', () => {
     // Click edit button
     await noteCard.locator('button svg.lucide-pencil').click();
     
-    // Check edit form appears
-    await expect(page.getByRole('heading', { name: 'Edit Note' })).toBeVisible();
+    // Wait for edit form to appear
+    await page.waitForSelector('input[placeholder="Enter note title"]', { state: 'visible', timeout: 10000 });
     
     // Modify content
     const newTitle = noteTitle + ' - Edited';
-    await page.fill('input[name="title"]', newTitle);
-    await page.fill('textarea[name="content"]', 'Updated content with changes');
+    await page.fill('input[placeholder="Enter note title"]', newTitle);
+    await page.fill('textarea[placeholder="Enter note content"]', 'Updated content with changes');
     
     // Add a new tag
     await page.fill('input[placeholder="Add tags..."]', 'edited');
     await page.keyboard.press('Enter');
     
     // Save changes
-    await page.getByRole('button', { name: 'Update' }).click();
+    const updateButton = page.locator('button[type="submit"]:has-text("Update")');
+    await expect(updateButton).toBeEnabled({ timeout: 5000 });
+    await updateButton.click();
     
     // Verify changes
     await expect(page.locator('.bg-card').filter({ hasText: newTitle })).toBeVisible();
@@ -118,7 +126,9 @@ test.describe('Notes Feature E2E Tests', () => {
     const noteTitle = `Delete Test ${Date.now()}`;
     await page.fill('input[name="title"]', noteTitle);
     await page.fill('textarea[name="content"]', 'To be deleted');
-    await page.getByRole('button', { name: 'Create' }).click();
+    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    await expect(createButton).toBeEnabled({ timeout: 5000 });
+    await createButton.click();
     
     // Wait for note to appear
     const noteCard = page.locator('.bg-card').filter({ hasText: noteTitle });
@@ -147,7 +157,9 @@ test.describe('Notes Feature E2E Tests', () => {
       await page.getByRole('button', { name: 'New Note' }).click();
       await page.fill('input[name="title"]', note.title);
       await page.fill('textarea[name="content"]', note.content);
-      await page.getByRole('button', { name: 'Create' }).click();
+      const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    await expect(createButton).toBeEnabled({ timeout: 5000 });
+    await createButton.click();
       await page.waitForTimeout(500); // Brief wait between creations
     }
     
@@ -189,7 +201,9 @@ test.describe('Notes Feature E2E Tests', () => {
         await page.keyboard.press('Enter');
       }
       
-      await page.getByRole('button', { name: 'Create' }).click();
+      const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    await expect(createButton).toBeEnabled({ timeout: 5000 });
+    await createButton.click();
       await page.waitForTimeout(500);
     }
     
@@ -226,7 +240,9 @@ test.describe('Notes Feature E2E Tests', () => {
       await page.keyboard.press('Enter');
     }
     
-    await page.getByRole('button', { name: 'Create' }).click();
+    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    await expect(createButton).toBeEnabled({ timeout: 5000 });
+    await createButton.click();
     
     // Verify all tags are displayed
     for (const tag of tags) {
@@ -241,7 +257,9 @@ test.describe('Notes Feature E2E Tests', () => {
     await page.locator('span').filter({ hasText: 'urgent' }).locator('button').click();
     
     // Save changes
-    await page.getByRole('button', { name: 'Update' }).click();
+    const updateButton = page.locator('button[type="submit"]:has-text("Update")');
+    await expect(updateButton).toBeEnabled({ timeout: 5000 });
+    await updateButton.click();
     
     // Verify tag was removed
     await expect(page.locator('span').filter({ hasText: 'urgent' })).not.toBeVisible();
@@ -254,7 +272,9 @@ test.describe('Notes Feature E2E Tests', () => {
     await page.getByRole('button', { name: 'New Note' }).click();
     
     // Try to submit empty form
-    await page.getByRole('button', { name: 'Create' }).click();
+    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    await expect(createButton).toBeEnabled({ timeout: 5000 });
+    await createButton.click();
     
     // Should show validation errors
     await expect(page.getByText('Title is required')).toBeVisible();
@@ -262,7 +282,9 @@ test.describe('Notes Feature E2E Tests', () => {
     
     // Fill only title
     await page.fill('input[name="title"]', 'Test Title');
-    await page.getByRole('button', { name: 'Create' }).click();
+    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    await expect(createButton).toBeEnabled({ timeout: 5000 });
+    await createButton.click();
     
     // Should still show content error
     await expect(page.getByText('Title is required')).not.toBeVisible();
@@ -270,7 +292,9 @@ test.describe('Notes Feature E2E Tests', () => {
     
     // Fill content
     await page.fill('textarea[name="content"]', 'Test content');
-    await page.getByRole('button', { name: 'Create' }).click();
+    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    await expect(createButton).toBeEnabled({ timeout: 5000 });
+    await createButton.click();
     
     // Should successfully create
     await expect(page.locator('.bg-card').filter({ hasText: 'Test Title' })).toBeVisible();
@@ -285,7 +309,9 @@ test.describe('Notes Feature E2E Tests', () => {
     
     await page.fill('input[name="title"]', noteTitle);
     await page.fill('textarea[name="content"]', longContent);
-    await page.getByRole('button', { name: 'Create' }).click();
+    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    await expect(createButton).toBeEnabled({ timeout: 5000 });
+    await createButton.click();
     
     // Verify note card shows truncated content
     const noteCard = page.locator('.bg-card').filter({ hasText: noteTitle });
@@ -311,7 +337,9 @@ test.describe('Notes Feature E2E Tests', () => {
     
     await page.fill('input[name="title"]', specialTitle);
     await page.fill('textarea[name="content"]', specialContent);
-    await page.getByRole('button', { name: 'Create' }).click();
+    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    await expect(createButton).toBeEnabled({ timeout: 5000 });
+    await createButton.click();
     
     // Verify special characters are properly displayed
     await expect(page.locator('.bg-card').filter({ hasText: specialTitle })).toBeVisible();

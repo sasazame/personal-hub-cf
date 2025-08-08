@@ -104,16 +104,18 @@ test.describe('Todo Basic Operations', () => {
     // Click edit using kebab menu
     await clickTodoMenuOption(page, title, 'Edit');
     
-    // Wait for edit form - updated to match current modal
-    await expect(page.locator('h2:has-text("Edit TODO")')).toBeVisible();
+    // Wait for edit form
+    await page.waitForSelector('select[name="status"]', { state: 'visible', timeout: 10000 });
     
     // Change status
     await page.selectOption('select[name="status"]', 'DONE');
     
     // Save - updated to match current button text
-    await page.click('button:has-text("Update TODO")');
+    const updateButton = page.locator('button[type="submit"]:has-text("Update")');
+    await updateButton.click();
     
-    // Verify status changed - look for 'Done' status badge
-    await expect(page.locator('span:has-text("Done")').first()).toBeVisible({ timeout: 5000 });
+    // Wait for modal to close and verify status changed
+    await page.waitForTimeout(1000);
+    await expect(page.locator('span.rounded-full:has-text("Done")')).toBeVisible({ timeout: 5000 });
   });
 });
