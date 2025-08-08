@@ -1,18 +1,13 @@
 import { test, expect } from '@playwright/test';
+import { registerAndLogin } from './helpers/auth-helpers';
 
 test.describe('Goals Management Integration', () => {
   test.beforeEach(async ({ page }) => {
-    // Login
-    await page.goto('http://localhost:3000/login');
-    await page.fill('input[name="email"]', 'mcp@example.com');
-    await page.fill('input[name="password"]', 'Test1234!');
-    await page.click('button[type="submit"]');
-    
-    // Wait for navigation
-    await page.waitForURL('**/dashboard');
+    // Register and login with a unique user
+    await registerAndLogin(page);
     
     // Navigate to goals
-    await page.goto('http://localhost:3000/goals');
+    await page.goto('/goals');
     await page.waitForLoadState('networkidle');
   });
 

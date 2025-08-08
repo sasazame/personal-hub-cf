@@ -13,7 +13,12 @@ export async function registerAndLogin(page: Page) {
   
   // Register
   await page.goto('/register');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(2000); // Give React time to hydrate
+  
+  // Wait for form to be ready
+  await page.waitForSelector('form', { state: 'visible', timeout: 15000 });
+  await page.waitForSelector('input[name="username"]', { state: 'visible', timeout: 15000 });
   
   await page.fill('input[name="username"]', username);
   await page.fill('input[name="email"]', email);
@@ -29,10 +34,14 @@ export async function registerAndLogin(page: Page) {
   
   // If on login page, login
   if (page.url().includes('/login')) {
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(1000); // Give React time to hydrate
+    await page.waitForSelector('form', { state: 'visible', timeout: 10000 });
+    
     await page.fill('input[name="email"]', email);
     await page.fill('input[name="password"]', password);
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard', { timeout: 5000 });
+    await page.waitForURL('**/dashboard', { timeout: 10000 });
   }
   
   return { username, email, password };

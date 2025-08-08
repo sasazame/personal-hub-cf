@@ -186,14 +186,14 @@ test.describe('CI Critical Path Tests', () => {
   });
 
   test('Logout: Should logout successfully', async ({ page }) => {
-    await registerAndLogin(page);
+    const testData = await registerAndLogin(page);
     
     // Wait for page to be fully loaded and interactive
     await page.waitForLoadState('networkidle');
     
-    // Find and click user menu button (chevron icon)
-    const userMenuButton = page.locator('button').filter({ has: page.locator('[class*="ChevronDown"]') }).first();
-    await expect(userMenuButton).toBeVisible();
+    // Find and click user menu button (has username and chevron icon)
+    const userMenuButton = page.locator('button').filter({ hasText: testData.username });
+    await expect(userMenuButton).toBeVisible({ timeout: 10000 });
     await userMenuButton.click();
     
     // Wait for dropdown menu to appear
