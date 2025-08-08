@@ -9,10 +9,10 @@ export default defineConfig({
   // Include critical CI tests and essential feature tests
   // Note: Excluding notes.spec.ts as it has complex UI interactions that are less critical
   testMatch: [
-    'ci.spec.ts',
-    'ci-critical.spec.ts',
-    'auth-basic.spec.ts',
-    'todo-basic.spec.ts'
+    'ci-comprehensive.spec.ts',  // New comprehensive test suite
+    'ci-critical.spec.ts',        // Critical path tests
+    'ci.spec.ts',                  // Original CI tests
+    'api-health.spec.ts'           // API health checks
   ],
   timeout: 30 * 1000,
   expect: {

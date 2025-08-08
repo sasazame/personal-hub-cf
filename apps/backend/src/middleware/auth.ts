@@ -1,6 +1,6 @@
 import { Context, Next } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
-import { getCookie, setCookie } from 'hono/cookie';
+import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import { eq } from 'drizzle-orm';
 import { users } from '../db/schema';
 import type { Bindings, Variables } from '../types';
@@ -30,8 +30,24 @@ export async function authMiddleware(
       const session: SessionData = JSON.parse(sessionCookie);
       if (Date.now() - session.lastActivity > SESSION_TIMEOUT) {
         // Session expired, clear all cookies
-        setCookie(c, ACCESS_TOKEN_COOKIE, '', { maxAge: 0 });
-        setCookie(c, SESSION_COOKIE, '', { maxAge: 0 });
+        const isProduction = c.env?.ENVIRONMENT === 'production';
+        const sameSite = isProduction ? 'None' : 'Lax';
+        
+        setCookie(c, ACCESS_TOKEN_COOKIE, '', { maxAge: 0, path: '/' });
+        setCookie(c, SESSION_COOKIE, '', { maxAge: 0, path: '/' });
+        
+        // Also delete cookies for better compatibility
+        deleteCookie(c, ACCESS_TOKEN_COOKIE, { 
+          path: '/',
+          secure: isProduction,
+          sameSite: sameSite as 'None' | 'Lax'
+        });
+        deleteCookie(c, SESSION_COOKIE, { 
+          path: '/',
+          secure: isProduction,
+          sameSite: sameSite as 'None' | 'Lax'
+        });
+        
         return c.json(
           createErrorResponse(ErrorCodes.UNAUTHORIZED, 'Session expired'),
           StatusCodes.UNAUTHORIZED as ContentfulStatusCode

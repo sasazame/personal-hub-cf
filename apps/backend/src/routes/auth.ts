@@ -19,7 +19,7 @@ import { springBootValidator } from '../utils/validation';
 import { authRateLimiter } from '../middleware/rate-limiter';
 import { generateAndSetCSRFToken } from '../middleware/csrf';
 import { authMiddleware } from '../middleware/auth';
-import { setCookie, getCookie } from 'hono/cookie';
+import { setCookie, getCookie, deleteCookie } from 'hono/cookie';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -79,9 +79,27 @@ function clearAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variables 
     maxAge: 0, // This immediately expires the cookie
   };
   
+  // Clear cookies by setting them to empty values with immediate expiration
   setCookie(c, ACCESS_TOKEN_COOKIE, '', cookieOptions);
   setCookie(c, REFRESH_TOKEN_COOKIE, '', cookieOptions);
   setCookie(c, SESSION_COOKIE, '', cookieOptions);
+  
+  // Also try to delete cookies explicitly for better browser compatibility
+  deleteCookie(c, ACCESS_TOKEN_COOKIE, {
+    path: '/',
+    secure: isProduction,
+    sameSite: sameSite as 'None' | 'Lax',
+  });
+  deleteCookie(c, REFRESH_TOKEN_COOKIE, {
+    path: '/',
+    secure: isProduction,
+    sameSite: sameSite as 'None' | 'Lax',
+  });
+  deleteCookie(c, SESSION_COOKIE, {
+    path: '/',
+    secure: isProduction,
+    sameSite: sameSite as 'None' | 'Lax',
+  });
 }
 
 // Validation schemas - matching Spring Boot requirements

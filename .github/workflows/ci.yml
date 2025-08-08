@@ -212,18 +212,29 @@ jobs:
           # Verify the server is accessible
           curl -f http://localhost:$ACTUAL_PORT || (echo "Frontend server not accessible" && exit 1)
           
-          # Run minimal smoke tests first for quick feedback
-          echo "Running minimal smoke tests..."
-          SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:$ACTUAL_PORT VITE_API_BASE_URL=http://localhost:8788 pnpm playwright test --config=playwright.ci.minimal.config.ts
+          # Set performance optimization environment variables
+          export SKIP_WEBSERVER=1
+          export E2E_BASE_URL=http://localhost:$ACTUAL_PORT
+          export VITE_API_BASE_URL=http://localhost:8788
+          export CI=true
           
-          # If smoke tests pass, run extended tests
+          # Run minimal smoke tests first for quick feedback (optimized config)
+          echo "Running minimal smoke tests..."
+          pnpm playwright test --config=playwright.ci.minimal.config.ts --reporter=dot
+          
+          # If smoke tests pass, run extended tests with optimized config
           echo "Smoke tests passed! Running extended test suite..."
-          SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:$ACTUAL_PORT VITE_API_BASE_URL=http://localhost:8788 pnpm playwright test --config=playwright.ci.extended.config.ts --reporter=github
+          pnpm playwright test --config=playwright.ci.extended.config.ts --reporter=github --workers=2
 
-          # On main branch or release PRs, run full test suite
+          # On main branch or release PRs, run full test suite with sharding for speed
           if [[ "${{ github.ref }}" == "refs/heads/main" ]] || [[ "${{ github.head_ref }}" == release/* ]]; then
-            echo "Running full test suite for main/release branch..."
-            SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:$ACTUAL_PORT VITE_API_BASE_URL=http://localhost:8788 pnpm playwright test --config=playwright.ci.full.config.ts --reporter=html
+            echo "Running full test suite for main/release branch with optimizations..."
+            # Run in parallel with sharding for better performance
+            pnpm playwright test --config=playwright.optimized.config.ts --reporter=json --shard=1/2 &
+            PID1=$!
+            pnpm playwright test --config=playwright.optimized.config.ts --reporter=json --shard=2/2 &
+            PID2=$!
+            wait $PID1 $PID2
           fi
 
       - name: Upload test results

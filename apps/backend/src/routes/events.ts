@@ -7,7 +7,8 @@ import { events, calendarSyncSettings } from '../db/schema';
 import type { Bindings, Variables } from '../types';
 import { authMiddleware } from '../middleware/auth';
 import { springBootValidator } from '../utils/validation';
-import { createErrorResponse, createValidationError, ErrorCodes, StatusCodes } from '../utils/spring-boot-compat';
+import { createValidationError, StatusCodes } from '../utils/spring-boot-compat';
+import { createLocalizedError } from '../utils/i18n';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -90,7 +91,7 @@ app.get('/', async (c) => {
   } catch (error) {
     console.error('Get events error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -126,7 +127,7 @@ app.get('/range', async (c) => {
   } catch (error) {
     console.error('Get events range error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -146,7 +147,7 @@ app.get('/:id', async (c) => {
     
     if (!event) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Event not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Event not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -155,7 +156,7 @@ app.get('/:id', async (c) => {
   } catch (error) {
     console.error('Get event error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -190,7 +191,7 @@ app.post('/', zValidator('json', createEventSchema, springBootValidator), async 
   } catch (error) {
     console.error('Create event error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -211,7 +212,7 @@ app.put('/:id', zValidator('json', updateEventSchema, springBootValidator), asyn
     
     if (!existing) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Event not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Event not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -238,7 +239,7 @@ app.put('/:id', zValidator('json', updateEventSchema, springBootValidator), asyn
   } catch (error) {
     console.error('Update event error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -258,7 +259,7 @@ app.delete('/:id', async (c) => {
     
     if (!existing) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Event not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Event not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -270,7 +271,7 @@ app.delete('/:id', async (c) => {
   } catch (error) {
     console.error('Delete event error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -290,7 +291,7 @@ app.get('/sync/settings', async (c) => {
   } catch (error) {
     console.error('Get sync settings error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -314,7 +315,7 @@ app.post('/sync/settings', zValidator('json', syncSettingsSchema, springBootVali
     
     if (existing) {
       return c.json(
-        createErrorResponse(ErrorCodes.CONFLICT, 'Settings already exist for this calendar'),
+        createLocalizedError('CONFLICT', c, { detail: 'Settings already exist for this calendar' }),
         StatusCodes.CONFLICT as ContentfulStatusCode as ContentfulStatusCode
       );
     }
@@ -336,7 +337,7 @@ app.post('/sync/settings', zValidator('json', syncSettingsSchema, springBootVali
   } catch (error) {
     console.error('Create sync settings error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -363,7 +364,7 @@ app.put('/sync/settings/:id', zValidator('json', syncSettingsSchema.partial(), s
     
     if (!result.length) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Settings not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Settings not found' }),
         404
       );
     }
@@ -372,7 +373,7 @@ app.put('/sync/settings/:id', zValidator('json', syncSettingsSchema.partial(), s
   } catch (error) {
     console.error('Update sync settings error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -394,7 +395,7 @@ app.delete('/sync/settings/:id', async (c) => {
     
     if (!result.length) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Settings not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Settings not found' }),
         404
       );
     }
@@ -403,7 +404,7 @@ app.delete('/sync/settings/:id', async (c) => {
   } catch (error) {
     console.error('Delete sync settings error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -426,7 +427,7 @@ app.post('/sync', async (c) => {
     
     if (!settings.length) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'No sync settings found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'No sync settings found' }),
         404
       );
     }
@@ -451,7 +452,7 @@ app.post('/sync', async (c) => {
   } catch (error) {
     console.error('Sync error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }

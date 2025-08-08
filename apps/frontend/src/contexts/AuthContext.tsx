@@ -172,15 +172,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = useCallback(async (): Promise<void> => {
     try {
+      // Clear state first to prevent any race conditions
+      dispatch({ type: 'AUTH_LOGOUT' })
+      setCachedCSRFToken(null)
+      
+      // Then send logout request to backend to clear cookies
       await apiClient.post('/api/v1/auth/logout')
+      
+      toast.success('You have been logged out successfully.')
     } catch (error) {
       console.warn('Logout request failed:', error)
-    } finally {
-      setCachedCSRFToken(null)
-      dispatch({ type: 'AUTH_LOGOUT' })
+      // Even if backend logout fails, we've already cleared frontend state
       toast.success('You have been logged out successfully.')
-      // Force navigation to landing page after logout
-      window.location.href = '/'
+    } finally {
+      // Use replace to prevent back button issues
+      window.location.replace('/')
     }
   }, [])
 
@@ -216,7 +222,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Check authentication on mount
   useEffect(() => {
-    checkAuth(0)
+    // Add a small delay to ensure cookies are properly set/cleared after navigation
+    const timeoutId = setTimeout(() => {
+      checkAuth(0)
+    }, 100)
+    
+    return () => clearTimeout(timeoutId)
   }, [checkAuth])
 
   const value: AuthContextType = useMemo(() => ({
