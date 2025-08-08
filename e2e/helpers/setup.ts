@@ -28,7 +28,10 @@ export async function createUniqueTestUser(page: Page) {
     await page.reload();
     
     // Wait for the form to be ready with more flexible selectors and increased timeout
-    await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(2000); // Give React time to hydrate
+    await page.waitForSelector('form', { state: 'visible', timeout: 15000 });
+    await page.waitForSelector('input[type="text"]', { state: 'visible', timeout: 15000 });
     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     
     // Use more robust selectors - find inputs by their position and type
@@ -108,8 +111,20 @@ export async function setupTestUser(page: Page) {
   // Try to register user
   try {
     await page.goto('/register');
+    
+    // Set English locale for i18n
+    await page.evaluate(() => {
+      localStorage.setItem('i18nextLng', 'en');
+    });
+    
+    // Reload to apply language setting
+    await page.reload();
+    
     // Wait for the form to be ready with more flexible selectors and increased timeout
-    await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(2000); // Give React time to hydrate
+    await page.waitForSelector('form', { state: 'visible', timeout: 15000 });
+    await page.waitForSelector('input[type="text"]', { state: 'visible', timeout: 15000 });
     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     
     // Use more robust selectors - find inputs by their position and type

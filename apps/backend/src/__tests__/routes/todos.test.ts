@@ -309,7 +309,7 @@ describe('Todos Routes', () => {
 
       expect(res.status).toBe(404);
       const body = await res.json() as APIErrorResponse;
-      expect(body.code).toBe('NOT_FOUND');
+      expect(body.code).toBe('TODO_NOT_FOUND');
     });
 
     it('should delete todo successfully', async () => {

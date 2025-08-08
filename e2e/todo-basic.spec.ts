@@ -1,55 +1,45 @@
 import { test, expect, Page } from '@playwright/test';
-import { createUniqueTestUser } from './helpers/setup';
-import { login } from './helpers/auth';
+import { registerAndLogin } from './helpers/auth-helpers';
 
 // Helper function to click kebab menu and select an option
 async function clickTodoMenuOption(page: Page, todoTitle: string, optionName: string) {
-  const todoContainer = page.locator('.bg-card').filter({ hasText: todoTitle });
-  // Click the kebab menu (ellipsis icon)
-  await todoContainer.locator('button svg').last().click();
+  // Find the todo item that contains both the title and has action buttons
+  const todoItem = page.locator('[class*="card"], [class*="todo-item"], div').filter({ hasText: todoTitle }).first();
+  // Click the kebab menu (ellipsis icon) - usually the last button in the todo item
+  await todoItem.locator('button').last().click();
   // Click the menu option
   await page.locator('button').filter({ hasText: optionName }).click();
 }
 
 test.describe('Todo Basic Operations', () => {
-  test.beforeEach(async ({ page }) => {
-    // Set English locale
-    await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
-  });
 
   test('should display empty state for new user', async ({ page }) => {
-    // Create a unique user for this test
-    const uniqueUser = await createUniqueTestUser(page);
-    
-    // Login with the unique user
-    await page.goto('/login');
-    await login(page, uniqueUser.email, uniqueUser.password);
+    // Register and login
+    await registerAndLogin(page);
     
     // Navigate to todos page
     await page.goto('/todos');
-    await expect(page.getByRole('heading', { name: 'TODO', exact: true })).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('heading', { name: 'TODOs' })).toBeVisible();
     
     // Check for empty state message - updated to match current translation
     await expect(page.locator('text=No TODOs found')).toBeVisible();
   });
 
   test('should create a new todo', async ({ page }) => {
-    // Create a unique user for this test
-    const uniqueUser = await createUniqueTestUser(page);
-    
-    // Login with the unique user
-    await page.goto('/login');
-    await login(page, uniqueUser.email, uniqueUser.password);
+    // Register and login
+    const testUser = await registerAndLogin(page);
     
     // Navigate to todos page
     await page.goto('/todos');
-    await expect(page.getByRole('heading', { name: 'TODO', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'TODOs' })).toBeVisible();
     
     // Click add todo button - updated to match current button text
-    await page.click('button:has-text("Add TODO")');
+    await page.click('button:has-text("Add Todo")');
     
     // Wait for form to appear
-    await expect(page.locator('h2:has-text("Create New TODO")')).toBeVisible();
+    // Wait for form to appear - could be inline or in a dialog
+    await page.waitForSelector('h2:has-text("New Todo")', { state: 'visible', timeout: 10000 });
     
     // Fill form
     const title = `Test Todo ${Date.now()}`;
@@ -58,31 +48,28 @@ test.describe('Todo Basic Operations', () => {
     await page.selectOption('select[name="priority"]', 'MEDIUM');
     
     // Submit - updated to match current button text
-    await page.click('button:has-text("Create TODO")');
+    await page.click('button[type="submit"]:has-text("Add Todo")');
     
     // Wait for todo to appear in the list
     await expect(page.locator('h3').filter({ hasText: title })).toBeVisible({ timeout: 5000 });
   });
 
   test('should delete a todo', async ({ page }) => {
-    // Create a unique user for this test
-    const uniqueUser = await createUniqueTestUser(page);
-    
-    // Login with the unique user
-    await page.goto('/login');
-    await login(page, uniqueUser.email, uniqueUser.password);
+    // Register and login
+    await registerAndLogin(page);
     
     // Navigate to todos page
     await page.goto('/todos');
-    await expect(page.getByRole('heading', { name: 'TODO', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'TODOs' })).toBeVisible();
     
     // First create a todo
-    await page.click('button:has-text("Add TODO")');
-    await expect(page.locator('h2:has-text("Create New TODO")')).toBeVisible();
+    await page.click('button:has-text("Add Todo")');
+    // Wait for form to appear - could be inline or in a dialog
+    await page.waitForSelector('h2:has-text("New Todo")', { state: 'visible', timeout: 10000 });
     
     const title = `Delete Test ${Date.now()}`;
     await page.fill('input[name="title"]', title);
-    await page.click('button:has-text("Create TODO")');
+    await page.click('button[type="submit"]:has-text("Add Todo")');
     
     // Wait for todo to appear
     await expect(page.locator('h3').filter({ hasText: title })).toBeVisible();
@@ -91,7 +78,7 @@ test.describe('Todo Basic Operations', () => {
     await clickTodoMenuOption(page, title, 'Delete');
     
     // Confirm deletion - updated to match current modal
-    await expect(page.locator('h2:has-text("Delete TODO")')).toBeVisible();
+    await expect(page.locator('text=Are you sure')).toBeVisible();
     await page.getByRole('button', { name: 'Delete' }).click();
     
     // Wait for todo to disappear
@@ -99,24 +86,21 @@ test.describe('Todo Basic Operations', () => {
   });
 
   test('should update todo status', async ({ page }) => {
-    // Create a unique user for this test
-    const uniqueUser = await createUniqueTestUser(page);
-    
-    // Login with the unique user
-    await page.goto('/login');
-    await login(page, uniqueUser.email, uniqueUser.password);
+    // Register and login
+    await registerAndLogin(page);
     
     // Navigate to todos page
     await page.goto('/todos');
-    await expect(page.getByRole('heading', { name: 'TODO', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'TODOs' })).toBeVisible();
     
     // First create a todo
-    await page.click('button:has-text("Add TODO")');
-    await expect(page.locator('h2:has-text("Create New TODO")')).toBeVisible();
+    await page.click('button:has-text("Add Todo")');
+    // Wait for form to appear - could be inline or in a dialog
+    await page.waitForSelector('h2:has-text("New Todo")', { state: 'visible', timeout: 10000 });
     
     const title = `Status Test ${Date.now()}`;
     await page.fill('input[name="title"]', title);
-    await page.click('button:has-text("Create TODO")');
+    await page.click('button[type="submit"]:has-text("Add Todo")');
     
     // Wait for todo to appear
     await expect(page.locator('h3').filter({ hasText: title })).toBeVisible();
@@ -124,16 +108,18 @@ test.describe('Todo Basic Operations', () => {
     // Click edit using kebab menu
     await clickTodoMenuOption(page, title, 'Edit');
     
-    // Wait for edit form - updated to match current modal
-    await expect(page.locator('h2:has-text("Edit TODO")')).toBeVisible();
+    // Wait for edit form
+    await page.waitForSelector('select[name="status"]', { state: 'visible', timeout: 10000 });
     
     // Change status
     await page.selectOption('select[name="status"]', 'DONE');
     
     // Save - updated to match current button text
-    await page.click('button:has-text("Update TODO")');
+    const updateButton = page.locator('button[type="submit"]:has-text("Update")');
+    await updateButton.click();
     
-    // Verify status changed - look for 'Done' status badge
-    await expect(page.locator('span:has-text("Done")').first()).toBeVisible({ timeout: 5000 });
+    // Wait for modal to close and verify status changed
+    await page.waitForTimeout(1000);
+    await expect(page.locator('span.rounded-full:has-text("Done")')).toBeVisible({ timeout: 5000 });
   });
 });

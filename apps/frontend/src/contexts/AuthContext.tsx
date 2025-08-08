@@ -179,6 +179,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setCachedCSRFToken(null)
       dispatch({ type: 'AUTH_LOGOUT' })
       toast.success('You have been logged out successfully.')
+      // Force navigation to landing page after logout
+      window.location.href = '/'
     }
   }, [])
 

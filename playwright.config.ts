@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import os from 'os';
 
 export default defineConfig({
   testDir: './e2e',
@@ -7,7 +8,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 2 : 4, 
+  // Optimize worker count based on environment
+  workers: process.env.CI ? 2 : Math.min(4, os.cpus().length), 
   reporter: process.env.CI ? 'dot' : 'html',
   // Disable global setup to avoid EPIPE errors
   // TODO: Re-enable when EPIPE issue is resolved (see PR #37)
@@ -17,11 +19,11 @@ export default defineConfig({
     baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    video: process.env.CI ? 'off' : 'retain-on-failure', // Disable video in CI for performance
     locale: 'en-US',
-    // Increased timeouts for stability
-    actionTimeout: 15000,
-    navigationTimeout: 30000,
+    // Optimized timeouts for better performance
+    actionTimeout: 10000,
+    navigationTimeout: 20000,
     // Extra HTTP headers for API calls
     extraHTTPHeaders: {
       'Accept': 'application/json',

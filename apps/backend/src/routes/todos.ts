@@ -7,7 +7,8 @@ import { todos } from '../db/schema';
 import type { Bindings, Variables } from '../types';
 import { authMiddleware } from '../middleware/auth';
 import { springBootValidator } from '../utils/validation';
-import { createErrorResponse, ErrorCodes, StatusCodes } from '../utils/spring-boot-compat';
+import { StatusCodes } from '../utils/spring-boot-compat';
+import { createLocalizedError } from '../utils/i18n';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -118,7 +119,7 @@ app.get('/', zValidator('query', querySchema, springBootValidator), async (c) =>
   } catch (error) {
     console.error('Get todos error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -138,7 +139,7 @@ app.get('/:id', async (c) => {
     
     if (!todo) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Todo not found'),
+        createLocalizedError('TODO_NOT_FOUND', c),
         404 as ContentfulStatusCode
       );
     }
@@ -147,7 +148,7 @@ app.get('/:id', async (c) => {
   } catch (error) {
     console.error('Get todo error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -178,7 +179,7 @@ app.post('/', zValidator('json', createTodoSchema, springBootValidator), async (
   } catch (error) {
     console.error('Create todo error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -200,7 +201,7 @@ app.put('/:id', zValidator('json', updateTodoSchema, springBootValidator), async
     
     if (!existing) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Todo not found'),
+        createLocalizedError('TODO_NOT_FOUND', c),
         404 as ContentfulStatusCode
       );
     }
@@ -221,7 +222,7 @@ app.put('/:id', zValidator('json', updateTodoSchema, springBootValidator), async
   } catch (error) {
     console.error('Update todo error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -242,7 +243,7 @@ app.delete('/:id', async (c) => {
     
     if (!existing) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Todo not found'),
+        createLocalizedError('TODO_NOT_FOUND', c),
         404 as ContentfulStatusCode
       );
     }
@@ -254,7 +255,7 @@ app.delete('/:id', async (c) => {
   } catch (error) {
     console.error('Delete todo error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -278,7 +279,7 @@ app.post('/:id/complete', async (c) => {
     const resultArray = Array.isArray(result) ? result : [];
     if (!resultArray.length) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Todo not found'),
+        createLocalizedError('TODO_NOT_FOUND', c),
         404 as ContentfulStatusCode
       );
     }
@@ -287,7 +288,7 @@ app.post('/:id/complete', async (c) => {
   } catch (error) {
     console.error('Complete todo error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -309,7 +310,7 @@ app.get('/:id/subtasks', async (c) => {
   } catch (error) {
     console.error('Get subtasks error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }

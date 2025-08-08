@@ -198,8 +198,8 @@ jobs:
           echo "Vite output:"
           cat /tmp/vite.log
           
-          # Extract the actual port from vite output - updated pattern to match actual format
-          ACTUAL_PORT=$(grep -oP 'http://localhost:\K\d+' /tmp/vite.log | head -1)
+          # Extract the actual port from vite output - handle both formats
+          ACTUAL_PORT=$(grep -o 'http://localhost:[0-9]*' /tmp/vite.log | head -1 | sed 's/.*://')
           
           # Fallback to default port if extraction fails
           if [ -z "$ACTUAL_PORT" ]; then
@@ -218,7 +218,13 @@ jobs:
           
           # If smoke tests pass, run extended tests
           echo "Smoke tests passed! Running extended test suite..."
-          SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:$ACTUAL_PORT VITE_API_BASE_URL=http://localhost:8788 pnpm playwright test --config=playwright.ci.extended.config.ts --reporter=html
+          SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:$ACTUAL_PORT VITE_API_BASE_URL=http://localhost:8788 pnpm playwright test --config=playwright.ci.extended.config.ts --reporter=github
+
+          # On main branch or release PRs, run full test suite
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]] || [[ "${{ github.head_ref }}" == release/* ]]; then
+            echo "Running full test suite for main/release branch..."
+            SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:$ACTUAL_PORT VITE_API_BASE_URL=http://localhost:8788 pnpm playwright test --config=playwright.ci.full.config.ts --reporter=html
+          fi
 
       - name: Upload test results
         if: always()

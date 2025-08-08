@@ -1,4 +1,5 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { registerAndLogin } from './helpers/auth-helpers';
 
 /**
  * Critical Path E2E Tests for CI
@@ -29,47 +30,12 @@ function getTestData(): TestData {
   };
 }
 
-// Helper to register and login
-async function registerAndLogin(page: Page, testData: TestData): Promise<TestData> {
-  // Navigate to register page
-  await page.goto('/register');
-  await page.waitForSelector('form', { state: 'visible', timeout: 5000 });
-  
-  // Fill registration form
-  await page.fill('input[name="username"]', testData.username);
-  await page.fill('input[name="email"]', testData.email);
-  await page.fill('input[name="password"]', testData.password);
-  await page.fill('input[name="confirmPassword"]', testData.password);
-  
-  // Submit registration
-  await page.click('button[type="submit"]');
-  
-  // Wait for redirect - could be either dashboard (auto-login) or login page
-  await Promise.race([
-    page.waitForURL('**/dashboard', { timeout: 10000 }),
-    page.waitForURL('**/login**', { timeout: 10000 })
-  ]);
-  
-  // If we're on login page, need to login
-  if (page.url().includes('/login')) {
-    await page.fill('input[name="email"]', testData.email);
-    await page.fill('input[name="password"]', testData.password);
-    await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
-  }
-  
-  // Wait for authentication to be established
-  // Wait for dashboard to fully load
-  await page.waitForSelector('h1', { timeout: 10000 });
-  
-  return testData;
-}
-
 test.describe('CI Critical Path Tests', () => {
   test.setTimeout(60000);
 
   test('Health Check: API should be accessible', async ({ request }) => {
-    const response = await request.get('/health');
+    const apiUrl = process.env.VITE_API_BASE_URL || 'http://localhost:8787';
+    const response = await request.get(`${apiUrl}/health`);
     expect(response.ok()).toBeTruthy();
     
     const data = await response.json();
@@ -88,8 +54,7 @@ test.describe('CI Critical Path Tests', () => {
   });
 
   test('Auth: Should register and login successfully', async ({ page }) => {
-    const testData = getTestData();
-    await registerAndLogin(page, testData);
+    const credentials = await registerAndLogin(page);
     
     // Verify we're on dashboard
     await expect(page).toHaveURL(/.*dashboard/);
@@ -98,7 +63,7 @@ test.describe('CI Critical Path Tests', () => {
 
   test('Todo: Should create and manage todos', async ({ page }) => {
     const testData = getTestData();
-    await registerAndLogin(page, testData);
+    await registerAndLogin(page);
     
     // Navigate to todos
     await page.goto('/todos');
@@ -139,7 +104,7 @@ test.describe('CI Critical Path Tests', () => {
 
   test('Note: Should create and view notes', async ({ page }) => {
     const testData = getTestData();
-    await registerAndLogin(page, testData);
+    await registerAndLogin(page);
     
     // Navigate to notes
     await page.goto('/notes');
@@ -184,8 +149,7 @@ test.describe('CI Critical Path Tests', () => {
   });
 
   test('Navigation: Should navigate between main sections', async ({ page }) => {
-    const testData = getTestData();
-    await registerAndLogin(page, testData);
+    await registerAndLogin(page);
     
     // Test navigation to key sections
     const sections = [
@@ -207,8 +171,7 @@ test.describe('CI Critical Path Tests', () => {
   });
 
   test('Session: Should maintain session across page reloads', async ({ page }) => {
-    const testData = getTestData();
-    await registerAndLogin(page, testData);
+    await registerAndLogin(page);
     
     // Verify logged in
     await expect(page).toHaveURL(/.*dashboard/);
@@ -223,22 +186,40 @@ test.describe('CI Critical Path Tests', () => {
   });
 
   test('Logout: Should logout successfully', async ({ page }) => {
-    const testData = getTestData();
-    await registerAndLogin(page, testData);
+    const testData = await registerAndLogin(page);
     
-    // Find and click logout button
-    const userMenuButton = page.locator('button').filter({ hasText: testData.username }).first();
+    // Wait for page to be fully loaded and interactive
+    await page.waitForLoadState('networkidle');
+    
+    // Find and click user menu button (has username and chevron icon)
+    const userMenuButton = page.locator('button').filter({ hasText: testData.username });
+    await expect(userMenuButton).toBeVisible({ timeout: 10000 });
     await userMenuButton.click();
     
-    await page.click('button:has-text("Logout")');
+    // Wait for dropdown menu to appear
+    const logoutButton = page.locator('button').filter({ hasText: /logout/i }).first();
+    await expect(logoutButton).toBeVisible({ timeout: 5000 });
     
-    // Should redirect to landing/login page
-    await page.waitForURL(url => url.pathname === '/' || url.pathname.includes('landing') || url.pathname.includes('login'), { timeout: 10000 });
+    // Set up promise to wait for navigation
+    const navigationPromise = page.waitForURL(/\/$/, { timeout: 10000 });
+    
+    // Click logout button
+    await logoutButton.click();
+    
+    // Wait for navigation to complete
+    await navigationPromise;
+    
+    // Verify logout was successful
+    await expect(page).toHaveURL(/\/$/);
+    
+    // Verify session is cleared by checking for landing page elements
+    await expect(page.locator('h1').first()).toBeVisible();
+    await expect(page.locator('text=/Get Started|Sign Up|Login/i')).toBeVisible();
     
     // Try to access protected route
     await page.goto('/dashboard');
     
-    // Should be redirected to login
-    await expect(page).toHaveURL(/\/(login|landing|$)/);
+    // Should be redirected away from dashboard
+    await expect(page).not.toHaveURL(/.*dashboard/);
   });
 });
