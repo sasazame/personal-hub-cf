@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import os from 'os';
 
 export default defineConfig({
   testDir: './e2e',
@@ -8,7 +9,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   // Optimize worker count based on environment
-  workers: process.env.CI ? 2 : Math.min(4, require('os').cpus().length), 
+  workers: process.env.CI ? 2 : Math.min(4, os.cpus().length), 
   reporter: process.env.CI ? 'dot' : 'html',
   // Disable global setup to avoid EPIPE errors
   // TODO: Re-enable when EPIPE issue is resolved (see PR #37)

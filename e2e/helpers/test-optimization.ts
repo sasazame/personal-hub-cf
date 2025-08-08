@@ -32,7 +32,7 @@ export interface OptimizedFixtures {
  * Optimized test fixture that provides pre-authenticated pages
  */
 export const test = base.extend<OptimizedFixtures>({
-  testUser: async ({}, use) => {
+  testUser: async (_, use) => {
     // Generate unique test user data
     const timestamp = Date.now().toString().slice(-10);
     const testUser = {
@@ -224,24 +224,30 @@ export async function runInParallel<T>(
   tasks: (() => Promise<T>)[],
   maxConcurrency = 4
 ): Promise<T[]> {
-  const results: T[] = [];
+  const results: (T | undefined)[] = new Array(tasks.length);
   const executing: Promise<void>[] = [];
   
-  for (const task of tasks) {
-    const promise = task().then(result => {
-      results.push(result);
+  for (let i = 0; i < tasks.length; i++) {
+    const index = i;
+    const promise = tasks[index]().then(result => {
+      results[index] = result;
     });
     
     executing.push(promise);
     
     if (executing.length >= maxConcurrency) {
       await Promise.race(executing);
-      executing.splice(executing.findIndex(p => p), 1);
+      // Remove completed promises
+      const settledPromises = await Promise.allSettled(executing);
+      const completedIndex = settledPromises.findIndex(p => p.status === 'fulfilled');
+      if (completedIndex >= 0) {
+        executing.splice(completedIndex, 1);
+      }
     }
   }
   
   await Promise.all(executing);
-  return results;
+  return results as T[];
 }
 
 export { expect } from '@playwright/test';
