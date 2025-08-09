@@ -105,7 +105,7 @@ test.describe('CI Comprehensive Tests', () => {
       const completeButton = page.locator('button:has-text("Complete")')
         .or(page.locator('button:has-text("Mark complete")'))
         .or(page.locator('input[type="checkbox"]'));
-      if (await completeButton.isVisible()) {
+      if (await completeButton.first().isVisible().catch(() => false)) {
         await completeButton.first().click();
         await page.waitForTimeout(1000);
       }
@@ -121,10 +121,10 @@ test.describe('CI Comprehensive Tests', () => {
 
       for (const section of sections) {
         // Find navigation link - try multiple selectors
-        const navLink = page.locator(`a:has-text("${section.name}"), nav >> text="${section.name}"`);
+        const navLink = page.locator(`a:has-text("${section.name}")`).or(page.locator(`nav >> text="${section.name}"`));
         
-        if (await navLink.isVisible()) {
-          await navLink.click();
+        if (await navLink.first().isVisible().catch(() => false)) {
+          await navLink.first().click();
           await expect(page).toHaveURL(section.url, { timeout: 10000 });
           
           // Verify page loaded
@@ -135,11 +135,11 @@ test.describe('CI Comprehensive Tests', () => {
 
     test('should display user profile information', async ({ page }) => {
       // Check for user avatar or menu
-      const userIndicator = page.locator('.rounded-full, [class*="avatar"], button:has-text("Profile")');
+      const userIndicator = page.locator('.rounded-full').or(page.locator('[class*="avatar"]')).or(page.locator('button:has-text("Profile")'));
       await expect(userIndicator.first()).toBeVisible({ timeout: 10000 });
       
       // Try to navigate to profile if available
-      if (await page.locator('a[href*="profile"]').isVisible()) {
+      if (await page.locator('a[href*="profile"]').first().isVisible().catch(() => false)) {
         await page.click('a[href*="profile"]');
         await page.waitForLoadState('networkidle');
         
