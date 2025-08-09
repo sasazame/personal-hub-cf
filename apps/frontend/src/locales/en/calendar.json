@@ -10,12 +10,62 @@
   "deleteEvent": "Delete Event",
   "eventTitle": "Event Title",
   "eventDescription": "Description",
+  "eventColor": "Event Color",
+  "colorOptions": {
+    "blue": "Blue",
+    "green": "Green",
+    "red": "Red",
+    "purple": "Purple",
+    "orange": "Orange"
+  },
   "startTime": "Start Time",
   "endTime": "End Time",
   "allDay": "All Day",
   "repeat": "Repeat",
   "reminder": "Reminder",
   "location": "Location",
+  "color": "Color",
   "attendees": "Attendees",
-  "noEvents": "No events scheduled"
+  "noEvents": "No events scheduled",
+  "messages": {
+    "loadFailed": "Failed to load calendar events",
+    "eventCreated": "Event created successfully",
+    "eventCreateFailed": "Failed to create event",
+    "eventUpdated": "Event updated successfully",
+    "eventUpdateFailed": "Failed to update event",
+    "eventDeleted": "Event deleted successfully",
+    "eventDeleteFailed": "Failed to delete event",
+    "eventMoved": "Event moved successfully",
+    "eventMoveFailed": "Failed to move event",
+    "confirmDelete": "Are you sure you want to delete \"{title}\"? This action cannot be undone.",
+    "loading": "Loading...",
+    "deleting": "Deleting..."
+  },
+  "labels": {
+    "calendar": "Calendar",
+    "subtitle": "Manage your schedule and events",
+    "googleSettings": "Google Settings",
+    "deleteEvent": "Delete Event",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "allDayEvent": "All day event",
+    "saving": "Saving...",
+    "create": "Create",
+    "update": "Update"
+  },
+  "form": {
+    "titleRequired": "Title is required",
+    "startDateRequired": "Start date is required",
+    "endDateRequired": "End date is required",
+    "endDateAfterStart": "End date must be on or after start date",
+    "endTimeAfterStart": "End time must be after start time",
+    "titlePlaceholder": "Event title",
+    "descriptionPlaceholder": "Event description",
+    "locationPlaceholder": "Event location",
+    "startDate": "Start Date",
+    "startDateTime": "Start Date & Time",
+    "endDate": "End Date",
+    "endDateTime": "End Date & Time",
+    "dayOfMonthPlaceholder": "e.g., 15"
+  }
 }

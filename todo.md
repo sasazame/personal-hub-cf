@@ -37,13 +37,13 @@ This file tracks pending tasks organized by feature.
 ## Profile Feature
 
 ## Testing
+- [HIGH] Fix E2E test infrastructure issues - Tests failing to find form elements (input[type="email"], form selectors timing out)
+- [HIGH] Stabilize E2E test environment - Ensure proper server lifecycle management to avoid conflicts with dev servers
+- [HIGH] Update authentication helper functions in e2e/helpers/ to use more reliable DOM selectors
+- [MEDIUM] Review and fix Playwright configuration for proper server startup and teardown
 - [LOW] Add E2E test documentation explaining test organization and running locally
 
 ## i18n (Internationalization)
-- [MEDIUM] Configure date-fns with locale imports for date/time formatting
-- [MEDIUM] Translate dashboard cards, empty states, and status indicators
-- [MEDIUM] Internationalize toast notifications and loading states
-- [MEDIUM] Add locale detection from browser preferences as fallback
 - [LOW] Implement timezone handling for international users
 - [LOW] Add 12h/24h time format preference support
 - [LOW] Create translation management workflow and documentation

@@ -24,7 +24,10 @@
     "reminder": "リマインダー設定",
     "attachments": "添付ファイル",
     "notes": "メモ",
-    "notesPlaceholder": "メモを追加"
+    "notesPlaceholder": "メモを追加",
+    "newSubtask": "新しいサブタスク",
+    "addSubtask": "サブタスクを追加",
+    "addTodo": "TODOを追加"
   },
   "status": {
     "todo": "未完了",
@@ -84,6 +87,14 @@
     "confirmArchive": "このTODOをアーカイブしてもよろしいですか？",
     "noTodos": "TODOがありません",
     "createFirst": "最初のTODOを作成して始めましょう"
+  },
+  "toast": {
+    "added": "TODOを追加しました",
+    "updated": "TODOを更新しました",
+    "deleted": "TODOを削除しました",
+    "createFailed": "TODOの作成に失敗しました",
+    "updateFailed": "TODOの更新に失敗しました",
+    "deleteFailed": "TODOの削除に失敗しました"
   },
   "stats": {
     "total": "合計",

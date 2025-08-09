@@ -2,6 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFeatures } from '@/contexts/FeatureContext';
 import { AppLayout } from '@/components/layout';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   CheckSquare, 
   Calendar, 
@@ -17,70 +18,71 @@ import {
 export function Dashboard() {
   const { user } = useAuth();
   const { features: featurePreferences, loading } = useFeatures();
+  const { t } = useTranslation('common');
   
   const allFeatures = [
     {
       key: 'todos' as const,
-      title: 'TODOs',
-      description: 'Manage your tasks and stay organized',
+      title: t('dashboard.cards.todos.title'),
+      description: t('dashboard.cards.todos.description'),
       icon: CheckSquare,
       href: '/todos',
       gradient: 'from-blue-500 to-cyan-500',
-      stats: '5 incomplete tasks'
+      stats: t('dashboard.cards.todos.stats', { count: 5 })
     },
     {
       key: 'goals' as const,
-      title: 'Goals',
-      description: 'Track your goals and achievements',
+      title: t('dashboard.cards.goals.title'),
+      description: t('dashboard.cards.goals.description'),
       icon: Target,
       href: '/goals',
       gradient: 'from-green-500 to-emerald-500',
-      stats: '3 active goals'
+      stats: t('dashboard.cards.goals.stats', { count: 3 })
     },
     {
       key: 'pomodoro' as const,
-      title: 'Pomodoro',
-      description: 'Boost productivity with time management',
+      title: t('dashboard.cards.pomodoro.title'),
+      description: t('dashboard.cards.pomodoro.description'),
       icon: Timer,
       href: '/pomodoro',
       gradient: 'from-indigo-500 to-purple-500',
-      stats: '0 sessions today'
+      stats: t('dashboard.cards.pomodoro.stats', { count: 0 })
     },
     {
       key: 'calendar' as const,
-      title: 'Calendar',
-      description: 'Schedule and manage your events',
+      title: t('dashboard.cards.calendar.title'),
+      description: t('dashboard.cards.calendar.description'),
       icon: Calendar,
       href: '/calendar',
       gradient: 'from-purple-500 to-pink-500',
-      stats: '2 events today'
+      stats: t('dashboard.cards.calendar.stats', { count: 2 })
     },
     {
       key: 'notes' as const,
-      title: 'Notes',
-      description: 'Create and organize your thoughts',
+      title: t('dashboard.cards.notes.title'),
+      description: t('dashboard.cards.notes.description'),
       icon: FileText,
       href: '/notes',
       gradient: 'from-orange-500 to-red-500',
-      stats: '12 notes'
+      stats: t('dashboard.cards.notes.stats', { count: 12 })
     },
     {
       key: 'moments' as const,
-      title: 'Moments',
-      description: 'Capture and reflect on life moments',
+      title: t('dashboard.cards.moments.title'),
+      description: t('dashboard.cards.moments.description'),
       icon: Clock,
       href: '/moments',
       gradient: 'from-yellow-500 to-amber-500',
-      stats: '0 moments'
+      stats: t('dashboard.cards.moments.stats', { count: 0 })
     },
     {
       key: 'analytics' as const,
-      title: 'Analytics',
-      description: 'Visualize your productivity',
+      title: t('dashboard.cards.analytics.title'),
+      description: t('dashboard.cards.analytics.description'),
       icon: BarChart3,
       href: '/analytics',
       gradient: 'from-teal-500 to-cyan-500',
-      stats: '85% completion rate'
+      stats: t('dashboard.cards.analytics.stats', { rate: 85 })
     }
   ];
 
@@ -94,6 +96,7 @@ export function Dashboard() {
       <AppLayout>
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="sr-only">{t('messages.loading')}</span>
         </div>
       </AppLayout>
     );
@@ -105,10 +108,10 @@ export function Dashboard() {
         {/* Header */}
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-            Welcome back, {user?.username}!
+            {t('dashboard.welcome', { username: user?.username })}
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Your personal productivity hub for managing tasks, goals, and time effectively
+            {t('dashboard.subtitle')}
           </p>
         </div>
 
@@ -120,7 +123,7 @@ export function Dashboard() {
               className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-medium rounded-lg hover:from-primary/90 hover:to-primary/70 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 shadow-md hover:shadow-lg transition-all"
             >
               <Plus className="w-5 h-5" />
-              New TODO
+              {t('dashboard.quickActions.newTodo')}
             </Link>
           </div>
         )}
@@ -165,13 +168,13 @@ export function Dashboard() {
             <div className="bg-card rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Today's Events
+                  {t('dashboard.sections.todaysEvents')}
                 </h2>
                 <Link to="/calendar" className="text-success hover:text-success/80 text-sm">
-                  View all →
+                  {t('messages.viewAll')}
                 </Link>
               </div>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">No events scheduled for today</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">{t('dashboard.sections.noEvents')}</p>
             </div>
           )}
 
@@ -179,13 +182,13 @@ export function Dashboard() {
             <div className="bg-card rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Recent Notes
+                  {t('dashboard.sections.recentNotes')}
                 </h2>
                 <Link to="/notes" className="text-primary hover:text-primary/80 text-sm">
-                  View all →
+                  {t('messages.viewAll')}
                 </Link>
               </div>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">No recent notes</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">{t('dashboard.sections.noNotes')}</p>
             </div>
           )}
         </div>

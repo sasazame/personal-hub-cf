@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AppLayout } from '@/components/layout';
 import { Button, Modal } from '@/components/ui';
 import { CalendarGrid, EventForm } from '@/components/calendar';
@@ -9,6 +10,7 @@ import { format, addMonths, subMonths } from 'date-fns';
 import { ChevronLeft, ChevronRight, Plus, Settings } from 'lucide-react';
 
 export function Calendar() {
+  const { t } = useTranslation(['calendar', 'common']);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isEventFormOpen, setIsEventFormOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
@@ -33,7 +35,7 @@ export function Calendar() {
       });
       setEvents(data);
     } catch (error) {
-      toast.error('Failed to load calendar events');
+      toast.error(t('messages.loadFailed'));
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -44,12 +46,12 @@ export function Calendar() {
     try {
       setIsSubmitting(true);
       await calendarApi.createEvent(data);
-      toast.success('Event created successfully');
+      toast.success(t('messages.eventCreated'));
       setIsEventFormOpen(false);
       setSelectedDate(null);
       loadEvents();
     } catch (error) {
-      toast.error('Failed to create event');
+      toast.error(t('messages.eventCreateFailed'));
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -62,12 +64,12 @@ export function Calendar() {
     try {
       setIsSubmitting(true);
       await calendarApi.updateEvent(selectedEvent.id, data);
-      toast.success('Event updated successfully');
+      toast.success(t('messages.eventUpdated'));
       setIsEventFormOpen(false);
       setSelectedEvent(null);
       loadEvents();
     } catch (error) {
-      toast.error('Failed to update event');
+      toast.error(t('messages.eventUpdateFailed'));
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -80,7 +82,7 @@ export function Calendar() {
     try {
       setIsSubmitting(true);
       await calendarApi.deleteEvent(eventToDelete.id);
-      toast.success('Event deleted successfully');
+      toast.success(t('messages.eventDeleted'));
       setEventToDelete(null);
       // Close the event form modal if it's open with the deleted event
       if (selectedEvent?.id === eventToDelete.id) {
@@ -89,7 +91,7 @@ export function Calendar() {
       }
       loadEvents();
     } catch (error) {
-      toast.error('Failed to delete event');
+      toast.error(t('messages.eventDeleteFailed'));
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -136,10 +138,10 @@ export function Calendar() {
         endDateTime: newEndDateTime.toISOString()
       });
       
-      toast.success('Event moved successfully');
+      toast.success(t('messages.eventMoved'));
       loadEvents();
     } catch (error) {
-      toast.error('Failed to move event');
+      toast.error(t('messages.eventMoveFailed'));
       console.error(error);
     }
   };
@@ -148,7 +150,7 @@ export function Calendar() {
     return (
       <AppLayout>
         <div className="min-h-[400px] flex items-center justify-center">
-          <div className="text-lg text-gray-500">Loading...</div>
+          <div className="text-lg text-gray-500">{t('messages.loading')}</div>
         </div>
       </AppLayout>
     );
@@ -161,10 +163,10 @@ export function Calendar() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Calendar
+              {t('labels.calendar')}
             </h1>
             <p className="text-gray-500 mt-1">
-              Manage your schedule and events
+              {t('labels.subtitle')}
             </p>
           </div>
           <div className="flex gap-2">
@@ -174,7 +176,7 @@ export function Calendar() {
               className="gap-2"
             >
               <Settings className="w-4 h-4" />
-              Google Settings
+              {t('labels.googleSettings')}
             </Button>
             <Button 
               onClick={handleNewEvent} 
@@ -183,7 +185,7 @@ export function Calendar() {
               className="gap-2"
             >
               <Plus className="w-5 h-5" />
-              New Event
+              {t('newEvent')}
             </Button>
           </div>
         </div>
@@ -215,7 +217,7 @@ export function Calendar() {
               variant="secondary"
               onClick={() => setCurrentDate(new Date())}
             >
-              Today
+              {t('today')}
             </Button>
           </div>
         </div>
@@ -254,9 +256,9 @@ export function Calendar() {
         {eventToDelete && (
           <Modal open={true} onClose={() => setEventToDelete(null)}>
             <div className="p-6 space-y-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Delete Event</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{t('labels.deleteEvent')}</h2>
               <p className="text-gray-500">
-                Are you sure you want to delete "{eventToDelete.title}"? This action cannot be undone.
+                {t('messages.confirmDelete', { title: eventToDelete.title })}
               </p>
               <div className="flex gap-3 justify-end">
                 <Button
@@ -264,7 +266,7 @@ export function Calendar() {
                   onClick={() => setEventToDelete(null)}
                   disabled={isSubmitting}
                 >
-                  Cancel
+                  {t('labels.cancel')}
                 </Button>
                 <Button
                   variant="primary"
@@ -272,7 +274,7 @@ export function Calendar() {
                   disabled={isSubmitting}
                   className="bg-red-600 hover:bg-red-700"
                 >
-                  {isSubmitting ? 'Deleting...' : 'Delete'}
+                  {isSubmitting ? t('messages.deleting') : t('labels.delete')}
                 </Button>
               </div>
             </div>
