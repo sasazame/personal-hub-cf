@@ -131,19 +131,20 @@ test.describe('Test Environment Setup', () => {
     // Clear all storage
     await page.goto('/');
     await page.evaluate(() => {
-      localStorage.clear();
-      sessionStorage.clear();
+      window.localStorage.clear();
+      // eslint-disable-next-line no-undef
+      window.sessionStorage.clear();
     });
     
     // Clear cookies
     await page.context().clearCookies();
     
     // Verify clean state
-    const localStorage = await page.evaluate(() => Object.keys(localStorage));
-    const sessionStorage = await page.evaluate(() => Object.keys(sessionStorage));
+    const lsLength = await page.evaluate(() => window.localStorage.length);
+    const ssLength = await page.evaluate(() => window.sessionStorage.length);
     
-    expect(localStorage.length).toBe(0);
-    expect(sessionStorage.length).toBe(0);
+    expect(lsLength).toBe(0);
+    expect(ssLength).toBe(0);
     
     console.log('✅ Test data isolation verified');
   });
@@ -200,9 +201,10 @@ test.describe('Test Environment Teardown', () => {
     await page.goto('/');
     await page.evaluate(() => {
       try {
-        localStorage.clear();
-        sessionStorage.clear();
-      } catch (e) {
+        window.localStorage.clear();
+        // eslint-disable-next-line no-undef
+        window.sessionStorage.clear();
+      } catch (_e) {
         // Ignore errors if storage is not available
       }
     });
@@ -232,7 +234,7 @@ test.describe('Test Environment Teardown', () => {
     console.log('✅ Clean teardown verified');
   });
 
-  test('should log test summary', async ({ page }) => {
+  test('should log test summary', async () => {
     console.log('\n='.repeat(60));
     console.log('📋 TEST ENVIRONMENT SUMMARY');
     console.log('='.repeat(60));
@@ -263,8 +265,9 @@ test.describe('Shared Test Utilities', () => {
     await ensureLoggedOut(page);
     await page.goto('/');
     await page.evaluate(() => {
-      localStorage.clear();
-      sessionStorage.clear();
+      window.localStorage.clear();
+      // eslint-disable-next-line no-undef
+      window.sessionStorage.clear();
     });
     await page.context().clearCookies();
     

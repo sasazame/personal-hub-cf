@@ -10,7 +10,7 @@ async function waitForServer(url: string, maxAttempts = 30, delayMs = 2000): Pro
         console.log(`Server is ready at ${url} (attempt ${attempt}/${maxAttempts})`);
         return true;
       }
-    } catch (error) {
+    } catch {
       // Server not ready yet, continue waiting
     }
     

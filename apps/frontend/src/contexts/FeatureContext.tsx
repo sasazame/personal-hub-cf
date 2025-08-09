@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { userApi, type FeaturePreferences } from '@/lib/user-api';
+import { useAuth } from './AuthContext';
 
 interface FeatureContextType {
   features: FeaturePreferences;
@@ -23,10 +24,18 @@ const FeatureContext = createContext<FeatureContextType | undefined>(undefined);
 export function FeatureProvider({ children }: { children: ReactNode }) {
   const [features, setFeatures] = useState<FeaturePreferences>(defaultFeatures);
   const [loading, setLoading] = useState(true);
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
+    // When not authenticated, reset to defaults and skip API call
+    if (!isAuthenticated) {
+      setFeatures(defaultFeatures);
+      setLoading(false);
+      return;
+    }
+    // Authenticated: fetch preferences for the current user
     loadFeatures();
-  }, []);
+  }, [isAuthenticated, user?.id]); // Re-run when user identity changes
 
   const loadFeatures = async () => {
     try {
@@ -42,16 +51,16 @@ export function FeatureProvider({ children }: { children: ReactNode }) {
   };
 
   const updateFeature = async (feature: keyof FeaturePreferences, enabled: boolean) => {
-    const newFeatures = { ...features, [feature]: enabled };
-    setFeatures(newFeatures);
+    // Functional update to avoid stale state if multiple rapid toggles occur
+    setFeatures(prev => ({ ...prev, [feature]: enabled }));
 
     try {
       const updated = await userApi.updateFeaturePreferences({ [feature]: enabled });
       setFeatures(updated);
     } catch (error) {
       console.error('Failed to update feature:', error);
-      // Revert on error
-      setFeatures(features);
+      // Revert by reloading from server to avoid stale local snapshots
+      await loadFeatures();
       throw error;
     }
   };

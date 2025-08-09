@@ -32,7 +32,7 @@ export interface UserResponse {
   username: string;
   enabled: boolean;
   weekStartDay: number;
-  featurePreferences?: string;
+  featurePreferences?: string | null;
   createdAt: string;
   updatedAt: string;
 }

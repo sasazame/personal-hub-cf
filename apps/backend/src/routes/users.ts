@@ -41,6 +41,19 @@ const updatePreferencesSchema = z.object({
   locale: z.string().optional(),
 });
 
+// Default feature preferences - single source of truth
+export const DEFAULT_FEATURE_PREFERENCES = Object.freeze({
+  todos: true,
+  goals: true,
+  pomodoro: true,
+  calendar: true,
+  notes: true,
+  moments: true,
+  analytics: true,
+});
+
+export type FeaturePreferences = typeof DEFAULT_FEATURE_PREFERENCES;
+
 const updateFeaturePreferencesSchema = z.object({
   todos: z.boolean().optional(),
   goals: z.boolean().optional(),
@@ -49,7 +62,7 @@ const updateFeaturePreferencesSchema = z.object({
   notes: z.boolean().optional(),
   moments: z.boolean().optional(),
   analytics: z.boolean().optional(),
-});
+}).strict(); // Reject unknown keys
 
 // GET /users/profile
 app.get('/profile', async (c) => {
@@ -305,17 +318,17 @@ app.get('/feature-preferences', async (c) => {
     }
     
     // Parse the JSON string or return default preferences
-    const preferences = user.featurePreferences 
-      ? JSON.parse(user.featurePreferences)
-      : {
-          todos: true,
-          goals: true,
-          pomodoro: true,
-          calendar: true,
-          notes: true,
-          moments: true,
-          analytics: true,
-        };
+    let preferences = DEFAULT_FEATURE_PREFERENCES;
+    if (user.featurePreferences) {
+      try {
+        const parsed = JSON.parse(user.featurePreferences);
+        // Merge with defaults to ensure new keys are included
+        preferences = { ...DEFAULT_FEATURE_PREFERENCES, ...parsed };
+      } catch (error) {
+        console.warn('Invalid featurePreferences JSON, falling back to defaults:', error);
+        preferences = DEFAULT_FEATURE_PREFERENCES;
+      }
+    }
     
     return c.json(preferences);
   } catch (error) {
@@ -342,17 +355,17 @@ app.put('/feature-preferences', zValidator('json', updateFeaturePreferencesSchem
     .where(eq(users.id, userId as string))
     .get();
     
-    const currentPreferences = user?.featurePreferences 
-      ? JSON.parse(user.featurePreferences)
-      : {
-          todos: true,
-          goals: true,
-          pomodoro: true,
-          calendar: true,
-          notes: true,
-          moments: true,
-          analytics: true,
-        };
+    let currentPreferences = DEFAULT_FEATURE_PREFERENCES;
+    if (user?.featurePreferences) {
+      try {
+        const parsed = JSON.parse(user.featurePreferences);
+        // Merge with defaults to ensure all keys are present
+        currentPreferences = { ...DEFAULT_FEATURE_PREFERENCES, ...parsed };
+      } catch (error) {
+        console.warn('Invalid featurePreferences JSON, using defaults:', error);
+        currentPreferences = DEFAULT_FEATURE_PREFERENCES;
+      }
+    }
     
     // Merge with new preferences
     const updatedPreferences = { ...currentPreferences, ...data };

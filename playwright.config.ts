@@ -12,6 +12,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : Math.min(4, os.cpus().length), 
   reporter: process.env.CI ? 'dot' : 'html',
   // Global setup with improved error handling and retry logic to prevent EPIPE errors
+  // eslint-disable-next-line no-undef
   globalSetup: require.resolve('./playwright/global-setup.ts'),
   use: {
     // Point to frontend URL for E2E tests

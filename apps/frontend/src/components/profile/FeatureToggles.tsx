@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Switch } from '@headlessui/react';
-import { userApi, type FeaturePreferences } from '@/lib/user-api';
+import { type FeaturePreferences } from '@/lib/user-api';
 import { CheckSquare, Calendar, FileText, BarChart3, Target, Clock, Timer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from '@/components/ui/toast';
+import { useFeatures } from '@/contexts/FeatureContext';
 
 const featureConfig = [
   { key: 'todos' as const, label: 'TODOs', icon: CheckSquare, description: 'Manage your tasks and stay organized' },
@@ -17,47 +18,18 @@ const featureConfig = [
 
 export function FeatureToggles() {
   const { t } = useTranslation();
-  const [preferences, setPreferences] = useState<FeaturePreferences>({
-    todos: true,
-    goals: true,
-    pomodoro: true,
-    calendar: true,
-    notes: true,
-    moments: true,
-    analytics: true,
-  });
-  const [loading, setLoading] = useState(true);
+  const { features: preferences, loading, updateFeature } = useFeatures();
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    loadPreferences();
-  }, []);
-
-  const loadPreferences = async () => {
-    try {
-      const data = await userApi.getFeaturePreferences();
-      setPreferences(data);
-    } catch (error) {
-      console.error('Failed to load feature preferences:', error);
-      toast.error(t('errors.loadPreferencesFailed', 'Failed to load feature preferences'));
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleToggle = async (feature: keyof FeaturePreferences) => {
     const newValue = !preferences[feature];
-    const updatedPreferences = { ...preferences, [feature]: newValue };
-    setPreferences(updatedPreferences);
     setSaving(true);
 
     try {
-      await userApi.updateFeaturePreferences({ [feature]: newValue });
+      await updateFeature(feature, newValue);
       toast.success(t('settings.featureUpdated', 'Feature preferences updated'));
     } catch (error) {
       console.error('Failed to update feature preferences:', error);
-      // Revert on error
-      setPreferences(preferences);
       toast.error(t('errors.updatePreferencesFailed', 'Failed to update feature preferences'));
     } finally {
       setSaving(false);

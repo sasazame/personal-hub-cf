@@ -194,7 +194,7 @@ test.describe('TODOs', () => {
 
     test('should create a new todo with different form structure', async ({ page }) => {
       // Register and login
-      const testUser = await registerAndLogin(page);
+      await registerAndLogin(page);
       
       // Navigate to todos page
       await page.goto('/todos');
@@ -357,11 +357,8 @@ test.describe('TODOs', () => {
       const completedTodo = page.locator('[class*="card"]').filter({ hasText: completedTitle });
       const pendingTodo = page.locator('[class*="card"]').filter({ hasText: pendingTitle });
       
-      // Check if completed todo has different styling (strikethrough, opacity, etc.)
-      const completedStyles = await completedTodo.getAttribute('class');
-      const pendingStyles = await pendingTodo.getAttribute('class');
-      
       // Just verify both todos are still visible but potentially styled differently
+      // Styles may differ (strikethrough, opacity), but we only assert visibility for stability
       await expect(completedTodo).toBeVisible();
       await expect(pendingTodo).toBeVisible();
     });
