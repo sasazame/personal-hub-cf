@@ -8,20 +8,24 @@ test.describe('Authentication Flow', () => {
     await expect(page).toHaveURL(/\/(login|auth)/);
     
     // Check for basic login elements
-    await expect(page.locator('input[type="email"], input[name="email"]')).toBeVisible();
-    await expect(page.locator('input[type="password"], input[name="password"]')).toBeVisible();
-    await expect(page.locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign in")')).toBeVisible();
+    await expect(page.locator('input[type="email"]').or(page.locator('input[name="email"]'))).toBeVisible();
+    await expect(page.locator('input[type="password"]').or(page.locator('input[name="password"]'))).toBeVisible();
+    await expect(page.locator('button[type="submit"]').or(page.locator('button:has-text("Login")')).or(page.locator('button:has-text("Sign in")'))).toBeVisible();
   });
 
   test('should show error on invalid login', async ({ page }) => {
     await page.goto('/');
     
     // Fill in invalid credentials
-    await page.fill('input[type="email"], input[name="email"]', 'invalid@example.com');
-    await page.fill('input[type="password"], input[name="password"]', 'wrongpassword');
+    const emailInput = page.locator('input[type="email"]').or(page.locator('input[name="email"]'));
+    const passwordInput = page.locator('input[type="password"]').or(page.locator('input[name="password"]'));
+    const submitButton = page.locator('button[type="submit"]').or(page.locator('button:has-text("Login")')).or(page.locator('button:has-text("Sign in")'));
+    
+    await emailInput.fill('invalid@example.com');
+    await passwordInput.fill('wrongpassword');
     
     // Submit form
-    await page.click('button[type="submit"], button:has-text("Login"), button:has-text("Sign in")');
+    await submitButton.click();
     
     // Wait for error message in toast notification
     // React Hot Toast creates divs with role="alert" for error messages
@@ -32,6 +36,6 @@ test.describe('Authentication Flow', () => {
     await page.goto('/');
     
     // Check for registration link
-    await expect(page.locator('a:has-text("Register"), a:has-text("Sign up"), a:has-text("Create account")')).toBeVisible();
+    await expect(page.locator('a:has-text("Register")').or(page.locator('a:has-text("Sign up")')).or(page.locator('a:has-text("Create account")'))).toBeVisible();
   });
 });

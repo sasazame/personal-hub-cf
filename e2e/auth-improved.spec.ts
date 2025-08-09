@@ -18,8 +18,8 @@ test.describe('Improved Authentication Flow', () => {
     await browserHelpers.waitForElement(page, 'form', browserName);
     
     // Use more specific selectors
-    const emailInput = page.locator('input[type="email"], input[name="email"]').first();
-    const passwordInput = page.locator('input[type="password"], input[name="password"]').first();
+    const emailInput = page.locator('input[type="email"]').or(page.locator('input[name="email"]')).first();
+    const passwordInput = page.locator('input[type="password"]').or(page.locator('input[name="password"]')).first();
     const submitButton = page.locator('button[type="submit"]').first();
     
     // Verify elements are visible
@@ -28,7 +28,7 @@ test.describe('Improved Authentication Flow', () => {
     await expect(submitButton).toBeVisible({ timeout: 5000 });
     
     // Check for register link with flexible selector
-    const registerLink = page.locator('a[href="/register"], a:text-matches("register", "i"), a:text-matches("sign up", "i")').first();
+    const registerLink = page.locator('a[href="/register"]').or(page.locator('a:text-matches("register", "i")')).or(page.locator('a:text-matches("sign up", "i")')).first();
     await expect(registerLink).toBeVisible({ timeout: 5000 });
   });
 
@@ -103,7 +103,7 @@ test.describe('Improved Authentication Flow', () => {
     await browserHelpers.navigateWithBrowserHandling(page, '/login', browserName);
     
     // Find and click register link with flexible selector
-    const registerLink = page.locator('a[href="/register"], a:text-matches("register", "i"), a:text-matches("sign up", "i"), a:text-matches("create account", "i")').first();
+    const registerLink = page.locator('a[href="/register"]').or(page.locator('a:text-matches("register", "i")')).or(page.locator('a:text-matches("sign up", "i")')).or(page.locator('a:text-matches("create account", "i")')).first();
     
     await registerLink.waitFor({ state: 'visible', timeout: 5000 });
     await registerLink.click();
