@@ -204,7 +204,7 @@ test.describe('Test Environment Teardown', () => {
         window.localStorage.clear();
         // eslint-disable-next-line no-undef
         window.sessionStorage.clear();
-      } catch (_e) {
+      } catch {
         // Ignore errors if storage is not available
       }
     });
