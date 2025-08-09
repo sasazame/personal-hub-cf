@@ -14,6 +14,7 @@ export const users = sqliteTable('users', {
   familyName: text('family_name'),
   locale: text('locale'),
   weekStartDay: integer('week_start_day').default(1).notNull(),
+  featurePreferences: text('feature_preferences'), // JSON string with feature toggles
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 });

@@ -1,4 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useFeatures } from '@/contexts/FeatureContext';
 import { AppLayout } from '@/components/layout';
 import { Link } from 'react-router-dom';
 import { 
@@ -9,14 +10,17 @@ import {
   Plus,
   ArrowRight,
   Target,
-  Timer
+  Timer,
+  Clock
 } from 'lucide-react';
 
 export function Dashboard() {
   const { user } = useAuth();
+  const { features: featurePreferences, loading } = useFeatures();
   
-  const features = [
+  const allFeatures = [
     {
+      key: 'todos' as const,
       title: 'TODOs',
       description: 'Manage your tasks and stay organized',
       icon: CheckSquare,
@@ -25,6 +29,7 @@ export function Dashboard() {
       stats: '5 incomplete tasks'
     },
     {
+      key: 'goals' as const,
       title: 'Goals',
       description: 'Track your goals and achievements',
       icon: Target,
@@ -33,6 +38,7 @@ export function Dashboard() {
       stats: '3 active goals'
     },
     {
+      key: 'pomodoro' as const,
       title: 'Pomodoro',
       description: 'Boost productivity with time management',
       icon: Timer,
@@ -41,6 +47,7 @@ export function Dashboard() {
       stats: '0 sessions today'
     },
     {
+      key: 'calendar' as const,
       title: 'Calendar',
       description: 'Schedule and manage your events',
       icon: Calendar,
@@ -49,6 +56,7 @@ export function Dashboard() {
       stats: '2 events today'
     },
     {
+      key: 'notes' as const,
       title: 'Notes',
       description: 'Create and organize your thoughts',
       icon: FileText,
@@ -57,6 +65,16 @@ export function Dashboard() {
       stats: '12 notes'
     },
     {
+      key: 'moments' as const,
+      title: 'Moments',
+      description: 'Capture and reflect on life moments',
+      icon: Clock,
+      href: '/moments',
+      gradient: 'from-yellow-500 to-amber-500',
+      stats: '0 moments'
+    },
+    {
+      key: 'analytics' as const,
       title: 'Analytics',
       description: 'Visualize your productivity',
       icon: BarChart3,
@@ -65,6 +83,21 @@ export function Dashboard() {
       stats: '85% completion rate'
     }
   ];
+
+  // Filter features based on user preferences
+  const enabledFeatures = allFeatures.filter(
+    feature => featurePreferences[feature.key] !== false
+  );
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -80,19 +113,21 @@ export function Dashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="flex justify-center">
-          <Link 
-            to="/todos"
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-medium rounded-lg hover:from-primary/90 hover:to-primary/70 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 shadow-md hover:shadow-lg transition-all"
-          >
-            <Plus className="w-5 h-5" />
-            New TODO
-          </Link>
-        </div>
+        {featurePreferences.todos && (
+          <div className="flex justify-center">
+            <Link 
+              to="/todos"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-medium rounded-lg hover:from-primary/90 hover:to-primary/70 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 shadow-md hover:shadow-lg transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              New TODO
+            </Link>
+          </div>
+        )}
 
         {/* Feature Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature) => {
+          {enabledFeatures.map((feature) => {
             const IconComponent = feature.icon;
             return (
               <Link key={feature.title} to={feature.href}>
@@ -126,29 +161,33 @@ export function Dashboard() {
 
         {/* Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-card rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Today's Events
-              </h2>
-              <Link to="/calendar" className="text-success hover:text-success/80 text-sm">
-                View all →
-              </Link>
+          {featurePreferences.calendar && (
+            <div className="bg-card rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Today's Events
+                </h2>
+                <Link to="/calendar" className="text-success hover:text-success/80 text-sm">
+                  View all →
+                </Link>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">No events scheduled for today</p>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">No events scheduled for today</p>
-          </div>
+          )}
 
-          <div className="bg-card rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Recent Notes
-              </h2>
-              <Link to="/notes" className="text-primary hover:text-primary/80 text-sm">
-                View all →
-              </Link>
+          {featurePreferences.notes && (
+            <div className="bg-card rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Recent Notes
+                </h2>
+                <Link to="/notes" className="text-primary hover:text-primary/80 text-sm">
+                  View all →
+                </Link>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">No recent notes</p>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">No recent notes</p>
-          </div>
+          )}
         </div>
       </div>
     </AppLayout>

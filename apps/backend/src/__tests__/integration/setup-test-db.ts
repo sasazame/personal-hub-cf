@@ -26,7 +26,7 @@ export async function setupTestDatabase() {
   
   // Run migrations - execute the schema creation
   // Execute each CREATE TABLE statement separately
-  await d1.exec('CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, password TEXT, username TEXT UNIQUE NOT NULL, enabled INTEGER DEFAULT 1, email_verified INTEGER DEFAULT 0, profile_picture_url TEXT, given_name TEXT, family_name TEXT, locale TEXT, week_start_day INTEGER DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
+  await d1.exec('CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, password TEXT, username TEXT UNIQUE NOT NULL, enabled INTEGER DEFAULT 1, email_verified INTEGER DEFAULT 0, profile_picture_url TEXT, given_name TEXT, family_name TEXT, locale TEXT, week_start_day INTEGER DEFAULT 1, feature_preferences TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
   
   await d1.exec('CREATE TABLE IF NOT EXISTS refresh_tokens (id TEXT PRIMARY KEY, token_hash TEXT UNIQUE NOT NULL, user_id TEXT NOT NULL, client_id TEXT NOT NULL, scopes TEXT, expires_at TEXT NOT NULL, revoked INTEGER DEFAULT 0, revoked_at TEXT, created_at TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE)');
   
