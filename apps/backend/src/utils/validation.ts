@@ -17,7 +17,7 @@ export const springBootValidator: Hook<unknown, Record<string, unknown>, string>
     
     return c.json(
       createValidationError(fieldErrors),
-      StatusCodes.VALIDATION_ERROR as ContentfulStatusCode as ContentfulStatusCode
+      StatusCodes.VALIDATION_ERROR as ContentfulStatusCode
     );
   }
   

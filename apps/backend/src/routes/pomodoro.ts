@@ -8,7 +8,8 @@ import type { Bindings, Variables } from '../types';
 import { authMiddleware } from '../middleware/auth';
 import { nanoid } from '../utils/nanoid';
 import { springBootValidator } from '../utils/validation';
-import { createErrorResponse, ErrorCodes, StatusCodes } from '../utils/spring-boot-compat';
+import { StatusCodes } from '../utils/spring-boot-compat';
+import { createLocalizedError } from '../utils/i18n';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -74,7 +75,7 @@ app.get('/sessions', async (c) => {
   } catch (error) {
     console.error('Get sessions error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -96,7 +97,7 @@ app.get('/sessions/active', async (c) => {
     
     if (!session) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'No active session'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'No active session' }),
         404 as ContentfulStatusCode
       );
     }
@@ -111,7 +112,7 @@ app.get('/sessions/active', async (c) => {
   } catch (error) {
     console.error('Get active session error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -134,7 +135,7 @@ app.get('/sessions/:id', async (c) => {
     
     if (!session) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Session not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Session not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -149,7 +150,7 @@ app.get('/sessions/:id', async (c) => {
   } catch (error) {
     console.error('Get session error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -173,8 +174,8 @@ app.post('/sessions', zValidator('json', createSessionSchema, springBootValidato
     
     if (activeSession) {
       return c.json(
-        createErrorResponse(ErrorCodes.CONFLICT, 'Already have an active session'),
-        StatusCodes.CONFLICT as ContentfulStatusCode as ContentfulStatusCode
+        createLocalizedError('CONFLICT', c, { detail: 'Already have an active session' }),
+        StatusCodes.CONFLICT as ContentfulStatusCode
       );
     }
     
@@ -222,7 +223,7 @@ app.post('/sessions', zValidator('json', createSessionSchema, springBootValidato
   } catch (error) {
     console.error('Create session error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -246,7 +247,7 @@ app.put('/sessions/:id', zValidator('json', updateSessionSchema, springBootValid
     
     if (!existing) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Session not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Session not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -312,7 +313,7 @@ app.put('/sessions/:id', zValidator('json', updateSessionSchema, springBootValid
   } catch (error) {
     console.error('Update session error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -337,7 +338,7 @@ app.post('/sessions/:sessionId/tasks', zValidator('json', createTaskSchema, spri
     
     if (!session) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Session not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Session not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -376,7 +377,7 @@ app.post('/sessions/:sessionId/tasks', zValidator('json', createTaskSchema, spri
   } catch (error) {
     console.error('Create task error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -402,7 +403,7 @@ app.put('/sessions/:sessionId/tasks/:taskId', zValidator('json', updateTaskSchem
     
     if (!session) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Session not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Session not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -420,7 +421,7 @@ app.put('/sessions/:sessionId/tasks/:taskId', zValidator('json', updateTaskSchem
     
     if (!result.length) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Task not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Task not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -429,7 +430,7 @@ app.put('/sessions/:sessionId/tasks/:taskId', zValidator('json', updateTaskSchem
   } catch (error) {
     console.error('Update task error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -464,7 +465,7 @@ app.get('/config', async (c) => {
   } catch (error) {
     console.error('Get config error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -513,12 +514,12 @@ app.put('/config', zValidator('json', configSchema, springBootValidator), async 
       };
       
       const result = await db.insert(pomodoroConfigs).values(newConfig).returning();
-      return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode as ContentfulStatusCode);
+      return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
     }
   } catch (error) {
     console.error('Update config error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -558,7 +559,7 @@ app.get('/stats', async (c) => {
   } catch (error) {
     console.error('Get stats error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }

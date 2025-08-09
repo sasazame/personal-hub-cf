@@ -7,7 +7,8 @@ import { moments } from '../db/schema';
 import type { Bindings, Variables } from '../types';
 import { authMiddleware } from '../middleware/auth';
 import { springBootValidator } from '../utils/validation';
-import { createErrorResponse, ErrorCodes, StatusCodes } from '../utils/spring-boot-compat';
+import { StatusCodes } from '../utils/spring-boot-compat';
+import { createLocalizedError } from '../utils/i18n';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -89,7 +90,7 @@ app.get('/', async (c) => {
   } catch (error) {
     console.error('Get moments error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -118,7 +119,7 @@ app.get('/today', async (c) => {
   } catch (error) {
     console.error('Get today moments error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -156,7 +157,7 @@ app.get('/tags', async (c) => {
   } catch (error) {
     console.error('Get tags error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -213,7 +214,7 @@ app.get('/tags/default', async (c) => {
   } catch (error) {
     console.error('Get default tags error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -260,7 +261,7 @@ app.get('/stats', async (c) => {
   } catch (error) {
     console.error('Get stats error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -280,7 +281,7 @@ app.get('/:id', async (c) => {
     
     if (!moment) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Moment not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Moment not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -289,7 +290,7 @@ app.get('/:id', async (c) => {
   } catch (error) {
     console.error('Get moment error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -311,11 +312,11 @@ app.post('/', zValidator('json', createMomentSchema, springBootValidator), async
     
     const result = await db.insert(moments).values(newMoment).returning();
     
-    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode as ContentfulStatusCode);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Create moment error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -336,7 +337,7 @@ app.put('/:id', zValidator('json', updateMomentSchema, springBootValidator), asy
     
     if (!existing) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Moment not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Moment not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -353,7 +354,7 @@ app.put('/:id', zValidator('json', updateMomentSchema, springBootValidator), asy
   } catch (error) {
     console.error('Update moment error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -373,7 +374,7 @@ app.delete('/:id', async (c) => {
     
     if (!existing) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Moment not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Moment not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -385,7 +386,7 @@ app.delete('/:id', async (c) => {
   } catch (error) {
     console.error('Delete moment error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }

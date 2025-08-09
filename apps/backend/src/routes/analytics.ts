@@ -7,7 +7,8 @@ import { todos, goals, goalAchievementHistory, pomodoroSessions, events, notes, 
 import type { Bindings, Variables } from '../types';
 import { authMiddleware } from '../middleware/auth';
 import { springBootValidator } from '../utils/validation';
-import { createErrorResponse, ErrorCodes } from '../utils/spring-boot-compat';
+// No spring-boot-compat imports needed as we use createLocalizedError
+import { createLocalizedError } from '../utils/i18n';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -123,7 +124,7 @@ app.get('/overview', async (c) => {
   } catch (error) {
     console.error('Get overview error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -185,7 +186,7 @@ app.get('/productivity', zValidator('query', dateRangeSchema, springBootValidato
   } catch (error) {
     console.error('Get productivity error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -285,7 +286,7 @@ app.get('/habits', async (c) => {
   } catch (error) {
     console.error('Get habits error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -331,7 +332,9 @@ app.get('/goals-progress', async (c) => {
         elapsedDays,
         expectedAchievements,
         actualAchievements: goal.achievementCount,
-        progressPercentage: (goal.achievementCount / expectedAchievements) * 100 || 0,
+        progressPercentage: expectedAchievements
+          ? (goal.achievementCount / expectedAchievements) * 100
+          : 0,
         isOnTrack: goal.achievementCount >= expectedAchievements,
       };
     });
@@ -340,7 +343,7 @@ app.get('/goals-progress', async (c) => {
   } catch (error) {
     console.error('Get goals progress error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -400,7 +403,7 @@ app.get('/tags', async (c) => {
   } catch (error) {
     console.error('Get tags analytics error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -456,7 +459,7 @@ app.get('/time-distribution', async (c) => {
   } catch (error) {
     console.error('Get time distribution error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }

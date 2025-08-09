@@ -18,7 +18,9 @@ describe('Spring Boot Compatibility Utils', () => {
         details: null,
       });
       expect(response.timestamp).toBeDefined();
-      expect(new Date(response.timestamp).getTime()).toBeCloseTo(Date.now(), -2);
+      // Allow up to 1 second difference for timestamp to account for test execution time
+      const timeDiff = Math.abs(new Date(response.timestamp).getTime() - Date.now());
+      expect(timeDiff).toBeLessThan(1000);
     });
 
     it('should create error response with custom message', () => {

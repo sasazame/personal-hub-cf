@@ -48,11 +48,29 @@ Run the following checks sequentially, stopping if critical failures occur:
    - Run all unit tests across packages
    - Include coverage information if available
 
-5. **E2E Tests (Local)**
+5. **E2E Tests**
+   
+   a. **CI Minimal Smoke Tests** (Quick validation)
+   ```bash
+   pnpm test:e2e -- --config=playwright.ci.minimal.config.ts
+   ```
+   - Run basic smoke tests (ci-smoke.spec.ts, api-health.spec.ts)
+   - Verify API health endpoints and basic page loading
+   - Timeout: 20s per test
+   
+   b. **CI Extended Tests** (Comprehensive validation)
+   ```bash
+   pnpm test:e2e -- --config=playwright.ci.extended.config.ts
+   ```
+   - Run critical CI tests (ci-comprehensive.spec.ts, ci-critical.spec.ts, ci.spec.ts)
+   - Test authentication, navigation, and core features
+   - Timeout: 30s per test
+   
+   c. **Full E2E Suite** (Optional - for thorough validation)
    ```bash
    pnpm test:e2e
    ```
-   - Run Playwright E2E tests locally
+   - Run complete E2E test suite
    - Note any flaky or failing tests
 
 6. **Local CI Test with Act** (if Docker is available)
@@ -84,9 +102,11 @@ Check Results:
 1. TypeScript:  [PASS/FAIL] (Xms)
 2. Lint:        [PASS/FAIL] (Xms)  
 3. Build:       [PASS/FAIL] (Xms)
-4. Unit Tests:  [PASS/FAIL] (Xms) [X passed, X failed]
-5. E2E Tests:   [PASS/FAIL] (Xms) [X passed, X failed]
-6. Act CI:      [PASS/FAIL] (Xms) / [SKIPPED - Docker not available]
+4. Unit Tests:     [PASS/FAIL] (Xms) [X passed, X failed]
+5. E2E Minimal:    [PASS/FAIL] (Xms) [X passed, X failed]
+6. E2E Extended:   [PASS/FAIL] (Xms) [X passed, X failed]
+7. E2E Full:       [PASS/FAIL] (Xms) / [SKIPPED - Optional]
+8. Act CI:         [PASS/FAIL] (Xms) / [SKIPPED - Docker not available]
 
 [If any failures, include detailed error section]
 
@@ -99,7 +119,32 @@ RECOMMENDED ACTIONS:
 [Prioritized list of what to fix first]
 ```
 
-### 5. Special Considerations
+### 5. CI-Specific E2E Testing
+
+When running E2E tests for CI validation:
+
+1. **Backend Server Check**
+   - Ensure backend is running on correct port (8787 locally, 8788 in CI)
+   - Verify health endpoint responds: `curl http://localhost:8787/health`
+   - Kill any stuck processes: `pkill -f workerd; pkill -f wrangler`
+
+2. **Frontend Server Check**
+   - Ensure frontend is accessible (port 3000 or 5173)
+   - Check for build artifacts in `apps/frontend/dist/`
+
+3. **Test Configuration Files**
+   - `playwright.ci.minimal.config.ts` - Fast smoke tests
+   - `playwright.ci.extended.config.ts` - Critical path tests
+   - `playwright.ci.full.config.ts` - Complete test suite
+
+4. **Environment Variables for CI Tests**
+   ```bash
+   export VITE_API_BASE_URL=http://localhost:8787  # or 8788 for CI
+   export E2E_BASE_URL=http://localhost:3000
+   export CI=true  # When simulating CI environment
+   ```
+
+### 6. Special Considerations
 
 - **Check Dependencies**: If TypeScript or Build fails, subsequent tests may not run properly
 - **Environment Issues**: Report if Docker isn't available for act tests

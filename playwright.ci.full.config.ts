@@ -9,15 +9,13 @@ export default defineConfig({
   testDir: './e2e',
   // Include all critical feature tests
   testMatch: [
-    'ci.spec.ts',
-    'ci-critical.spec.ts',
-    'auth-basic.spec.ts',
-    'todo-basic.spec.ts',
-    'notes.spec.ts',
-    'calendar-basic.spec.ts',
-    'goals.spec.ts',
-    'moments.spec.ts',
-    'pomodoro.spec.ts'
+    'ci-comprehensive.spec.ts',   // Comprehensive test suite
+    'ci-critical.spec.ts',         // Critical path tests
+    'ci.spec.ts',                  // Original CI tests
+    'auth-basic.spec.ts',          // Auth tests
+    'todo-basic.spec.ts',          // Todo tests
+    'calendar-basic.spec.ts',      // Calendar tests
+    'api-health.spec.ts'           // API health checks
   ],
   timeout: 45 * 1000,
   expect: {

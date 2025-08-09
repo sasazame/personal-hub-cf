@@ -7,7 +7,8 @@ import { goals, goalAchievementHistory } from '../db/schema';
 import type { Bindings, Variables } from '../types';
 import { authMiddleware } from '../middleware/auth';
 import { springBootValidator } from '../utils/validation';
-import { createErrorResponse, ErrorCodes, StatusCodes } from '../utils/spring-boot-compat';
+import { StatusCodes } from '../utils/spring-boot-compat';
+import { createLocalizedError } from '../utils/i18n';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -52,7 +53,7 @@ app.get('/', async (c) => {
   } catch (error) {
     console.error('Get goals error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -72,7 +73,7 @@ app.get('/:id', async (c) => {
     
     if (!goal) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Goal not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Goal not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -81,7 +82,7 @@ app.get('/:id', async (c) => {
   } catch (error) {
     console.error('Get goal error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -104,11 +105,11 @@ app.post('/', zValidator('json', createGoalSchema, springBootValidator), async (
     
     const result = await db.insert(goals).values(newGoal).returning();
     
-    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode as ContentfulStatusCode);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Create goal error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -129,7 +130,7 @@ app.put('/:id', zValidator('json', updateGoalSchema, springBootValidator), async
     
     if (!existing) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Goal not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Goal not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -146,7 +147,7 @@ app.put('/:id', zValidator('json', updateGoalSchema, springBootValidator), async
   } catch (error) {
     console.error('Update goal error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -166,7 +167,7 @@ app.delete('/:id', async (c) => {
     
     if (!existing) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Goal not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Goal not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -178,7 +179,7 @@ app.delete('/:id', async (c) => {
   } catch (error) {
     console.error('Delete goal error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -201,7 +202,7 @@ app.get('/:id/achievements', async (c) => {
     
     if (!goal) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Goal not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Goal not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -221,7 +222,7 @@ app.get('/:id/achievements', async (c) => {
   } catch (error) {
     console.error('Get achievements error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -243,7 +244,7 @@ app.post('/:id/achievements', zValidator('json', achievementSchema, springBootVa
     
     if (!goal) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Goal not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Goal not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -259,8 +260,8 @@ app.post('/:id/achievements', zValidator('json', achievementSchema, springBootVa
     
     if (existing) {
       return c.json(
-        createErrorResponse(ErrorCodes.CONFLICT, 'Achievement already recorded for this date'),
-        StatusCodes.CONFLICT as ContentfulStatusCode as ContentfulStatusCode
+        createLocalizedError('CONFLICT', c, { detail: 'Achievement already recorded for this date' }),
+        StatusCodes.CONFLICT as ContentfulStatusCode
       );
     }
     
@@ -272,11 +273,11 @@ app.post('/:id/achievements', zValidator('json', achievementSchema, springBootVa
       })
       .returning();
     
-    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode as ContentfulStatusCode);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Create achievement error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -298,7 +299,7 @@ app.delete('/:goalId/achievements/:id', async (c) => {
     
     if (!goal) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Goal not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Goal not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -312,7 +313,7 @@ app.delete('/:goalId/achievements/:id', async (c) => {
     
     if (!result.length) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Achievement not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Achievement not found' }),
         404
       );
     }
@@ -321,7 +322,7 @@ app.delete('/:goalId/achievements/:id', async (c) => {
   } catch (error) {
     console.error('Delete achievement error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }

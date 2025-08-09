@@ -7,7 +7,8 @@ import { notes } from '../db/schema';
 import type { Bindings, Variables } from '../types';
 import { authMiddleware } from '../middleware/auth';
 import { springBootValidator } from '../utils/validation';
-import { createErrorResponse, ErrorCodes, StatusCodes } from '../utils/spring-boot-compat';
+import { StatusCodes } from '../utils/spring-boot-compat';
+import { createLocalizedError } from '../utils/i18n';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -85,7 +86,7 @@ app.get('/', async (c) => {
   } catch (error) {
     console.error('Get notes error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -123,7 +124,7 @@ app.get('/tags', async (c) => {
   } catch (error) {
     console.error('Get tags error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -143,7 +144,7 @@ app.get('/:id', async (c) => {
     
     if (!note) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Note not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Note not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -152,7 +153,7 @@ app.get('/:id', async (c) => {
   } catch (error) {
     console.error('Get note error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -174,11 +175,11 @@ app.post('/', zValidator('json', createNoteSchema, springBootValidator), async (
     
     const result = await db.insert(notes).values(newNote).returning();
     
-    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode as ContentfulStatusCode);
+    return c.json(result[0], StatusCodes.CREATED as ContentfulStatusCode);
   } catch (error) {
     console.error('Create note error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -199,7 +200,7 @@ app.put('/:id', zValidator('json', updateNoteSchema, springBootValidator), async
     
     if (!existing) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Note not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Note not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -216,7 +217,7 @@ app.put('/:id', zValidator('json', updateNoteSchema, springBootValidator), async
   } catch (error) {
     console.error('Update note error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
@@ -236,7 +237,7 @@ app.delete('/:id', async (c) => {
     
     if (!existing) {
       return c.json(
-        createErrorResponse(ErrorCodes.NOT_FOUND, 'Note not found'),
+        createLocalizedError('NOT_FOUND', c, { detail: 'Note not found' }),
         404 as ContentfulStatusCode
       );
     }
@@ -248,7 +249,7 @@ app.delete('/:id', async (c) => {
   } catch (error) {
     console.error('Delete note error:', error);
     return c.json(
-      createErrorResponse(ErrorCodes.INTERNAL_ERROR),
+      createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
     );
   }
