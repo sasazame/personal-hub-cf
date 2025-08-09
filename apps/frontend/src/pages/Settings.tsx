@@ -1,10 +1,11 @@
 import { AppLayout } from '@/components/layout';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Switch } from '@radix-ui/react-switch';
-import { Sun, Moon, Monitor, Bell, Globe, Clock, Palette, Save } from 'lucide-react';
+import { Sun, Moon, Monitor, Bell, Globe, Clock, Palette, Save, Grid } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import { FeatureToggles } from '@/components/profile';
 
 interface SettingsSwitchProps {
   checked: boolean;
@@ -168,6 +169,15 @@ export function Settings() {
               description="Learn about new features"
             />
           </div>
+        </div>
+
+        {/* Feature Toggles */}
+        <div className="bg-card rounded-lg shadow-sm border border-border p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Grid className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-semibold text-foreground">Features</h2>
+          </div>
+          <FeatureToggles />
         </div>
 
         {/* Time & Language */}

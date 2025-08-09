@@ -15,10 +15,8 @@ This file tracks pending tasks organized by feature.
 - [LOW] Add Field-Level Encryption - Encrypt sensitive user data at rest using Cloudflare's Web Crypto API (requires Cloudflare Workers runtime)
 
 ## Auth Feature
-- [HIGH] Fix logout - session token not clearing properly, auto-redirects to dashboard after F5 or navigating to landing page
 
 ## Dashboard Feature
-- [MEDIUM] Add feature toggles - allow users to control enabled features in dashboard/sidebar
 
 ## TODO Feature
 
@@ -39,17 +37,9 @@ This file tracks pending tasks organized by feature.
 ## Profile Feature
 
 ## Testing
-- [HIGH] Fix CI E2E test configuration - Currently only runs ci.spec.ts with 4 basic tests
-- [HIGH] Fix failing note creation test in ci.spec.ts - Test times out waiting for API response
-- [HIGH] Expand CI test coverage - Include critical path tests from other spec files
-- [HIGH] Optimize E2E test performance - Tests run slowly when multiple execute in parallel
-- [MEDIUM] Review and consolidate duplicate E2E test files (38 spec files, many overlapping)
-- [MEDIUM] Create focused CI test suites for different scenarios (smoke, critical, full)
-- [MEDIUM] Fix global setup issues causing EPIPE errors in some environments
 - [LOW] Add E2E test documentation explaining test organization and running locally
 
 ## i18n (Internationalization)
-- [HIGH] Translate backend error messages and API responses with Accept-Language header support
 - [MEDIUM] Configure date-fns with locale imports for date/time formatting
 - [MEDIUM] Translate dashboard cards, empty states, and status indicators
 - [MEDIUM] Internationalize toast notifications and loading states

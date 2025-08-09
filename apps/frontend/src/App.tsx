@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { FeatureProvider } from './contexts/FeatureContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { PublicRoute } from './components/PublicRoute'
 import { I18nextProvider, useTranslation } from 'react-i18next'
@@ -52,8 +53,9 @@ function App() {
         <ThemeProvider>
           <Router>
             <AuthProvider>
-              <Suspense fallback={<PageLoader />}>
-              <Routes>
+              <FeatureProvider>
+                <Suspense fallback={<PageLoader />}>
+                <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/terms" element={<Terms />} />
@@ -149,6 +151,7 @@ function App() {
             </Routes>
           </Suspense>
           <Toaster position="top-right" />
+        </FeatureProvider>
         </AuthProvider>
       </Router>
     </ThemeProvider>

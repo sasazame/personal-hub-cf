@@ -23,6 +23,16 @@ export interface UserSettings {
   weekStartsOn: 0 | 1 | 6; // Sunday, Monday, Saturday
 }
 
+export interface FeaturePreferences {
+  todos: boolean;
+  goals: boolean;
+  pomodoro: boolean;
+  calendar: boolean;
+  notes: boolean;
+  moments: boolean;
+  analytics: boolean;
+}
+
 export interface UpdateProfileDto {
   username?: string;
   email?: string;
@@ -74,5 +84,15 @@ export const userApi = {
 
   deleteAccount: async (password: string): Promise<void> => {
     await apiClient.delete('/users/account', { data: { password } });
+  },
+
+  getFeaturePreferences: async (): Promise<FeaturePreferences> => {
+    const response = await apiClient.get('/users/feature-preferences');
+    return response.data;
+  },
+
+  updateFeaturePreferences: async (preferences: Partial<FeaturePreferences>): Promise<FeaturePreferences> => {
+    const response = await apiClient.put('/users/feature-preferences', preferences);
+    return response.data;
   },
 };

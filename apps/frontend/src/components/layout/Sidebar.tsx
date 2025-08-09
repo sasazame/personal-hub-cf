@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useFeatures } from '@/contexts/FeatureContext';
 import { 
   Home, 
   CheckSquare, 
@@ -28,6 +29,7 @@ interface SidebarProps {
 export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const location = useLocation();
   const { t } = useTranslation('common');
+  const { features: featurePreferences } = useFeatures();
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -36,7 +38,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     }
   }, [location.pathname, isOpen, onClose]);
 
-  const navItems: NavItem[] = [
+  const allNavItems: (NavItem & { featureKey?: keyof typeof featurePreferences })[] = [
     {
       href: '/dashboard',
       label: t('navigation.dashboard'),
@@ -45,39 +47,51 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     {
       href: '/todos',
       label: t('navigation.todos'),
-      icon: <CheckSquare className="h-5 w-5" />
+      icon: <CheckSquare className="h-5 w-5" />,
+      featureKey: 'todos'
     },
     {
       href: '/calendar',
       label: t('navigation.calendar'),
-      icon: <Calendar className="h-5 w-5" />
+      icon: <Calendar className="h-5 w-5" />,
+      featureKey: 'calendar'
     },
     {
       href: '/notes',
       label: t('navigation.notes'),
-      icon: <FileText className="h-5 w-5" />
+      icon: <FileText className="h-5 w-5" />,
+      featureKey: 'notes'
     },
     {
       href: '/moments',
       label: t('navigation.moments'),
-      icon: <Clock className="h-5 w-5" />
+      icon: <Clock className="h-5 w-5" />,
+      featureKey: 'moments'
     },
     {
       href: '/goals',
       label: t('navigation.goals'),
-      icon: <Target className="h-5 w-5" />
+      icon: <Target className="h-5 w-5" />,
+      featureKey: 'goals'
     },
     {
       href: '/pomodoro',
       label: t('navigation.pomodoro'),
-      icon: <Timer className="h-5 w-5" />
+      icon: <Timer className="h-5 w-5" />,
+      featureKey: 'pomodoro'
     },
     {
       href: '/analytics',
       label: t('navigation.analytics'),
-      icon: <BarChart3 className="h-5 w-5" />
+      icon: <BarChart3 className="h-5 w-5" />,
+      featureKey: 'analytics'
     }
   ];
+
+  // Filter nav items based on feature preferences
+  const navItems = allNavItems.filter(
+    item => !item.featureKey || featurePreferences[item.featureKey] !== false
+  );
 
   const bottomNavItems: NavItem[] = [
     {

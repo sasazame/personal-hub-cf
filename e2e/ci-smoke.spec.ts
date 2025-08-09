@@ -10,7 +10,7 @@ test.describe('CI Smoke Tests', () => {
 
   test('API health check', async ({ request }) => {
     // Direct API call without browser
-    const apiUrl = process.env.VITE_API_BASE_URL || 'http://localhost:8788';
+    const apiUrl = process.env.VITE_API_BASE_URL || 'http://localhost:8787';
     const response = await request.get(`${apiUrl}/health`);
     expect(response.ok()).toBeTruthy();
     

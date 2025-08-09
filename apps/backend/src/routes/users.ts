@@ -41,6 +41,29 @@ const updatePreferencesSchema = z.object({
   locale: z.string().optional(),
 });
 
+// Default feature preferences - single source of truth
+export const DEFAULT_FEATURE_PREFERENCES = Object.freeze({
+  todos: true,
+  goals: true,
+  pomodoro: true,
+  calendar: true,
+  notes: true,
+  moments: true,
+  analytics: true,
+});
+
+export type FeaturePreferences = typeof DEFAULT_FEATURE_PREFERENCES;
+
+const updateFeaturePreferencesSchema = z.object({
+  todos: z.boolean().optional(),
+  goals: z.boolean().optional(),
+  pomodoro: z.boolean().optional(),
+  calendar: z.boolean().optional(),
+  notes: z.boolean().optional(),
+  moments: z.boolean().optional(),
+  analytics: z.boolean().optional(),
+}).strict(); // Reject unknown keys
+
 // GET /users/profile
 app.get('/profile', async (c) => {
   const db = c.get('db');
@@ -57,6 +80,7 @@ app.get('/profile', async (c) => {
       familyName: users.familyName,
       locale: users.locale,
       weekStartDay: users.weekStartDay,
+      featurePreferences: users.featurePreferences,
       enabled: users.enabled,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt,
@@ -120,6 +144,7 @@ app.put('/profile', zValidator('json', updateProfileSchema, springBootValidator)
         familyName: users.familyName,
         locale: users.locale,
         weekStartDay: users.weekStartDay,
+        featurePreferences: users.featurePreferences,
       });
     
     return c.json(result[0]);
@@ -265,6 +290,96 @@ app.put('/preferences', zValidator('json', updatePreferencesSchema, springBootVa
     return c.json(result[0]);
   } catch (error) {
     console.error('Update preferences error:', error);
+    return c.json(
+      createLocalizedError('INTERNAL_ERROR', c),
+      500 as ContentfulStatusCode
+    );
+  }
+});
+
+// GET /users/feature-preferences
+app.get('/feature-preferences', async (c) => {
+  const db = c.get('db');
+  const userId = c.get('userId');
+  
+  try {
+    const user = await db.select({
+      featurePreferences: users.featurePreferences,
+    })
+    .from(users)
+    .where(eq(users.id, userId as string))
+    .get();
+    
+    if (!user) {
+      return c.json(
+        createLocalizedError('NOT_FOUND', c, { detail: 'User not found' }),
+        404 as ContentfulStatusCode
+      );
+    }
+    
+    // Parse the JSON string or return default preferences
+    let preferences = DEFAULT_FEATURE_PREFERENCES;
+    if (user.featurePreferences) {
+      try {
+        const parsed = JSON.parse(user.featurePreferences);
+        // Merge with defaults to ensure new keys are included
+        preferences = { ...DEFAULT_FEATURE_PREFERENCES, ...parsed };
+      } catch (error) {
+        console.warn('Invalid featurePreferences JSON, falling back to defaults:', error);
+        preferences = DEFAULT_FEATURE_PREFERENCES;
+      }
+    }
+    
+    return c.json(preferences);
+  } catch (error) {
+    console.error('Get feature preferences error:', error);
+    return c.json(
+      createLocalizedError('INTERNAL_ERROR', c),
+      500 as ContentfulStatusCode
+    );
+  }
+});
+
+// PUT /users/feature-preferences
+app.put('/feature-preferences', zValidator('json', updateFeaturePreferencesSchema, springBootValidator), async (c) => {
+  const db = c.get('db');
+  const userId = c.get('userId');
+  const data = c.req.valid('json');
+  
+  try {
+    // Get current preferences
+    const user = await db.select({
+      featurePreferences: users.featurePreferences,
+    })
+    .from(users)
+    .where(eq(users.id, userId as string))
+    .get();
+    
+    let currentPreferences = DEFAULT_FEATURE_PREFERENCES;
+    if (user?.featurePreferences) {
+      try {
+        const parsed = JSON.parse(user.featurePreferences);
+        // Merge with defaults to ensure all keys are present
+        currentPreferences = { ...DEFAULT_FEATURE_PREFERENCES, ...parsed };
+      } catch (error) {
+        console.warn('Invalid featurePreferences JSON, using defaults:', error);
+        currentPreferences = DEFAULT_FEATURE_PREFERENCES;
+      }
+    }
+    
+    // Merge with new preferences
+    const updatedPreferences = { ...currentPreferences, ...data };
+    
+    await db.update(users)
+      .set({
+        featurePreferences: JSON.stringify(updatedPreferences),
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(users.id, userId as string));
+    
+    return c.json(updatedPreferences);
+  } catch (error) {
+    console.error('Update feature preferences error:', error);
     return c.json(
       createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
