@@ -12,6 +12,7 @@
   "form": {
     "title": "タイトル",
     "titlePlaceholder": "TODOのタイトルを入力",
+    "titleRequired": "タイトルは必須です",
     "description": "説明",
     "descriptionPlaceholder": "TODOの説明を入力",
     "status": "ステータス",
@@ -95,6 +96,35 @@
     "createFailed": "TODOの作成に失敗しました",
     "updateFailed": "TODOの更新に失敗しました",
     "deleteFailed": "TODOの削除に失敗しました"
+  },
+  "labels": {
+    "newSubtask": "新しいサブタスク",
+    "newTodo": "新しいTODO",
+    "cancel": "キャンセル",
+    "addSubtask": "サブタスクを追加",
+    "addTodo": "TODOを追加",
+    "repeatOnDays": "繰り返す曜日",
+    "editTodo": "TODOを編集",
+    "recurringTask": "繰り返しタスク",
+    "pattern": "パターン",
+    "interval": "間隔",
+    "daysOfWeek": "曜日",
+    "dayOfMonth": "日付",
+    "endDate": "終了日",
+    "endDateDescription": "終了日がない場合は空のままにします",
+    "delete": "削除",
+    "deleting": "削除中...",
+    "updateTodo": "TODOを更新",
+    "updating": "更新中..."
+  },
+  "recurring": {
+    "makeRecurring": "このタスクを繰り返しにする",
+    "repeatType": "繰り返しタイプ",
+    "repeatOnDays": "繰り返す曜日",
+    "daily": "毎日",
+    "weekly": "毎週",
+    "monthly": "毎月",
+    "yearly": "毎年"
   },
   "stats": {
     "total": "合計",

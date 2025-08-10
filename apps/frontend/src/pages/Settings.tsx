@@ -210,12 +210,12 @@ export function Settings() {
                   value={language}
                   onChange={(e) => handleLanguageChange(e.target.value)}
                   className="flex-1 px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  aria-label="Select language"
+                  aria-label={t('general.language')}
                 >
-                  <option value="en">English</option>
-                  <option value="ja">日本語</option>
-                  <option value="zh" disabled>中文 (Coming soon)</option>
-                  <option value="es" disabled>Español (Coming soon)</option>
+                  <option value="en">{t('general.languages.en')}</option>
+                  <option value="ja">{t('general.languages.ja')}</option>
+                  <option value="zh" disabled>{t('general.languages.zh')} {t('appearance.systemComingSoon')}</option>
+                  <option value="es" disabled>{t('general.languages.es')} {t('appearance.systemComingSoon')}</option>
                 </select>
               </div>
             </div>

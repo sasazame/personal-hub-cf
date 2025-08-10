@@ -24,14 +24,15 @@
     "noteUpdateFailed": "Failed to update note",
     "noteDeleted": "Note deleted",
     "noteDeleteFailed": "Failed to delete note",
-    "confirmDelete": "Are you sure you want to delete \"{title}\"? This action cannot be undone.",
+    "confirmDelete": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
     "loading": "Loading..."
   },
   "labels": {
     "notes": "Notes",
     "subtitle": "Capture your thoughts and ideas",
     "allTags": "All tags",
-    "stats": "{{count}} note{{plural}}",
+    "stats_one": "{{count}} note",
+    "stats_other": "{{count}} notes",
     "searching": "(searching for \"{{query}}\")",
     "filtered": "(filtered by tag: {{tag}})",
     "cancel": "Cancel",

@@ -66,11 +66,13 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
       <ModalContent>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <div>
+            <label className="block text-sm font-medium mb-1">
+              {t('form.title')} *
+            </label>
             <Input
-              {...register('title', { required: 'Title is required' })}
+              {...register('title', { required: t('form.titleRequired') })}
               type="text"
               id="title"
-              label={t('form.title') + ' *'}
             />
             {errors.title && (
               <p className="mt-1 text-sm text-red-500">{errors.title.message}</p>
@@ -213,7 +215,7 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
                       {t('labels.daysOfWeek')}
                     </label>
                     <div className="flex gap-2">
-                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
+                      {(t('common:date.weekdaysShort', { returnObjects: true }) as string[]).map((day, index) => (
                         <button
                           key={index}
                           type="button"

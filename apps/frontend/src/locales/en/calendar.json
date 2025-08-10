@@ -37,7 +37,7 @@
     "eventDeleteFailed": "Failed to delete event",
     "eventMoved": "Event moved successfully",
     "eventMoveFailed": "Failed to move event",
-    "confirmDelete": "Are you sure you want to delete \"{title}\"? This action cannot be undone.",
+    "confirmDelete": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
     "loading": "Loading...",
     "deleting": "Deleting..."
   },

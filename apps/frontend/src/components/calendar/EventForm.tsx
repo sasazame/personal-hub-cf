@@ -200,8 +200,10 @@ export function EventForm({
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
+            <label className="block text-sm font-medium mb-1">
+              {t('eventTitle')} *
+            </label>
             <Input
-              label={t('eventTitle') + ' *'}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={t('form.titlePlaceholder')}
@@ -212,8 +214,10 @@ export function EventForm({
           </div>
           
           <div>
+            <label className="block text-sm font-medium mb-1">
+              {t('eventDescription')}
+            </label>
             <TextArea
-              label={t('eventDescription')}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={t('form.descriptionPlaceholder')}

@@ -156,8 +156,8 @@ export function TodoForm({ onSubmit, onCancel, isSubmitting, parentId }: TodoFor
                         {t('recurring.repeatOnDays')}
                       </label>
                       <div className="grid grid-cols-7 gap-2">
-                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
-                          <label key={day} className="flex items-center justify-center">
+                        {(t('common:date.weekdaysShort', { returnObjects: true }) as string[]).map((day, index) => (
+                          <label key={index} className="flex items-center justify-center">
                             <input
                               type="checkbox"
                               checked={selectedDays.includes(index)}

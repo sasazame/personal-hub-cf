@@ -6,6 +6,12 @@
     "features": "Features",
     "timeLanguage": "Time & Language",
     "language": "Language",
+    "languages": {
+      "en": "English",
+      "ja": "日本語",
+      "zh": "中文",
+      "es": "Español"
+    },
     "languageDescription": "Select your preferred language",
     "timezone": "Timezone",
     "timezoneDescription": "Select your timezone",
@@ -39,6 +45,10 @@
     "weekDays": {
       "sunday": "Sunday",
       "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
       "saturday": "Saturday"
     },
     "timeFormats": {
@@ -150,7 +160,6 @@
     "compactMode": "Compact Mode",
     "showAnimations": "Show Animations",
     "reduceMotion": "Reduce Motion",
-    "compactMode": "Compact Mode",
     "highContrast": "High Contrast",
     "colorBlindMode": "Color Blind Mode",
     "light": "Light",

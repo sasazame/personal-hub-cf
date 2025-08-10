@@ -231,7 +231,7 @@ export function Notes() {
 
         {/* Stats */}
         <div className="text-sm text-muted-foreground">
-          {t('labels.stats', { count: notes.length, plural: notes.length !== 1 ? 's' : '' })}
+          {t('labels.stats', { count: notes.length })}
           {searchQuery && ' ' + t('labels.searching', { query: searchQuery })}
           {selectedTag && ' ' + t('labels.filtered', { tag: selectedTag })}
         </div>

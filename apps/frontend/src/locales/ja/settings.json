@@ -3,6 +3,12 @@
   "general": {
     "title": "一般",
     "language": "言語",
+    "languages": {
+      "en": "English",
+      "ja": "日本語",
+      "zh": "中文",
+      "es": "Español"
+    },
     "languageDescription": "使用言語を選択してください",
     "timezone": "タイムゾーン",
     "timezoneDescription": "タイムゾーンを選択してください",
@@ -36,6 +42,10 @@
     "weekDays": {
       "sunday": "日曜日",
       "monday": "月曜日",
+      "tuesday": "火曜日",
+      "wednesday": "水曜日",
+      "thursday": "木曜日",
+      "friday": "金曜日",
       "saturday": "土曜日"
     },
     "timeFormats": {
