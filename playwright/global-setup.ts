@@ -1,3 +1,4 @@
+/* global AbortController, fetch */
 import { chromium } from '@playwright/test';
 
 async function waitForServer(url: string, maxAttempts = 60, delayMs = 1000): Promise<boolean> {
@@ -7,14 +8,26 @@ async function waitForServer(url: string, maxAttempts = 60, delayMs = 1000): Pro
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
-      const response = await fetch(url, {
-        method: 'HEAD',
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-      if (response.ok || response.status < 500) {
-        console.log(`Server is ready at ${url} (attempt ${attempt}/${maxAttempts})`);
-        return true;
+      try {
+        let response = await fetch(url, {
+          method: 'HEAD',
+          signal: controller.signal
+        });
+        
+        // If HEAD fails, try GET (some endpoints only support GET)
+        if (!response.ok && response.status === 404) {
+          response = await fetch(url, {
+            method: 'GET',
+            signal: controller.signal
+          });
+        }
+        
+        if (response.ok || response.status < 500) {
+          console.log(`Server is ready at ${url} (attempt ${attempt}/${maxAttempts})`);
+          return true;
+        }
+      } finally {
+        clearTimeout(timeoutId);
       }
     } catch {
       // Server not ready yet, continue waiting
