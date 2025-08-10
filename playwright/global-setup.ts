@@ -1,11 +1,14 @@
 import { chromium } from '@playwright/test';
 
-async function waitForServer(url: string, maxAttempts = 30, delayMs = 2000): Promise<boolean> {
+async function waitForServer(url: string, maxAttempts = 60, delayMs = 1000): Promise<boolean> {
   console.log(`Waiting for server at ${url}...`);
   
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      const response = await fetch(url, { method: 'HEAD' });
+      const response = await fetch(url, { 
+        method: 'HEAD',
+        signal: AbortSignal.timeout(5000) // 5 second timeout per request
+      });
       if (response.ok || response.status < 500) {
         console.log(`Server is ready at ${url} (attempt ${attempt}/${maxAttempts})`);
         return true;
@@ -47,10 +50,9 @@ async function globalSetup() {
   
   if (!frontendReady || !backendReady) {
     console.error('One or more servers failed to start');
-    // Don't throw in CI to avoid blocking the pipeline
-    if (!process.env.CI) {
-      throw new Error('Servers failed to start');
-    }
+    console.error(`Frontend ready: ${frontendReady}, Backend ready: ${backendReady}`);
+    // Always throw to prevent running tests against non-existent servers
+    throw new Error('Servers failed to start - check if ports 3000 and 8787 are available');
   }
   
   // Optionally validate the application is working
@@ -77,6 +79,18 @@ async function globalSetup() {
         const title = await page.title();
         console.log(`Application loaded successfully. Page title: "${title}"`);
         
+        // Verify we can navigate to login page
+        await page.goto(`${baseUrl}/login`, { 
+          waitUntil: 'domcontentloaded',
+          timeout: 10000 
+        });
+        
+        // Check for critical elements
+        const hasForm = await page.locator('form').count() > 0;
+        if (!hasForm) {
+          console.warn('Warning: No form element found on login page');
+        }
+        
         // Close properly to avoid EPIPE errors
         await page.close();
         await context.close();
@@ -90,8 +104,9 @@ async function globalSetup() {
     }
   }
   
-  // Add a small delay to ensure everything is settled
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  // Add a delay to ensure everything is settled and React is hydrated
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  console.log('Global setup completed successfully');
 }
 
 export default globalSetup;
