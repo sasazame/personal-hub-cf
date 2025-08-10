@@ -1,4 +1,4 @@
-/* global AbortController, fetch */
+/* global AbortController */
 import { chromium } from '@playwright/test';
 
 async function waitForServer(url: string, maxAttempts = 60, delayMs = 1000): Promise<boolean> {
@@ -14,15 +14,15 @@ async function waitForServer(url: string, maxAttempts = 60, delayMs = 1000): Pro
           signal: controller.signal
         });
         
-        // If HEAD fails, try GET (some endpoints only support GET)
-        if (!response.ok && response.status === 404) {
+        // If HEAD isn't supported or route not found, try GET
+        if (!response.ok && (response.status === 404 || response.status === 405)) {
           response = await fetch(url, {
             method: 'GET',
             signal: controller.signal
           });
         }
         
-        if (response.ok || response.status < 500) {
+        if (response.ok || (response.status >= 300 && response.status < 400)) {
           console.log(`Server is ready at ${url} (attempt ${attempt}/${maxAttempts})`);
           return true;
         }
