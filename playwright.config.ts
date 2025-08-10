@@ -12,9 +12,8 @@ export default defineConfig({
   workers: process.env.CI ? 2 : Math.min(4, os.cpus().length), 
   reporter: process.env.CI ? [['list'], ['json', { outputFile: 'test-results.json' }]] : 'html',
   // Global setup with improved error handling and retry logic to prevent EPIPE errors
-  // eslint-disable-next-line no-undef
-  globalSetup: require.resolve('./playwright/global-setup.ts'),
-  globalTeardown: require.resolve('./playwright/global-teardown.ts'),
+  globalSetup: './playwright/global-setup.ts',
+  globalTeardown: './playwright/global-teardown.ts',
   use: {
     // Point to frontend URL for E2E tests
     baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',

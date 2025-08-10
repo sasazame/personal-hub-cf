@@ -177,7 +177,7 @@ export async function ensureLoggedOut(page: Page) {
         timeout: 10000, 
         state: 'visible' 
       });
-    } catch (error) {
+    } catch {
       // Fallback 2: wait for any input and check if login page loaded
       console.log('Waiting for page to fully load...');
       await page.waitForLoadState('domcontentloaded');

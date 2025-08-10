@@ -5,10 +5,13 @@ async function waitForServer(url: string, maxAttempts = 60, delayMs = 1000): Pro
   
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      const response = await fetch(url, { 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const response = await fetch(url, {
         method: 'HEAD',
-        signal: AbortSignal.timeout(5000) // 5 second timeout per request
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       if (response.ok || response.status < 500) {
         console.log(`Server is ready at ${url} (attempt ${attempt}/${maxAttempts})`);
         return true;
