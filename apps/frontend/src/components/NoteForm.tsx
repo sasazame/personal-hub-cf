@@ -1,4 +1,5 @@
 import React, { useState, useEffect, FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Plus } from 'lucide-react';
 import { Note, CreateNoteDto } from '@/types/note';
 import { Modal } from '@/components/ui/Modal';
@@ -16,6 +17,7 @@ interface NoteFormProps {
 }
 
 export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: NoteFormProps) {
+  const { t } = useTranslation(['notes', 'common']);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -39,8 +41,8 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
     e.preventDefault();
     
     const newErrors: { title?: string; content?: string } = {};
-    if (!title.trim()) newErrors.title = 'Title is required';
-    if (!content.trim()) newErrors.content = 'Content is required';
+    if (!title.trim()) newErrors.title = t('labels.noteTitleRequired');
+    if (!content.trim()) newErrors.content = t('labels.noteContentRequired');
     
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -88,13 +90,13 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              {note ? 'Edit Note' : 'Add Note'}
+              {note ? t('labels.editNote') : t('labels.addNote')}
             </h2>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Note Title *
+              {t('labels.noteTitleLabel')}
             </label>
             <Input
               value={title}
@@ -102,13 +104,13 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
                 setTitle(e.target.value);
                 if (errors.title) setErrors({ ...errors, title: undefined });
               }}
-              placeholder="Enter note title"
+              placeholder={t('noteTitlePlaceholder')}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Note Content *
+              {t('labels.noteContentLabel')}
             </label>
             <TextArea
               value={content}
@@ -116,14 +118,14 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
                 setContent(e.target.value);
                 if (errors.content) setErrors({ ...errors, content: undefined });
               }}
-              placeholder="Enter note content"
+              placeholder={t('noteContentPlaceholder')}
               rows={12}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Tags
+              {t('labels.tagsLabel')}
             </label>
             
             {/* Current tags */}
@@ -154,7 +156,7 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
                 value={currentTag}
                 onChange={(e) => setCurrentTag(e.target.value)}
                 onKeyPress={handleTagKeyPress}
-                placeholder="Add a tag"
+                placeholder={t('addTagPlaceholder')}
                 className={cn(
                   "flex-1 px-3 py-2 border rounded-lg bg-white dark:bg-gray-800",
                   "text-gray-900 dark:text-gray-100 placeholder-gray-400",
@@ -180,13 +182,13 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
               onClick={handleClose}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('labels.cancel')}
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
             >
-              {isSubmitting ? (note ? 'Updating...' : 'Creating...') : (note ? 'Update' : 'Create')}
+              {isSubmitting ? (note ? t('labels.updating') : t('labels.creating')) : (note ? t('labels.update') : t('labels.create'))}
             </Button>
           </div>
         </form>

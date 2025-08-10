@@ -10,9 +10,11 @@ import { TodoList } from '@/components/TodoList'
 import { TodoForm } from '@/components/TodoForm'
 import { TodoEditForm } from '@/components/TodoEditForm'
 import { TodoStatusFilter } from '@/components/TodoStatusFilter'
+import { useTranslation } from 'react-i18next'
 
 export function Todos() {
   const queryClient = useQueryClient()
+  const { t } = useTranslation(['todos', 'common'])
   const [isAddingTodo, setIsAddingTodo] = useState(false)
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null)
   const [deletingTodo, setDeletingTodo] = useState<Todo | null>(null)
@@ -74,10 +76,10 @@ export function Todos() {
       queryClient.invalidateQueries({ queryKey: ['todos'] })
       setIsAddingTodo(false)
       setParentIdForNewTodo(null)
-      showSuccess('Todo added')
+      showSuccess(t('todos:toast.added'))
     },
     onError: (error) => {
-      showError(error instanceof Error ? error.message : 'Failed to create todo')
+      showError(error instanceof Error ? error.message : t('todos:toast.createFailed'))
     },
   })
 
@@ -100,10 +102,10 @@ export function Todos() {
       queryClient.invalidateQueries({ queryKey: ['todos'] })
       queryClient.invalidateQueries({ queryKey: ['recurring-tasks'] })
       setEditingTodo(null)
-      showSuccess('Todo updated')
+      showSuccess(t('todos:toast.updated'))
     },
     onError: (error) => {
-      showError(error instanceof Error ? error.message : 'Failed to update todo')
+      showError(error instanceof Error ? error.message : t('todos:toast.updateFailed'))
     },
   })
 
@@ -112,10 +114,10 @@ export function Todos() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] })
       setDeletingTodo(null)
-      showSuccess('Todo deleted')
+      showSuccess(t('todos:toast.deleted'))
     },
     onError: (error) => {
-      showError(error instanceof Error ? error.message : 'Failed to delete todo')
+      showError(error instanceof Error ? error.message : t('todos:toast.deleteFailed'))
     },
   })
 
@@ -181,7 +183,7 @@ export function Todos() {
     return (
       <AppLayout>
         <div className="min-h-[400px] flex items-center justify-center">
-          <div className="text-lg text-muted-foreground">Loading...</div>
+          <div className="text-lg text-muted-foreground">{t('common:messages.loading')}</div>
         </div>
       </AppLayout>
     )
@@ -191,7 +193,7 @@ export function Todos() {
     return (
       <AppLayout>
         <div className="min-h-[400px] flex items-center justify-center">
-          <div className="text-lg text-red-500">Error loading todos</div>
+          <div className="text-lg text-red-500">{t('common:messages.loadError')}</div>
         </div>
       </AppLayout>
     )
@@ -203,10 +205,10 @@ export function Todos() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              TODOs
+              {t('todos:title')}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Manage your tasks and stay organized.
+              {t('common:dashboard.cards.todos.description')}
             </p>
           </div>
           <div className="flex gap-2">
@@ -219,7 +221,7 @@ export function Todos() {
               size="lg"
               leftIcon={<Plus className="w-5 h-5" />}
             >
-              Add Todo
+              {t('todos:addTodo')}
             </Button>
           </div>
         </div>
@@ -231,7 +233,7 @@ export function Todos() {
 
         {sortedTodos.length === 0 ? (
           <div className="text-center py-12 bg-card rounded-lg shadow">
-            <p className="text-muted-foreground text-lg">No todos found</p>
+            <p className="text-muted-foreground text-lg">{t('todos:messages.noTodos')}</p>
           </div>
         ) : (
           <TodoList
@@ -268,9 +270,9 @@ export function Todos() {
         {deletingTodo && (
           <Modal open={true} onClose={cancelDelete}>
             <div className="p-6 space-y-4">
-              <h2 className="text-xl font-semibold">Delete Todo</h2>
+              <h2 className="text-xl font-semibold">{t('todos:deleteTodo')}</h2>
               <p className="text-muted-foreground">
-                Are you sure you want to delete this todo? This action cannot be undone.
+                {t('todos:messages.confirmDelete')}
               </p>
               <div className="flex gap-3 justify-end">
                 <Button
@@ -278,14 +280,14 @@ export function Todos() {
                   onClick={cancelDelete}
                   disabled={deleteMutation.isPending}
                 >
-                  Cancel
+                  {t('common:app.cancel')}
                 </Button>
                 <Button
                   variant="danger"
                   onClick={confirmDelete}
                   disabled={deleteMutation.isPending}
                 >
-                  {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                  {deleteMutation.isPending ? t('common:forms.buttons.deleting') : t('common:app.delete')}
                 </Button>
               </div>
             </div>

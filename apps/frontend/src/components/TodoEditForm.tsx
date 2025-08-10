@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Todo, UpdateTodoDto, RepeatType } from '@/types/todo'
 import { Modal, ModalHeader, ModalTitle, ModalContent } from '@/components/ui'
 import { Input } from '@/components/ui'
@@ -17,6 +18,7 @@ interface TodoEditFormProps {
 }
 
 export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting, isDeleting }: TodoEditFormProps) {
+  const { t } = useTranslation(['todos', 'common']);
   const [isRepeatable, setIsRepeatable] = useState(todo.isRepeatable || false)
   const [repeatType, setRepeatType] = useState<RepeatType>(todo.repeatConfig?.repeatType || 'DAILY')
   const [selectedDays, setSelectedDays] = useState<number[]>(todo.repeatConfig?.daysOfWeek || [])
@@ -58,17 +60,19 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
   return (
     <Modal open={true} onClose={onCancel}>
       <ModalHeader onClose={onCancel}>
-        <ModalTitle>Edit Todo</ModalTitle>
+        <ModalTitle>{t('labels.editTodo')}</ModalTitle>
       </ModalHeader>
       
       <ModalContent>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <div>
+            <label className="block text-sm font-medium mb-1">
+              {t('form.title')} *
+            </label>
             <Input
-              {...register('title', { required: 'Title is required' })}
+              {...register('title', { required: t('form.titleRequired') })}
               type="text"
               id="title"
-              label="Title *"
             />
             {errors.title && (
               <p className="mt-1 text-sm text-red-500">{errors.title.message}</p>
@@ -80,38 +84,38 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
               {...register('description')}
               id="description"
               rows={3}
-              label="Description"
+              label={t('form.description')}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="status" className="block text-sm font-medium mb-1">
-                Status
+                {t('form.status')}
               </label>
               <select
                 {...register('status')}
                 id="status"
                 className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
               >
-                <option value="TODO">To Do</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="DONE">Done</option>
+                <option value="TODO">{t('status.todo')}</option>
+                <option value="IN_PROGRESS">{t('status.inProgress')}</option>
+                <option value="DONE">{t('status.done')}</option>
               </select>
             </div>
 
             <div>
               <label htmlFor="priority" className="block text-sm font-medium mb-1">
-                Priority
+                {t('form.priority')}
               </label>
               <select
                 {...register('priority')}
                 id="priority"
                 className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
               >
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
+                <option value="LOW">{t('priority.low')}</option>
+                <option value="MEDIUM">{t('priority.medium')}</option>
+                <option value="HIGH">{t('priority.high')}</option>
               </select>
             </div>
           </div>
@@ -121,7 +125,7 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
               {...register('dueDate')}
               type="date"
               id="dueDate"
-              label="Due Date"
+              label={t('form.dueDate')}
             />
           </div>
 
@@ -152,7 +156,7 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
               />
               <label htmlFor="isRepeatable" className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <Repeat className="h-4 w-4" />
-                Recurring Task
+                {t('labels.recurringTask')}
               </label>
             </div>
 
@@ -161,7 +165,7 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
                 {/* Repeat Type */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Pattern
+                    {t('labels.pattern')}
                   </label>
                   <select
                     {...register('repeatConfig.repeatType')}
@@ -174,17 +178,17 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
                     }}
                     className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
                   >
-                    <option value="DAILY">Daily</option>
-                    <option value="WEEKLY">Weekly</option>
-                    <option value="MONTHLY">Monthly</option>
-                    <option value="YEARLY">Yearly</option>
+                    <option value="DAILY">{t('recurring.daily')}</option>
+                    <option value="WEEKLY">{t('recurring.weekly')}</option>
+                    <option value="MONTHLY">{t('recurring.monthly')}</option>
+                    <option value="YEARLY">{t('recurring.yearly')}</option>
                   </select>
                 </div>
 
                 {/* Interval */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Interval
+                    {t('labels.interval')}
                   </label>
                   <div className="flex items-center gap-2">
                     <input
@@ -196,10 +200,10 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
                       className="w-20 px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
                     />
                     <span className="text-sm text-muted-foreground">
-                      {repeatType === 'DAILY' && 'day(s)'}
-                      {repeatType === 'WEEKLY' && 'week(s)'}
-                      {repeatType === 'MONTHLY' && 'month(s)'}
-                      {repeatType === 'YEARLY' && 'year(s)'}
+                      {repeatType === 'DAILY' && t('common:date.days')}
+                      {repeatType === 'WEEKLY' && t('common:date.weeks')}
+                      {repeatType === 'MONTHLY' && t('common:date.months')}
+                      {repeatType === 'YEARLY' && t('common:date.years')}
                     </span>
                   </div>
                 </div>
@@ -208,10 +212,10 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
                 {repeatType === 'WEEKLY' && (
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Days of Week
+                      {t('labels.daysOfWeek')}
                     </label>
                     <div className="flex gap-2">
-                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
+                      {(t('common:date.weekdaysShort', { returnObjects: true }) as string[]).map((day, index) => (
                         <button
                           key={index}
                           type="button"
@@ -240,7 +244,7 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
                 {repeatType === 'MONTHLY' && (
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Day of Month
+                      {t('labels.dayOfMonth')}
                     </label>
                     <input
                       {...register('repeatConfig.dayOfMonth', { min: 1, max: 31 })}
@@ -257,7 +261,7 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
                 {/* End Date */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    End Date
+                    {t('labels.endDate')}
                   </label>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -269,7 +273,7 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
                     />
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Leave empty for no end date
+                    {t('labels.endDateDescription')}
                   </p>
                 </div>
               </div>
@@ -283,7 +287,7 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
               onClick={onDelete}
               disabled={isSubmitting || isDeleting}
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? t('labels.deleting') : t('labels.delete')}
             </Button>
             <div className="flex gap-3">
               <Button
@@ -292,13 +296,13 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
                 onClick={onCancel}
                 disabled={isSubmitting || isDeleting}
               >
-                Cancel
+                {t('common:app.cancel')}
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting || isDeleting}
               >
-                {isSubmitting ? 'Updating...' : 'Update Todo'}
+                {isSubmitting ? t('labels.updating') : t('labels.updateTodo')}
               </Button>
             </div>
           </div>

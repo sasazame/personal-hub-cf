@@ -24,7 +24,11 @@
     "reminder": "Set Reminder",
     "attachments": "Attachments",
     "notes": "Notes",
-    "notesPlaceholder": "Add notes"
+    "notesPlaceholder": "Add notes",
+    "newSubtask": "New Subtask",
+    "addSubtask": "Add Subtask",
+    "addTodo": "Add Todo",
+    "titleRequired": "Title is required"
   },
   "status": {
     "todo": "To Do",
@@ -72,6 +76,26 @@
     "export": "Export",
     "print": "Print"
   },
+  "labels": {
+    "newSubtask": "New Subtask",
+    "newTodo": "New Todo",
+    "cancel": "Cancel",
+    "addSubtask": "Add Subtask",
+    "addTodo": "Add Todo",
+    "repeatOnDays": "Repeat on days",
+    "editTodo": "Edit Todo",
+    "recurringTask": "Recurring Task",
+    "pattern": "Pattern",
+    "interval": "Interval",
+    "daysOfWeek": "Days of Week",
+    "dayOfMonth": "Day of Month",
+    "endDate": "End Date",
+    "endDateDescription": "Leave empty for no end date",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "updateTodo": "Update Todo",
+    "updating": "Updating..."
+  },
   "messages": {
     "todoCreated": "Todo created successfully",
     "todoUpdated": "Todo updated successfully",
@@ -85,6 +109,14 @@
     "noTodos": "No todos found",
     "createFirst": "Create your first todo to get started"
   },
+  "toast": {
+    "added": "Todo added",
+    "updated": "Todo updated",
+    "deleted": "Todo deleted",
+    "createFailed": "Failed to create todo",
+    "updateFailed": "Failed to update todo",
+    "deleteFailed": "Failed to delete todo"
+  },
   "stats": {
     "total": "Total",
     "completed": "Completed",
@@ -93,5 +125,14 @@
     "completionRate": "Completion Rate",
     "todaysDue": "Due Today",
     "thisWeekDue": "Due This Week"
+  },
+  "recurring": {
+    "makeRecurring": "Make this a recurring task",
+    "repeatType": "Repeat Type",
+    "repeatOnDays": "Repeat on days",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "yearly": "Yearly"
   }
 }

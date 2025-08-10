@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CalendarEvent, CreateCalendarEventDto, UpdateCalendarEventDto } from '@/types/calendar';
 import { Modal, Button, Input, TextArea } from '@/components/ui';
 import { format } from 'date-fns';
@@ -14,12 +15,12 @@ interface EventFormProps {
   onDelete?: () => void;
 }
 
-const colorOptions = [
-  { value: 'blue', label: 'Blue', class: 'bg-blue-500' },
-  { value: 'green', label: 'Green', class: 'bg-green-500' },
-  { value: 'red', label: 'Red', class: 'bg-red-500' },
-  { value: 'purple', label: 'Purple', class: 'bg-purple-500' },
-  { value: 'orange', label: 'Orange', class: 'bg-orange-500' },
+const useColorOptions = (t: (key: string) => string) => [
+  { value: 'blue', label: t('colorOptions.blue'), class: 'bg-blue-500' },
+  { value: 'green', label: t('colorOptions.green'), class: 'bg-green-500' },
+  { value: 'red', label: t('colorOptions.red'), class: 'bg-red-500' },
+  { value: 'purple', label: t('colorOptions.purple'), class: 'bg-purple-500' },
+  { value: 'orange', label: t('colorOptions.orange'), class: 'bg-orange-500' },
 ];
 
 export function EventForm({ 
@@ -31,6 +32,8 @@ export function EventForm({
   isSubmitting, 
   onDelete 
 }: EventFormProps) {
+  const { t } = useTranslation(['calendar', 'common']);
+  const colorOptions = useColorOptions(t);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startDateTime, setStartDateTime] = useState('');
@@ -114,15 +117,15 @@ export function EventForm({
     const newErrors: { [key: string]: string } = {};
     
     if (!title.trim()) {
-      newErrors.title = 'Title is required';
+      newErrors.title = t('form.titleRequired');
     }
     
     if (!startDateTime) {
-      newErrors.startDateTime = 'Start date is required';
+      newErrors.startDateTime = t('form.startDateRequired');
     }
     
     if (!endDateTime) {
-      newErrors.endDateTime = 'End date is required';
+      newErrors.endDateTime = t('form.endDateRequired');
     }
     
     if (startDateTime && endDateTime) {
@@ -132,12 +135,12 @@ export function EventForm({
       if (allDay) {
         // For all-day events, allow same date
         if (end < start) {
-          newErrors.endDateTime = 'End date must be on or after start date';
+          newErrors.endDateTime = t('form.endDateAfterStart');
         }
       } else {
         // For timed events, end must be after start
         if (end <= start) {
-          newErrors.endDateTime = 'End time must be after start time';
+          newErrors.endDateTime = t('form.endTimeAfterStart');
         }
       }
     }
@@ -192,16 +195,18 @@ export function EventForm({
     <Modal open={isOpen} onClose={handleClose}>
       <div className="p-6">
         <h2 className="text-xl font-semibold mb-4">
-          {event ? 'Edit Event' : 'New Event'}
+          {event ? t('editEvent') : t('newEvent')}
         </h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
+            <label className="block text-sm font-medium mb-1">
+              {t('eventTitle')} *
+            </label>
             <Input
-              label="Title *"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Event title"
+              placeholder={t('form.titlePlaceholder')}
             />
             {errors.title && (
               <p className="text-red-500 text-xs mt-1">{errors.title}</p>
@@ -209,11 +214,13 @@ export function EventForm({
           </div>
           
           <div>
+            <label className="block text-sm font-medium mb-1">
+              {t('eventDescription')}
+            </label>
             <TextArea
-              label="Description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Event description"
+              placeholder={t('form.descriptionPlaceholder')}
               rows={3}
             />
           </div>
@@ -229,14 +236,14 @@ export function EventForm({
               />
               <label htmlFor="allDay" className="text-sm font-medium flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                All day event
+                {t('labels.allDayEvent')}
               </label>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Start {allDay ? 'Date' : 'Date & Time'} *
+                  {allDay ? t('form.startDate') : t('form.startDateTime')} *
                 </label>
                 <input
                   type={allDay ? 'date' : 'datetime-local'}
@@ -253,7 +260,7 @@ export function EventForm({
               
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  End {allDay ? 'Date' : 'Date & Time'} *
+                  {allDay ? t('form.endDate') : t('form.endDateTime')} *
                 </label>
                 <input
                   type={allDay ? 'date' : 'datetime-local'}
@@ -273,19 +280,19 @@ export function EventForm({
           <div>
             <label className="block text-sm font-medium mb-1">
               <MapPin className="w-4 h-4 inline mr-1" />
-              Location
+              {t('location')}
             </label>
             <Input
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="Event location"
+              placeholder={t('form.locationPlaceholder')}
             />
           </div>
           
           <div>
             <label className="block text-sm font-medium mb-2">
               <Palette className="w-4 h-4 inline mr-1" />
-              Color
+              {t('color')}
             </label>
             <div className="flex gap-2">
               {colorOptions.map((option) => (
@@ -312,7 +319,7 @@ export function EventForm({
                 className="text-red-600 hover:text-red-700"
               >
                 <Trash2 className="w-4 h-4 mr-1" />
-                Delete
+                {t('labels.delete')}
               </Button>
             )}
             <div className={`flex gap-2 ${!event || !onDelete ? 'ml-auto' : ''}`}>
@@ -322,14 +329,14 @@ export function EventForm({
                 onClick={handleClose}
                 disabled={isSubmitting}
               >
-                Cancel
+                {t('labels.cancel')}
               </Button>
               <Button
                 type="submit"
                 variant="primary"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Saving...' : (event ? 'Update' : 'Create')}
+                {isSubmitting ? t('labels.saving') : (event ? t('labels.update') : t('labels.create'))}
               </Button>
             </div>
           </div>

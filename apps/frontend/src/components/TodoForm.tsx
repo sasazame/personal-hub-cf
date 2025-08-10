@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { CreateTodoDto, RepeatType } from '@/types/todo'
 import { Modal, ModalHeader, ModalTitle, ModalContent } from '@/components/ui'
 import { FormInput, FormTextArea, FormSelect, FormCheckbox } from '@/components/ui/FormField'
@@ -15,6 +16,7 @@ interface TodoFormProps {
 }
 
 export function TodoForm({ onSubmit, onCancel, isSubmitting, parentId }: TodoFormProps) {
+  const { t } = useTranslation(['todos', 'common']);
   const [isRepeatable, setIsRepeatable] = useState(false)
   const [repeatType, setRepeatType] = useState<RepeatType>('DAILY')
   const [selectedDays, setSelectedDays] = useState<number[]>([])
@@ -51,21 +53,21 @@ export function TodoForm({ onSubmit, onCancel, isSubmitting, parentId }: TodoFor
   }, [isRepeatable, repeatType, selectedDays, setValue])
 
   const statusOptions = [
-    { value: 'TODO', label: 'To Do' },
-    { value: 'IN_PROGRESS', label: 'In Progress' },
-    { value: 'DONE', label: 'Done' },
+    { value: 'TODO', label: t('status.todo') },
+    { value: 'IN_PROGRESS', label: t('status.inProgress') },
+    { value: 'DONE', label: t('status.done') },
   ]
 
   const priorityOptions = [
-    { value: 'LOW', label: 'Low' },
-    { value: 'MEDIUM', label: 'Medium' },
-    { value: 'HIGH', label: 'High' },
+    { value: 'LOW', label: t('priority.low') },
+    { value: 'MEDIUM', label: t('priority.medium') },
+    { value: 'HIGH', label: t('priority.high') },
   ]
 
   const repeatTypeOptions = [
-    { value: 'DAILY', label: 'Daily' },
-    { value: 'WEEKLY', label: 'Weekly' },
-    { value: 'MONTHLY', label: 'Monthly' },
+    { value: 'DAILY', label: t('recurring.daily') },
+    { value: 'WEEKLY', label: t('recurring.weekly') },
+    { value: 'MONTHLY', label: t('recurring.monthly') },
   ]
 
   const handleFormSubmit = (data: CreateTodoDto) => {
@@ -76,16 +78,16 @@ export function TodoForm({ onSubmit, onCancel, isSubmitting, parentId }: TodoFor
     <Modal open={true} onClose={onCancel}>
       <ModalHeader>
         <ModalTitle>
-          {parentId ? 'New Subtask' : 'New Todo'}
+          {parentId ? t('labels.newSubtask') : t('labels.newTodo')}
         </ModalTitle>
       </ModalHeader>
       
       <ModalContent>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <FormInput
-            {...register('title', { required: 'Title is required' })}
+            {...register('title', { required: t('form.titleRequired') })}
             id="title"
-            label="Title"
+            label={t('form.title')}
             required
             error={errors.title}
           />
@@ -93,7 +95,7 @@ export function TodoForm({ onSubmit, onCancel, isSubmitting, parentId }: TodoFor
           <FormTextArea
             {...register('description')}
             id="description"
-            label="Description"
+            label={t('form.description')}
             rows={3}
           />
 
@@ -101,21 +103,21 @@ export function TodoForm({ onSubmit, onCancel, isSubmitting, parentId }: TodoFor
             <FormSelect
               {...register('status')}
               id="status"
-              label="Status"
+              label={t('form.status')}
               options={statusOptions}
             />
 
             <FormSelect
               {...register('priority')}
               id="priority"
-              label="Priority"
+              label={t('form.priority')}
               options={priorityOptions}
             />
           </div>
 
           <div>
             <label htmlFor="dueDate" className="block text-sm font-medium text-foreground mb-1">
-              Due Date
+              {t('form.dueDate')}
             </label>
             <div className="relative">
               <Input
@@ -133,7 +135,7 @@ export function TodoForm({ onSubmit, onCancel, isSubmitting, parentId }: TodoFor
             <div className="border-t pt-4">
               <FormCheckbox
                 id="isRepeatable"
-                label="Make this a recurring task"
+                label={t('recurring.makeRecurring')}
                 checked={isRepeatable}
                 onChange={(e) => setIsRepeatable(e.target.checked)}
               />
@@ -144,18 +146,18 @@ export function TodoForm({ onSubmit, onCancel, isSubmitting, parentId }: TodoFor
                     value={repeatType}
                     onChange={(e) => setRepeatType(e.target.value as RepeatType)}
                     id="repeatType"
-                    label="Repeat Type"
+                    label={t('recurring.repeatType')}
                     options={repeatTypeOptions}
                   />
 
                   {repeatType === 'WEEKLY' && (
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Repeat on days
+                        {t('recurring.repeatOnDays')}
                       </label>
                       <div className="grid grid-cols-7 gap-2">
-                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
-                          <label key={day} className="flex items-center justify-center">
+                        {(t('common:date.weekdaysShort', { returnObjects: true }) as string[]).map((day, index) => (
+                          <label key={index} className="flex items-center justify-center">
                             <input
                               type="checkbox"
                               checked={selectedDays.includes(index)}
@@ -194,13 +196,13 @@ export function TodoForm({ onSubmit, onCancel, isSubmitting, parentId }: TodoFor
               onClick={onCancel}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('common:app.cancel')}
             </Button>
             <Button
               type="submit"
               loading={isSubmitting}
             >
-              {parentId ? 'Add Subtask' : 'Add Todo'}
+              {parentId ? t('labels.addSubtask') : t('labels.addTodo')}
             </Button>
           </div>
         </form>

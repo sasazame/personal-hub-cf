@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Search } from 'lucide-react';
 import { Button, Input, Modal } from '@/components/ui';
 import { AppLayout } from '@/components/layout';
@@ -16,6 +17,7 @@ import {
 } from '@/lib/note-api';
 
 export function Notes() {
+  const { t } = useTranslation(['notes', 'common']);
   const [notes, setNotes] = useState<Note[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,7 +40,7 @@ export function Notes() {
       setNotes(data);
     } catch (error) {
       console.error('Failed to load notes:', error);
-      showError('Failed to load notes');
+      showError(t('messages.loadFailed'));
     }
   }, [searchQuery, selectedTag]);
 
@@ -72,7 +74,7 @@ export function Notes() {
     setIsSubmitting(true);
     try {
       await createNote(data);
-      showSuccess('Note created');
+      showSuccess(t('messages.noteCreated'));
       setIsFormOpen(false);
       loadNotes();
       // Only reload tags if new tags were added
@@ -81,7 +83,7 @@ export function Notes() {
       }
     } catch (error) {
       console.error('Failed to create note:', error);
-      showError(error instanceof Error ? error.message : 'Failed to create note');
+      showError(error instanceof Error ? error.message : t('messages.noteCreateFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -93,7 +95,7 @@ export function Notes() {
     setIsSubmitting(true);
     try {
       await updateNote(selectedNote.id, data);
-      showSuccess('Note updated');
+      showSuccess(t('messages.noteUpdated'));
       setIsFormOpen(false);
       setSelectedNote(null);
       setViewingNote(null);
@@ -108,7 +110,7 @@ export function Notes() {
       }
     } catch (error) {
       console.error('Failed to update note:', error);
-      showError(error instanceof Error ? error.message : 'Failed to update note');
+      showError(error instanceof Error ? error.message : t('messages.noteUpdateFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -119,7 +121,7 @@ export function Notes() {
 
     try {
       await deleteNote(noteToDelete.id);
-      showSuccess('Note deleted');
+      showSuccess(t('messages.noteDeleted'));
       setNoteToDelete(null);
       setViewingNote(null);
       
@@ -140,7 +142,7 @@ export function Notes() {
       }
     } catch (error) {
       console.error('Failed to delete note:', error);
-      showError(error instanceof Error ? error.message : 'Failed to delete note');
+      showError(error instanceof Error ? error.message : t('messages.noteDeleteFailed'));
     }
   };
 
@@ -167,7 +169,7 @@ export function Notes() {
     return (
       <AppLayout>
         <div className="min-h-[400px] flex items-center justify-center">
-          <div className="text-lg text-muted-foreground">Loading...</div>
+          <div className="text-lg text-muted-foreground">{t('messages.loading')}</div>
         </div>
       </AppLayout>
     );
@@ -180,10 +182,10 @@ export function Notes() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              Notes
+              {t('labels.notes')}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Capture your thoughts and ideas
+              {t('labels.subtitle')}
             </p>
           </div>
           <Button
@@ -193,7 +195,7 @@ export function Notes() {
             className="flex items-center gap-2"
           >
             <Plus className="w-5 h-5" />
-            New Note
+            {t('newNote')}
           </Button>
         </div>
 
@@ -204,7 +206,7 @@ export function Notes() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search notes..."
+                placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={handleSearchChange}
                 className="pl-10"
@@ -218,7 +220,7 @@ export function Notes() {
             onChange={(e) => setSelectedTag(e.target.value)}
             className="px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">All tags</option>
+            <option value="">{t('labels.allTags')}</option>
             {tags.map((tag) => (
               <option key={tag} value={tag}>
                 {tag}
@@ -229,9 +231,9 @@ export function Notes() {
 
         {/* Stats */}
         <div className="text-sm text-muted-foreground">
-          {notes.length} note{notes.length !== 1 ? 's' : ''}
-          {searchQuery && ` (searching for "${searchQuery}")`}
-          {selectedTag && ` (filtered by tag: ${selectedTag})`}
+          {t('labels.stats', { count: notes.length })}
+          {searchQuery && ' ' + t('labels.searching', { query: searchQuery })}
+          {selectedTag && ' ' + t('labels.filtered', { tag: selectedTag })}
         </div>
 
         {/* Note List */}
@@ -268,23 +270,23 @@ export function Notes() {
           <Modal open={true} onClose={() => setNoteToDelete(null)}>
             <div className="p-6 space-y-4">
               <h2 className="text-xl font-semibold text-foreground">
-                Delete Note
+                {t('deleteNote')}
               </h2>
               <p className="text-muted-foreground">
-                Are you sure you want to delete "{noteToDelete.title}"? This action cannot be undone.
+                {t('messages.confirmDelete', { title: noteToDelete.title })}
               </p>
               <div className="flex gap-3 justify-end">
                 <Button
                   variant="secondary"
                   onClick={() => setNoteToDelete(null)}
                 >
-                  Cancel
+                  {t('labels.cancel')}
                 </Button>
                 <Button
                   variant="danger"
                   onClick={handleDeleteNote}
                 >
-                  Delete
+                  {t('labels.delete')}
                 </Button>
               </div>
             </div>

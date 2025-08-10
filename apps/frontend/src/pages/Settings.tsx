@@ -74,20 +74,20 @@ export function Settings() {
     <AppLayout>
       <div className="space-y-6 max-w-4xl mx-auto">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-          <p className="text-muted-foreground mt-1">Manage your preferences and account settings</p>
+          <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
+          <p className="text-muted-foreground mt-1">{t('subtitle')}</p>
         </div>
 
         {/* Theme Settings */}
         <div className="bg-card rounded-lg shadow-sm border border-border p-6">
           <div className="flex items-center gap-3 mb-6">
             <Palette className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-semibold text-foreground">Appearance</h2>
+            <h2 className="text-xl font-semibold text-foreground">{t('appearance.title')}</h2>
           </div>
 
           <div className="space-y-6">
             <div>
-              <label className="text-sm font-medium text-foreground mb-3 block">Theme</label>
+              <label className="text-sm font-medium text-foreground mb-3 block">{t('appearance.theme')}</label>
               <div className="grid grid-cols-3 gap-3">
                 <button
                   onClick={() => setTheme('light')}
@@ -98,7 +98,7 @@ export function Settings() {
                   }`}
                 >
                   <Sun className="h-6 w-6 mx-auto mb-2 text-primary" />
-                  <span className="text-sm text-foreground">Light</span>
+                  <span className="text-sm text-foreground">{t('appearance.light')}</span>
                 </button>
 
                 <button
@@ -110,7 +110,7 @@ export function Settings() {
                   }`}
                 >
                   <Moon className="h-6 w-6 mx-auto mb-2 text-primary" />
-                  <span className="text-sm text-foreground">Dark</span>
+                  <span className="text-sm text-foreground">{t('appearance.dark')}</span>
                 </button>
 
                 <button
@@ -118,8 +118,8 @@ export function Settings() {
                   className="p-4 rounded-lg border-2 border-border opacity-50 cursor-not-allowed"
                 >
                   <Monitor className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">System</span>
-                  <span className="text-xs text-muted-foreground block">(Coming soon)</span>
+                  <span className="text-sm text-muted-foreground">{t('appearance.system')}</span>
+                  <span className="text-xs text-muted-foreground block">{t('appearance.systemComingSoon')}</span>
                 </button>
               </div>
             </div>
@@ -127,8 +127,8 @@ export function Settings() {
             <SettingsSwitch
               checked={display.compactMode}
               onCheckedChange={(checked) => setDisplay({ ...display, compactMode: checked })}
-              label="Compact Mode"
-              description="Reduce spacing between elements"
+              label={t('appearance.compactMode')}
+              description={t('appearance.compactModeDesc')}
             />
           </div>
         </div>
@@ -137,36 +137,36 @@ export function Settings() {
         <div className="bg-card rounded-lg shadow-sm border border-border p-6">
           <div className="flex items-center gap-3 mb-6">
             <Bell className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-semibold text-foreground">Notifications</h2>
+            <h2 className="text-xl font-semibold text-foreground">{t('notifications.title')}</h2>
           </div>
 
           <div className="space-y-4">
             <SettingsSwitch
               checked={notifications.email}
               onCheckedChange={(checked) => setNotifications({ ...notifications, email: checked })}
-              label="Email Notifications"
-              description="Receive updates via email"
+              label={t('notifications.emailNotifications')}
+              description={t('notifications.emailDesc')}
             />
 
             <SettingsSwitch
               checked={notifications.push}
               onCheckedChange={(checked) => setNotifications({ ...notifications, push: checked })}
-              label="Push Notifications"
-              description="Receive browser notifications"
+              label={t('notifications.pushNotifications')}
+              description={t('notifications.pushDesc')}
             />
 
             <SettingsSwitch
               checked={notifications.reminders}
               onCheckedChange={(checked) => setNotifications({ ...notifications, reminders: checked })}
-              label="Task Reminders"
-              description="Get reminded about upcoming tasks"
+              label={t('notifications.notificationTypes.todos')}
+              description={t('notifications.remindersDesc')}
             />
 
             <SettingsSwitch
               checked={notifications.updates}
               onCheckedChange={(checked) => setNotifications({ ...notifications, updates: checked })}
-              label="Product Updates"
-              description="Learn about new features"
+              label={t('notifications.notificationTypes.systemUpdates')}
+              description={t('notifications.updatesDesc')}
             />
           </div>
         </div>
@@ -175,7 +175,7 @@ export function Settings() {
         <div className="bg-card rounded-lg shadow-sm border border-border p-6">
           <div className="flex items-center gap-3 mb-6">
             <Grid className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-semibold text-foreground">Features</h2>
+            <h2 className="text-xl font-semibold text-foreground">{t('general.features')}</h2>
           </div>
           <FeatureToggles />
         </div>
@@ -184,22 +184,22 @@ export function Settings() {
         <div className="bg-card rounded-lg shadow-sm border border-border p-6">
           <div className="flex items-center gap-3 mb-6">
             <Clock className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-semibold text-foreground">Time & Language</h2>
+            <h2 className="text-xl font-semibold text-foreground">{t('general.timeLanguage')}</h2>
           </div>
 
           <div className="space-y-4">
             <SettingsSwitch
               checked={display.use24Hour}
               onCheckedChange={(checked) => setDisplay({ ...display, use24Hour: checked })}
-              label="24-Hour Time"
-              description="Use 24-hour time format"
+              label={t('general.use24Hour')}
+              description={t('general.use24HourDesc')}
             />
 
             <SettingsSwitch
               checked={display.showSeconds}
               onCheckedChange={(checked) => setDisplay({ ...display, showSeconds: checked })}
-              label="Show Seconds"
-              description="Display seconds in time fields"
+              label={t('general.showSeconds')}
+              description={t('general.showSecondsDesc')}
             />
 
             <div>
@@ -210,12 +210,12 @@ export function Settings() {
                   value={language}
                   onChange={(e) => handleLanguageChange(e.target.value)}
                   className="flex-1 px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  aria-label="Select language"
+                  aria-label={t('general.language')}
                 >
-                  <option value="en">English</option>
-                  <option value="ja">日本語</option>
-                  <option value="zh" disabled>中文 (Coming soon)</option>
-                  <option value="es" disabled>Español (Coming soon)</option>
+                  <option value="en">{t('general.languages.en')}</option>
+                  <option value="ja">{t('general.languages.ja')}</option>
+                  <option value="zh" disabled>{t('general.languages.zh')} {t('appearance.systemComingSoon')}</option>
+                  <option value="es" disabled>{t('general.languages.es')} {t('appearance.systemComingSoon')}</option>
                 </select>
               </div>
             </div>
@@ -229,7 +229,7 @@ export function Settings() {
             className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
             <Save className="h-4 w-4" />
-            Save Settings
+            {t('labels.saveSettings')}
           </button>
         </div>
       </div>

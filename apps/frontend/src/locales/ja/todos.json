@@ -12,6 +12,7 @@
   "form": {
     "title": "タイトル",
     "titlePlaceholder": "TODOのタイトルを入力",
+    "titleRequired": "タイトルは必須です",
     "description": "説明",
     "descriptionPlaceholder": "TODOの説明を入力",
     "status": "ステータス",
@@ -24,7 +25,10 @@
     "reminder": "リマインダー設定",
     "attachments": "添付ファイル",
     "notes": "メモ",
-    "notesPlaceholder": "メモを追加"
+    "notesPlaceholder": "メモを追加",
+    "newSubtask": "新しいサブタスク",
+    "addSubtask": "サブタスクを追加",
+    "addTodo": "TODOを追加"
   },
   "status": {
     "todo": "未完了",
@@ -84,6 +88,43 @@
     "confirmArchive": "このTODOをアーカイブしてもよろしいですか？",
     "noTodos": "TODOがありません",
     "createFirst": "最初のTODOを作成して始めましょう"
+  },
+  "toast": {
+    "added": "TODOを追加しました",
+    "updated": "TODOを更新しました",
+    "deleted": "TODOを削除しました",
+    "createFailed": "TODOの作成に失敗しました",
+    "updateFailed": "TODOの更新に失敗しました",
+    "deleteFailed": "TODOの削除に失敗しました"
+  },
+  "labels": {
+    "newSubtask": "新しいサブタスク",
+    "newTodo": "新しいTODO",
+    "cancel": "キャンセル",
+    "addSubtask": "サブタスクを追加",
+    "addTodo": "TODOを追加",
+    "repeatOnDays": "繰り返す曜日",
+    "editTodo": "TODOを編集",
+    "recurringTask": "繰り返しタスク",
+    "pattern": "パターン",
+    "interval": "間隔",
+    "daysOfWeek": "曜日",
+    "dayOfMonth": "日付",
+    "endDate": "終了日",
+    "endDateDescription": "終了日がない場合は空のままにします",
+    "delete": "削除",
+    "deleting": "削除中...",
+    "updateTodo": "TODOを更新",
+    "updating": "更新中..."
+  },
+  "recurring": {
+    "makeRecurring": "このタスクを繰り返しにする",
+    "repeatType": "繰り返しタイプ",
+    "repeatOnDays": "繰り返す曜日",
+    "daily": "毎日",
+    "weekly": "毎週",
+    "monthly": "毎月",
+    "yearly": "毎年"
   },
   "stats": {
     "total": "合計",

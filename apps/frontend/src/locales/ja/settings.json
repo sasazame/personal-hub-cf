@@ -1,7 +1,10 @@
 {
   "title": "設定",
+  "subtitle": "設定とアカウントを管理",
   "general": {
     "title": "一般",
+    "features": "機能",
+    "timeLanguage": "時刻と言語",
     "language": "言語",
     "languageDescription": "使用言語を選択してください",
     "timezone": "タイムゾーン",
@@ -36,12 +39,23 @@
     "weekDays": {
       "sunday": "日曜日",
       "monday": "月曜日",
+      "tuesday": "火曜日",
+      "wednesday": "水曜日",
+      "thursday": "木曜日",
+      "friday": "金曜日",
       "saturday": "土曜日"
     },
     "timeFormats": {
       "12h": "12時間制（AM/PM）",
       "24h": "24時間制"
-    }
+    },
+    "use24Hour": "24時間表示",
+    "use24HourDesc": "時刻を24時間制で表示",
+    "showSeconds": "秒を表示",
+    "showSecondsDesc": "時刻に秒を表示する"
+  },
+  "labels": {
+    "saveSettings": "設定を保存"
   },
   "account": {
     "title": "アカウント",
@@ -65,6 +79,10 @@
   },
   "notifications": {
     "title": "通知",
+    "emailDesc": "メールで更新を受け取る",
+    "pushDesc": "ブラウザ通知を受け取る",
+    "remindersDesc": "予定やタスクのリマインダーを受け取る",
+    "updatesDesc": "新機能のお知らせを受け取る",
     "enableNotifications": "通知を有効にする",
     "emailNotifications": "メール通知",
     "pushNotifications": "プッシュ通知",
@@ -129,6 +147,7 @@
   },
   "appearance": {
     "title": "外観",
+    "theme": "テーマ",
     "colorScheme": "カラースキーム",
     "fontSize": "フォントサイズ",
     "fontFamily": "フォントファミリー",
@@ -136,7 +155,12 @@
     "showAnimations": "アニメーション表示",
     "reduceMotion": "モーション削減",
     "highContrast": "ハイコントラスト",
-    "colorBlindMode": "色覚異常対応モード"
+    "colorBlindMode": "色覚異常対応モード",
+    "light": "ライト",
+    "dark": "ダーク",
+    "system": "システム",
+    "systemComingSoon": "（近日対応）",
+    "compactModeDesc": "要素間の余白を減らす"
   },
   "accessibility": {
     "title": "アクセシビリティ",

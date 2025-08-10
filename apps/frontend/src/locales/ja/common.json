@@ -117,6 +117,12 @@
     "urgent": "緊急",
     "critical": "重大"
   },
+  "date": {
+    "weekdaysShort": ["日", "月", "火", "水", "木", "金", "土"],
+    "weekdays": ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"],
+    "months": ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+    "monthsShort": ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"]
+  },
   "validation": {
     "required": "この項目は必須です",
     "email": "有効なメールアドレスを入力してください",
@@ -152,6 +158,96 @@
     "permissionDenied": "権限がありません",
     "sessionExpired": "セッションの有効期限が切れました。再度ログインしてください。",
     "confirmDelete": "このアイテムを削除してもよろしいですか？",
-    "unsavedChanges": "保存されていない変更があります。このまま離れますか？"
+    "unsavedChanges": "保存されていない変更があります。このまま離れますか？",
+    "loading": "読み込み中...",
+    "loadingMore": "さらに読み込み中...",
+    "noMore": "これ以上アイテムはありません",
+    "viewAll": "すべて見る →"
+  },
+  "dashboard": {
+    "welcome": "おかえりなさい、{{username}}さん！",
+    "subtitle": "タスク、目標、時間を効果的に管理するあなたの生産性ハブ",
+    "cards": {
+      "todos": {
+        "title": "TODO",
+        "description": "タスクを管理して整理整頓",
+        "stats": "{{count}}件の未完了タスク"
+      },
+      "goals": {
+        "title": "目標",
+        "description": "目標と達成度を追跡",
+        "stats": "{{count}}件のアクティブな目標"
+      },
+      "pomodoro": {
+        "title": "ポモドーロ",
+        "description": "時間管理で生産性を向上",
+        "stats": "今日{{count}}セッション"
+      },
+      "calendar": {
+        "title": "カレンダー",
+        "description": "イベントをスケジュール管理",
+        "stats": "今日{{count}}件のイベント"
+      },
+      "notes": {
+        "title": "ノート",
+        "description": "アイデアを作成・整理",
+        "stats": "{{count}}件のノート"
+      },
+      "moments": {
+        "title": "モーメント",
+        "description": "人生の瞬間を記録・振り返り",
+        "stats": "{{count}}件のモーメント"
+      },
+      "analytics": {
+        "title": "分析",
+        "description": "生産性を可視化",
+        "stats": "完了率{{rate}}%"
+      }
+    },
+    "quickActions": {
+      "newTodo": "新しいTODO"
+    },
+    "sections": {
+      "todaysEvents": "今日のイベント",
+      "recentNotes": "最近のノート",
+      "noEvents": "今日の予定はありません",
+      "noNotes": "最近のノートはありません"
+    }
+  },
+  "emptyStates": {
+    "default": "データがありません",
+    "createPrompt": "新しいアイテムを作成して始めましょう"
+  },
+  "forms": {
+    "placeholders": {
+      "title": "タイトルを入力",
+      "description": "説明を入力",
+      "search": "検索..."
+    },
+    "labels": {
+      "title": "タイトル",
+      "description": "説明",
+      "status": "ステータス",
+      "priority": "優先度",
+      "dueDate": "期限",
+      "tags": "タグ"
+    },
+    "buttons": {
+      "saving": "保存中...",
+      "updating": "更新中...",
+      "creating": "作成中...",
+      "deleting": "削除中..."
+    }
+  },
+  "recurring": {
+    "label": "繰り返しタスク",
+    "makeRecurring": "繰り返しタスクにする",
+    "repeatType": "繰り返しタイプ",
+    "repeatOn": "繰り返す曜日",
+    "types": {
+      "daily": "毎日",
+      "weekly": "毎週",
+      "monthly": "毎月"
+    }
   }
 }

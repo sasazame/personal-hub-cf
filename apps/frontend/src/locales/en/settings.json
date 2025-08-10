@@ -1,7 +1,10 @@
 {
   "title": "Settings",
+  "subtitle": "Manage your preferences and account settings",
   "general": {
     "title": "General",
+    "features": "Features",
+    "timeLanguage": "Time & Language",
     "language": "Language",
     "languageDescription": "Select your preferred language",
     "timezone": "Timezone",
@@ -36,12 +39,23 @@
     "weekDays": {
       "sunday": "Sunday",
       "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
       "saturday": "Saturday"
     },
     "timeFormats": {
       "12h": "12-hour (AM/PM)",
       "24h": "24-hour"
-    }
+    },
+    "use24Hour": "24-Hour Time",
+    "use24HourDesc": "Use 24-hour time format",
+    "showSeconds": "Show Seconds",
+    "showSecondsDesc": "Display seconds in time fields"
+  },
+  "labels": {
+    "saveSettings": "Save Settings"
   },
   "account": {
     "title": "Account",
@@ -65,6 +79,10 @@
   },
   "notifications": {
     "title": "Notifications",
+    "emailDesc": "Receive updates via email",
+    "pushDesc": "Receive browser notifications",
+    "remindersDesc": "Get reminded about upcoming tasks",
+    "updatesDesc": "Learn about new features",
     "enableNotifications": "Enable Notifications",
     "emailNotifications": "Email Notifications",
     "pushNotifications": "Push Notifications",
@@ -129,6 +147,7 @@
   },
   "appearance": {
     "title": "Appearance",
+    "theme": "Theme",
     "colorScheme": "Color Scheme",
     "fontSize": "Font Size",
     "fontFamily": "Font Family",
@@ -136,7 +155,12 @@
     "showAnimations": "Show Animations",
     "reduceMotion": "Reduce Motion",
     "highContrast": "High Contrast",
-    "colorBlindMode": "Color Blind Mode"
+    "colorBlindMode": "Color Blind Mode",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "systemComingSoon": "(Coming soon)",
+    "compactModeDesc": "Reduce spacing between elements"
   },
   "accessibility": {
     "title": "Accessibility",
