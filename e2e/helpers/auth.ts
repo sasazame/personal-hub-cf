@@ -21,18 +21,34 @@ export async function login(page: Page, email: string, password: string) {
   // Wait for the page to stabilize
   await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
   
-  // Wait for login form to be visible with increased timeout
-  await page.waitForSelector('input[type="email"]', { timeout: 15000 });
+  // Wait for login form to be visible with multiple fallback strategies
+  try {
+    // Try primary selector first
+    await page.waitForSelector('input[type="email"]', { timeout: 5000, state: 'visible' });
+  } catch {
+    // Fallback: wait for form element
+    await page.waitForSelector('form', { timeout: 5000, state: 'visible' });
+    // Then wait for email input with alternative selectors
+    await page.waitForSelector('input[placeholder*="email" i], input[name="email"], input[type="email"]', { 
+      timeout: 10000, 
+      state: 'visible' 
+    });
+  }
   
   // Ensure form is ready for interaction
   await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+  await page.waitForTimeout(500); // Small delay for form hydration
   
-  // Fill in login form
-  await page.fill('input[type="email"]', email);
-  await page.fill('input[type="password"]', password);
+  // Fill in login form with more robust selectors
+  const emailInput = page.locator('input[type="email"], input[placeholder*="email" i], input[name="email"]').first();
+  const passwordInput = page.locator('input[type="password"], input[placeholder*="password" i], input[name="password"]').first();
   
-  // Submit form
-  await page.click('button[type="submit"]');
+  await emailInput.fill(email);
+  await passwordInput.fill(password);
+  
+  // Submit form with fallback selectors
+  const submitButton = page.locator('button[type="submit"], button:has-text("Sign in"), button:has-text("Log in"), button:has-text("Login")').first();
+  await submitButton.click();
   
   // Wait for either redirect or error message with longer timeout
   await Promise.race([
@@ -149,14 +165,28 @@ export async function ensureLoggedOut(page: Page) {
   // Wait for the page to stabilize
   await page.waitForTimeout(1000); // Give i18n and React time to initialize
   
-  // Wait for login form to be ready with increased timeout
-  // Try multiple selectors as the form might render differently
+  // Wait for login form to be ready with robust fallback strategy
   try {
-    await page.waitForSelector('input[type="email"]', { timeout: 15000, state: 'visible' });
-  } catch (error) {
-    // If email input not found, try alternative selectors
-    console.log('Email input not found with type selector, trying alternatives...');
-    await page.waitForSelector('input[placeholder*="email" i]', { timeout: 5000, state: 'visible' });
+    // Primary: wait for email input
+    await page.waitForSelector('input[type="email"]', { timeout: 5000, state: 'visible' });
+  } catch {
+    try {
+      // Fallback 1: wait for form and then email input
+      await page.waitForSelector('form', { timeout: 5000, state: 'visible' });
+      await page.waitForSelector('input[placeholder*="email" i], input[name="email"], input[type="email"]', { 
+        timeout: 10000, 
+        state: 'visible' 
+      });
+    } catch {
+      // Fallback 2: wait for any input and check if login page loaded
+      console.log('Waiting for page to fully load...');
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(2000); // Give React time to hydrate
+      const inputs = await page.locator('input').count();
+      if (inputs === 0) {
+        throw new Error('No input elements found on login page');
+      }
+    }
   }
 }
 

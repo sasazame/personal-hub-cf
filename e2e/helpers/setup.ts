@@ -27,11 +27,28 @@ export async function createUniqueTestUser(page: Page) {
     // Reload to apply language setting
     await page.reload();
     
-    // Wait for the form to be ready with more flexible selectors and increased timeout
+    // Wait for the form to be ready with robust fallback strategies
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000); // Give React time to hydrate
-    await page.waitForSelector('form', { state: 'visible', timeout: 15000 });
-    await page.waitForSelector('input[type="text"]', { state: 'visible', timeout: 15000 });
+    await page.waitForTimeout(1500); // Give React time to hydrate
+    
+    // Wait for form element first
+    await page.waitForSelector('form', { state: 'visible', timeout: 10000 });
+    
+    // Wait for registration-specific inputs
+    try {
+      // Username input is type="text" on register page
+      await page.waitForSelector('input[type="text"], input[placeholder*="username" i], input[name="username"]', { 
+        state: 'visible', 
+        timeout: 10000 
+      });
+    } catch {
+      // Fallback: check if we have any inputs
+      const inputCount = await page.locator('input').count();
+      if (inputCount < 4) { // Register page should have at least 4 inputs
+        throw new Error(`Expected at least 4 inputs on register page, found ${inputCount}`);
+      }
+    }
+    
     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     
     // Use more robust selectors - find inputs by their position and type
@@ -44,7 +61,9 @@ export async function createUniqueTestUser(page: Page) {
     await passwordInputs.first().fill(uniqueUser.password);
     await passwordInputs.nth(1).fill(uniqueUser.password);
     
-    await page.click('button[type="submit"]');
+    // Submit with robust selector
+    const submitButton = page.locator('button[type="submit"], button:has-text("Sign up"), button:has-text("Register"), button:has-text("Create account")').first();
+    await submitButton.click();
     
     // Wait for registration to complete - be more flexible with URL
     await page.waitForFunction(() => !window.location.pathname.includes('/register'), { timeout: 10000 });
@@ -83,7 +102,9 @@ export async function setupTestUser(page: Page) {
     
     await page.fill('input[type="email"]', TEST_USER.email);
     await page.fill('input[type="password"]', TEST_USER.password);
-    await page.click('button[type="submit"]');
+    // Submit with robust selector
+    const submitButton = page.locator('button[type="submit"], button:has-text("Sign up"), button:has-text("Register"), button:has-text("Create account")').first();
+    await submitButton.click();
     
     // Wait for login to complete
     await page.waitForFunction(() => !window.location.pathname.includes('/login'), { timeout: 10000 });
@@ -120,24 +141,49 @@ export async function setupTestUser(page: Page) {
     // Reload to apply language setting
     await page.reload();
     
-    // Wait for the form to be ready with more flexible selectors and increased timeout
+    // Wait for the form to be ready with robust fallback strategies
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000); // Give React time to hydrate
-    await page.waitForSelector('form', { state: 'visible', timeout: 15000 });
-    await page.waitForSelector('input[type="text"]', { state: 'visible', timeout: 15000 });
+    await page.waitForTimeout(1500); // Give React time to hydrate
+    
+    // Wait for form element first
+    await page.waitForSelector('form', { state: 'visible', timeout: 10000 });
+    
+    // Wait for registration-specific inputs
+    try {
+      // Username input is type="text" on register page
+      await page.waitForSelector('input[type="text"], input[placeholder*="username" i], input[name="username"]', { 
+        state: 'visible', 
+        timeout: 10000 
+      });
+    } catch {
+      // Fallback: check if we have any inputs
+      const inputCount = await page.locator('input').count();
+      if (inputCount < 4) { // Register page should have at least 4 inputs
+        throw new Error(`Expected at least 4 inputs on register page, found ${inputCount}`);
+      }
+    }
+    
     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     
-    // Use more robust selectors - find inputs by their position and type
-    const usernameInput = page.locator('input[type="text"]').first();
-    const emailInput = page.locator('input[type="email"]');
-    const passwordInputs = page.locator('input[type="password"]');
+    // Use more robust selectors with fallbacks
+    const usernameInput = page.locator('input[type="text"], input[placeholder*="username" i], input[name="username"]').first();
+    const emailInput = page.locator('input[type="email"], input[placeholder*="email" i], input[name="email"]').first();
+    const passwordInput = page.locator('input[type="password"]').first();
+    const confirmPasswordInput = page.locator('input[type="password"]').nth(1);
     
+    // Fill with small delays to ensure React handles the input events
     await usernameInput.fill(TEST_USER.username);
+    await page.waitForTimeout(100);
     await emailInput.fill(TEST_USER.email);
-    await passwordInputs.first().fill(TEST_USER.password);
-    await passwordInputs.nth(1).fill(TEST_USER.password);
+    await page.waitForTimeout(100);
+    await passwordInput.fill(TEST_USER.password);
+    await page.waitForTimeout(100);
+    await confirmPasswordInput.fill(TEST_USER.password);
+    await page.waitForTimeout(100);
     
-    await page.click('button[type="submit"]');
+    // Submit with robust selector
+    const submitButton = page.locator('button[type="submit"], button:has-text("Sign up"), button:has-text("Register"), button:has-text("Create account")').first();
+    await submitButton.click();
     
     // Wait for registration to complete
     await page.waitForFunction(() => !window.location.pathname.includes('/register'), { timeout: 10000 });
