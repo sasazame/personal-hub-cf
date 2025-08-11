@@ -1,6 +1,7 @@
 import { Page } from '@playwright/test';
 import { TEST_USER } from './auth';
-import { waitForReactHydration, waitForFormReady } from './retry-utils';
+import { waitForReactHydration, waitForFormReady, waitForNavigation, fillWithRetry, clickWithRetry } from './retry-utils';
+import { getTimingConfig } from './timing-config';
 
 /**
  * Creates a unique test user for the current test
@@ -29,10 +30,11 @@ export async function createUniqueTestUser(page: Page) {
     await page.reload();
     
     // Wait for React hydration and form to be ready
-    await waitForReactHydration(page);
+    await waitForReactHydration(page, { browserName: 'chromium' });
     const formReady = await waitForFormReady(page, {
       formSelector: 'form',
-      inputSelector: 'input[name="username"], input[type="text"]'
+      inputSelector: 'input[name="username"], input[type="text"]',
+      browserName: 'chromium'
     });
     
     if (!formReady) {
@@ -133,10 +135,11 @@ export async function setupTestUser(page: Page) {
     await page.reload();
     
     // Wait for React hydration and form to be ready
-    await waitForReactHydration(page);
+    await waitForReactHydration(page, { browserName: 'chromium' });
     const formReady = await waitForFormReady(page, {
       formSelector: 'form',
-      inputSelector: 'input[name="username"], input[type="text"]'
+      inputSelector: 'input[name="username"], input[type="text"]',
+      browserName: 'chromium'
     });
     
     if (!formReady) {

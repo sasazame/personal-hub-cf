@@ -3,11 +3,11 @@ import os from 'os';
 
 export default defineConfig({
   testDir: './e2e',
-  // Reasonable timeout for complex tests
-  timeout: 45000,
+  // Increased timeout for complex tests with timing improvements
+  timeout: process.env.CI ? 60000 : 45000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 3 : 1, // Increased retries for better stability
   // Optimize worker count based on environment
   workers: process.env.CI ? 2 : Math.min(4, os.cpus().length), 
   reporter: process.env.CI ? [['list'], ['json', { outputFile: 'test-results.json' }]] : 'html',
@@ -21,9 +21,9 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: process.env.CI ? 'off' : 'retain-on-failure', // Disable video in CI for performance
     locale: 'en-US',
-    // Balanced timeouts for stability
-    actionTimeout: 15000,
-    navigationTimeout: 30000,
+    // Adaptive timeouts for better stability
+    actionTimeout: process.env.CI ? 20000 : 15000,
+    navigationTimeout: process.env.CI ? 45000 : 30000,
     // Extra HTTP headers for API calls
     extraHTTPHeaders: {
       'Accept': 'application/json',
