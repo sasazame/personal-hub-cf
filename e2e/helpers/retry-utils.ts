@@ -24,7 +24,11 @@ export async function retryWithReload(
     
     if (i < maxRetries - 1) {
       console.log(`Retry ${i + 1}: ${message}`);
-      await page.reload({ waitUntil: 'networkidle' });
+      try {
+        await page.reload({ waitUntil: 'domcontentloaded', timeout: 15000 });
+      } catch (reloadErr) {
+        console.log('Reload failed, continuing retries:', reloadErr);
+      }
       await page.waitForTimeout(reloadDelay);
     }
   }
@@ -117,7 +121,8 @@ export async function waitForFormReady(
         const isInteractive = await page.evaluate((selector) => {
           const form = document.querySelector(selector);
           if (!form) return false;
-          
+          const ariaBusy = (form as HTMLElement).getAttribute('aria-busy');
+          if (ariaBusy === 'true') return false;
           const inputs = form.querySelectorAll('input:not([type="hidden"])');
           return inputs.length > 0 && Array.from(inputs).some(input => !input.disabled);
         }, formSelector);

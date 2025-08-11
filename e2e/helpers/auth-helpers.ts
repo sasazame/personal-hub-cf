@@ -28,7 +28,7 @@ export async function registerAndLogin(page: Page) {
   }
   
   await fillWithRetry(page, 'input[name="username"]', username);
-  await fillWithRetry(page, 'input[name="email"]', email);
+  await fillWithRetry(page, 'input[name="email"], input[type="email"]', email);
   await fillWithRetry(page, 'input[name="password"]', password);
   await fillWithRetry(page, 'input[name="confirmPassword"]', password);
   await clickWithRetry(page, 'button[type="submit"]');

@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 import { TEST_USER } from './auth';
-import { waitForReactHydration, waitForFormReady, fillWithRetry, clickWithRetry } from './retry-utils';
+import { waitForReactHydration, waitForFormReady } from './retry-utils';
 
 /**
  * Creates a unique test user for the current test

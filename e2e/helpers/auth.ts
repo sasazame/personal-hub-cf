@@ -21,10 +21,13 @@ export async function login(page: Page, email: string, password: string) {
   
   // Wait for React hydration and form to be ready
   await waitForReactHydration(page);
-  await waitForFormReady(page, {
+  const formReady = await waitForFormReady(page, {
     formSelector: 'form',
     inputSelector: 'input[type="email"], input[name="email"]'
   });
+  if (!formReady) {
+    throw new Error('Login form not ready after retries');
+  }
   
   // Fill in login form with retry logic
   await fillWithRetry(page, 'input[type="email"], input[name="email"]', email);
