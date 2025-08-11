@@ -11,7 +11,6 @@ This file tracks pending tasks organized by feature.
 ---
 
 ## Common
-- [LOW] Add Multi-Factor Authentication (2FA) - TOTP-based authentication with backup recovery codes
 - [LOW] Implement Security Event Logging - Use existing securityEvents table for auth attempts and suspicious activities
 - [LOW] Add Field-Level Encryption - Encrypt sensitive user data at rest using Cloudflare's Web Crypto API (requires Cloudflare Workers runtime)
 
@@ -49,3 +48,13 @@ This file tracks pending tasks organized by feature.
 
 ## Performance
 - [LOW] Performance optimizations - target <3s page load time and <250ms API response time for smoother user experience
+
+## Future Enhancements (Not Currently Planned)
+### Two-Factor Authentication (2FA)
+- Implementation postponed due to significant system impact
+- Required security hardening before implementation:
+  - Encrypt TOTP secrets in database (AES-GCM encryption)
+  - Add salt to recovery code hashes (prevent rainbow table attacks)
+  - Implement rate limiting on verification endpoints
+  - Add comprehensive audit logging for all 2FA events
+- Full implementation available in closed PR #47 for future reference
