@@ -47,7 +47,10 @@ export async function login(page: Page, email: string, password: string) {
   ]).catch(async () => {
     // Handle errors
     const errorToast = page.locator('[data-sonner-toast][data-type="error"]');
-    const hasErrorToast = await errorToast.isVisible({ timeout: 2000 }).catch(() => false);
+    const hasErrorToast = await errorToast
+      .waitFor({ state: 'visible', timeout: 2000 })
+      .then(() => true)
+      .catch(() => false);
     
     if (hasErrorToast) {
       const errorText = await errorToast.textContent();
@@ -85,21 +88,16 @@ export async function login(page: Page, email: string, password: string) {
       
       // Only check backend in non-CI environments
       try {
-        const response = await page.evaluate(async ([email, password]) => {
-          const response = await fetch('http://localhost:8787/api/v1/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-          });
-          return { status: response.status, ok: response.ok };
-        }, [email, password]);
+        const response = await page.request.post('http://localhost:8787/api/v1/auth/login', {
+          data: { email, password }
+        });
         
-        if (!response.ok) {
-          throw new Error(`Backend authentication failed with status ${response.status}`);
+        if (!response.ok()) {
+          throw new Error(`Backend authentication failed with status ${response.status()}`);
         }
       } catch (backendError) {
         console.log('Backend direct check failed:', backendError);
-        throw new Error('Make sure the backend is running at localhost:8787');
+        throw new Error('Make sure the backend is running at http://localhost:8787');
       }
       
       throw new Error('Login did not redirect from login page');
@@ -110,7 +108,10 @@ export async function login(page: Page, email: string, password: string) {
 export async function logout(page: Page) {
   // First click the user menu dropdown
   const userMenu = page.locator('button').filter({ has: page.locator('.rounded-full') });
-  const menuVisible = await userMenu.isVisible({ timeout: 5000 }).catch(() => false);
+  const menuVisible = await userMenu
+    .waitFor({ state: 'visible', timeout: 5000 })
+    .then(() => true)
+    .catch(() => false);
   
   if (menuVisible) {
     await userMenu.click();
@@ -119,7 +120,7 @@ export async function logout(page: Page) {
     
     // Click the last button in the dropdown (logout is always last)
     const dropdownButtons = page.locator('button').filter({ hasText: /.+/ });
-    const lastButton = await dropdownButtons.last();
+    const lastButton = dropdownButtons.last();
     await lastButton.click();
     
     // Wait for redirect to login

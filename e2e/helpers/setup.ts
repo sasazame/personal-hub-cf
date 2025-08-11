@@ -102,7 +102,10 @@ export async function setupTestUser(page: Page) {
     
     // Find and click user menu to show logout button
     const userMenu = page.locator('button').filter({ has: page.locator('.rounded-full') });
-    const menuVisible = await userMenu.isVisible({ timeout: 10000 }).catch(() => false);
+    const menuVisible = await userMenu
+      .waitFor({ state: 'visible', timeout: 10000 })
+      .then(() => true)
+      .catch(() => false);
     
     if (menuVisible) {
       await userMenu.click();
@@ -168,7 +171,10 @@ export async function setupTestUser(page: Page) {
     
     // Find and click user menu to show logout button
     const userMenu = page.locator('button').filter({ has: page.locator('.rounded-full') });
-    const menuVisible = await userMenu.isVisible({ timeout: 10000 }).catch(() => false);
+    const menuVisible = await userMenu
+      .waitFor({ state: 'visible', timeout: 10000 })
+      .then(() => true)
+      .catch(() => false);
     
     if (menuVisible) {
       await userMenu.click();
