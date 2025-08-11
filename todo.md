@@ -3,9 +3,10 @@
 This file tracks pending tasks organized by feature. 
 - Tasks are listed as simple bullet points (not checkboxes)
 - Each task can have a priority tag: [HIGH], [MEDIUM], [LOW]
-- Completed tasks should be deleted from this file
+- Completed tasks should be deleted from this file when creating a PR
 - Empty feature sections should remain to show no pending work
 - Completed work can be tracked through PR history
+- **IMPORTANT**: Update this file when creating PRs to remove completed tasks
 
 ---
 
@@ -37,10 +38,7 @@ This file tracks pending tasks organized by feature.
 ## Profile Feature
 
 ## Testing
-- [HIGH] Fix E2E test infrastructure issues - Tests failing to find form elements (input[type="email"], form selectors timing out)
-- [HIGH] Stabilize E2E test environment - Ensure proper server lifecycle management to avoid conflicts with dev servers
-- [HIGH] Update authentication helper functions in e2e/helpers/ to use more reliable DOM selectors
-- [MEDIUM] Review and fix Playwright configuration for proper server startup and teardown
+- [MEDIUM] Further improve E2E test reliability - Some timing issues persist despite infrastructure improvements
 - [LOW] Add E2E test documentation explaining test organization and running locally
 
 ## i18n (Internationalization)
