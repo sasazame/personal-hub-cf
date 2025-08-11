@@ -3,7 +3,7 @@ import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
-import { users, refreshTokens, passwordResetTokens } from '../db/schema';
+import { users, refreshTokens, passwordResetTokens, user2FASettings, twoFactorRecoveryCodes } from '../db/schema';
 import type { Bindings, Variables } from '../types';
 import { nanoid } from '../utils/nanoid';
 import { createHash } from '../utils/crypto';
@@ -117,6 +117,7 @@ const registerSchema = z.object({
 const loginSchema = z.object({
   email: z.string().email(ValidationMessages.EMAIL_INVALID),
   password: z.string().min(1, ValidationMessages.PASSWORD_REQUIRED),
+  totpCode: z.string().optional(), // Optional 2FA code
 });
 
 
@@ -226,7 +227,7 @@ app.post('/register', authRateLimiter, zValidator('json', registerSchema, spring
 // POST /auth/login
 app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootValidator), async (c) => {
   const db = c.get('db');
-  const { email, password } = c.req.valid('json');
+  const { email, password, totpCode } = c.req.valid('json');
   
   try {
     // Find user
@@ -264,6 +265,63 @@ app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootVa
         createLocalizedError('FORBIDDEN', c, { detail: message }),
         StatusCodes.FORBIDDEN as ContentfulStatusCode
       );
+    }
+    
+    // Check if user has 2FA enabled
+    const twoFASettings = await db.select()
+      .from(user2FASettings)
+      .where(eq(user2FASettings.userId, user.id))
+      .get();
+    
+    if (twoFASettings?.enabled) {
+      // 2FA is enabled, check if code was provided
+      if (!totpCode) {
+        // Return a response indicating 2FA is required
+        return c.json({
+          requires2FA: true,
+          message: '2FA verification required'
+        }, 200 as ContentfulStatusCode);
+      }
+      
+      // Verify the 2FA code
+      const { verifyTOTPCode } = await import('../utils/totp');
+      const isValidTOTP = verifyTOTPCode(twoFASettings.totpSecretEncrypted, totpCode);
+      
+      if (!isValidTOTP) {
+        // Check if it's a recovery code
+        const hashedCode = await createHash(totpCode.toUpperCase());
+        const recoveryCode = await db.select()
+          .from(twoFactorRecoveryCodes)
+          .where(and(
+            eq(twoFactorRecoveryCodes.userId, user.id),
+            eq(twoFactorRecoveryCodes.codeHash, hashedCode),
+            eq(twoFactorRecoveryCodes.used, false)
+          ))
+          .get();
+        
+        if (!recoveryCode) {
+          return c.json(
+            createLocalizedError('INVALID_2FA_CODE', c),
+            StatusCodes.AUTHENTICATION_FAILED as ContentfulStatusCode
+          );
+        }
+        
+        // Mark recovery code as used
+        await db.update(twoFactorRecoveryCodes)
+          .set({
+            used: true,
+            usedAt: new Date().toISOString()
+          })
+          .where(eq(twoFactorRecoveryCodes.id, recoveryCode.id));
+      }
+      
+      // Update last used timestamp for 2FA
+      await db.update(user2FASettings)
+        .set({
+          lastUsedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        })
+        .where(eq(user2FASettings.userId, user.id));
     }
     
     // Generate tokens

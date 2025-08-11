@@ -106,7 +106,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 }
 
 interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string, totpCode?: string) => Promise<{ requires2FA?: boolean }>
   register: (username: string, email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   clearError: () => void
@@ -122,12 +122,18 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [state, dispatch] = useReducer(authReducer, initialState)
 
-  const login = useCallback(async (email: string, password: string): Promise<void> => {
+  const login = useCallback(async (email: string, password: string, totpCode?: string): Promise<{ requires2FA?: boolean }> => {
     dispatch({ type: 'AUTH_LOADING' })
     
     try {
-      const response = await apiClient.post('/api/v1/auth/login', { email, password })
-      const { user, csrfToken } = response.data
+      const response = await apiClient.post('/api/v1/auth/login', { email, password, totpCode })
+      const { user, csrfToken, requires2FA } = response.data
+      
+      // Check if 2FA verification is required
+      if (requires2FA) {
+        dispatch({ type: 'AUTH_LOADING' })
+        return { requires2FA: true }
+      }
       
       // Cache CSRF token if provided
       if (csrfToken) {
@@ -136,6 +142,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       dispatch({ type: 'AUTH_SUCCESS', payload: user })
       toast.success(`Welcome back, ${user.username}!`)
+      return { requires2FA: false }
     } catch (error) {
       const message = isApiError(error) ? error.response?.data?.error || error.response?.data?.message || 'Login failed' : 'Login failed'
       dispatch({ type: 'AUTH_ERROR', payload: message })

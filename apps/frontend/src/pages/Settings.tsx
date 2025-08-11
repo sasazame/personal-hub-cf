@@ -1,11 +1,12 @@
 import { AppLayout } from '@/components/layout';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Switch } from '@radix-ui/react-switch';
-import { Sun, Moon, Monitor, Bell, Globe, Clock, Palette, Save, Grid } from 'lucide-react';
+import { Sun, Moon, Monitor, Bell, Globe, Clock, Palette, Save, Grid, Shield } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { FeatureToggles } from '@/components/profile';
+import { TwoFactorAuth } from '@/components/profile/TwoFactorAuth';
 
 interface SettingsSwitchProps {
   checked: boolean;
@@ -169,6 +170,15 @@ export function Settings() {
               description={t('notifications.updatesDesc')}
             />
           </div>
+        </div>
+
+        {/* Two-Factor Authentication */}
+        <div className="bg-card rounded-lg shadow-sm border border-border p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Shield className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-semibold text-foreground">{t('security.title')}</h2>
+          </div>
+          <TwoFactorAuth />
         </div>
 
         {/* Feature Toggles */}

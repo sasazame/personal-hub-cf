@@ -11,7 +11,10 @@ This file tracks pending tasks organized by feature.
 ---
 
 ## Common
-- [LOW] Add Multi-Factor Authentication (2FA) - TOTP-based authentication with backup recovery codes
+- [HIGH] Encrypt TOTP secrets in database - Currently stored in plain text, implement AES-GCM encryption
+- [HIGH] Add salt to recovery code hashes - Currently using simple SHA-256 without salts, vulnerable to rainbow table attacks
+- [HIGH] Add rate limiting to 2FA verification endpoints - Prevent brute force attacks on TOTP codes
+- [HIGH] Implement security event audit logging for 2FA - Track all 2FA setup, verification, disable, and recovery code usage
 - [LOW] Implement Security Event Logging - Use existing securityEvents table for auth attempts and suspicious activities
 - [LOW] Add Field-Level Encryption - Encrypt sensitive user data at rest using Cloudflare's Web Crypto API (requires Cloudflare Workers runtime)
 
@@ -38,7 +41,6 @@ This file tracks pending tasks organized by feature.
 ## Profile Feature
 
 ## Testing
-- [MEDIUM] Further improve E2E test reliability - Some timing issues persist despite infrastructure improvements
 - [LOW] Add E2E test documentation explaining test organization and running locally
 
 ## i18n (Internationalization)

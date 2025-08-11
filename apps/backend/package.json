@@ -23,6 +23,7 @@
     "hono": "^4.8.10",
     "jose": "^6.0.12",
     "lucia": "^3.2.2",
+    "otpauth": "^9.4.0",
     "zod": "^4.0.13"
   },
   "devDependencies": {

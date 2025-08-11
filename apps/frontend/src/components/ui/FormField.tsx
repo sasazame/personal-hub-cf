@@ -41,6 +41,23 @@ export const FormInput = React.forwardRef<HTMLInputElement, InputProps>(
 
 FormInput.displayName = 'FormInput'
 
+export const FormField: React.FC<FormFieldProps> = ({ label, error, required, children }) => {
+  return (
+    <div>
+      {label && (
+        <label className="block text-sm font-medium text-foreground mb-1">
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
+      )}
+      {children}
+      {error?.message && (
+        <p className="mt-1 text-sm text-red-500">{error.message}</p>
+      )}
+    </div>
+  )
+}
+
 interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement>, FormFieldProps {}
 
 export const FormTextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(

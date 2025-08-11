@@ -264,5 +264,28 @@ export const securityEvents = sqliteTable('security_events', {
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// User 2FA settings table
+export const user2FASettings = sqliteTable('user_2fa_settings', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').unique().notNull().references(() => users.id),
+  totpSecretEncrypted: text('totp_secret_encrypted').notNull(),
+  totpBackupCodes: text('totp_backup_codes'), // JSON array of encrypted backup codes
+  enabled: integer('enabled', { mode: 'boolean' }).default(false).notNull(),
+  enabledAt: text('enabled_at'),
+  lastUsedAt: text('last_used_at'),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+// 2FA recovery codes table
+export const twoFactorRecoveryCodes = sqliteTable('two_factor_recovery_codes', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id),
+  codeHash: text('code_hash').notNull(),
+  used: integer('used', { mode: 'boolean' }).default(false).notNull(),
+  usedAt: text('used_at'),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // Export all tables
 export * from 'drizzle-orm';

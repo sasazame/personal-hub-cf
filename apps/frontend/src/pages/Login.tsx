@@ -2,14 +2,15 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Eye, EyeOff, LogIn, CheckCircle, Mail, Lock, Sparkles, ArrowLeft } from 'lucide-react'
+import { Eye, EyeOff, LogIn, CheckCircle, Mail, Lock, Sparkles, ArrowLeft, Shield } from 'lucide-react'
 import { z } from 'zod'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTranslation } from 'react-i18next'
 
-const createLoginSchema = (t: (key: string) => string) => z.object({
+const createLoginSchema = (t: (key: string) => string, requires2FA: boolean) => z.object({
   email: z.string().email(t('validation.email')),
   password: z.string().min(1, t('validation.required')),
+  totpCode: requires2FA ? z.string().length(6, 'Code must be 6 digits') : z.string().optional(),
 })
 
 type LoginFormData = z.infer<ReturnType<typeof createLoginSchema>>
@@ -19,16 +20,19 @@ export function Login() {
   const [searchParams] = useSearchParams()
   const [showPassword, setShowPassword] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [requires2FA, setRequires2FA] = useState(false)
+  const [savedCredentials, setSavedCredentials] = useState<{ email: string; password: string } | null>(null)
   const { t } = useTranslation(['auth', 'common'])
   
   const { login, isLoading, isAuthenticated, clearError } = useAuth()
 
-  const loginSchema = createLoginSchema(t)
+  const loginSchema = createLoginSchema(t, requires2FA)
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   })
@@ -52,9 +56,33 @@ export function Login() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       clearError()
-      await login(data.email, data.password)
+      
+      if (requires2FA && savedCredentials) {
+        // Submit with 2FA code
+        const result = await login(savedCredentials.email, savedCredentials.password, data.totpCode)
+        
+        if (!result.requires2FA) {
+          // Login successful
+          setSavedCredentials(null)
+          setRequires2FA(false)
+        }
+      } else {
+        // Initial login attempt
+        const result = await login(data.email, data.password)
+        
+        if (result.requires2FA) {
+          // 2FA is required
+          setRequires2FA(true)
+          setSavedCredentials({ email: data.email, password: data.password })
+          reset({ email: data.email, password: data.password, totpCode: '' })
+        }
+      }
     } catch {
       // Error is already handled by the auth context
+      if (requires2FA) {
+        // Reset 2FA code field on error
+        reset({ ...savedCredentials, totpCode: '' })
+      }
     }
   }
 
@@ -120,7 +148,7 @@ export function Login() {
                   placeholder={t('auth:login.passwordPlaceholder')}
                   className="w-full px-4 py-3 pl-12 pr-12 bg-input backdrop-blur-md border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-200"
                   autoComplete="current-password"
-                  disabled={isLoading}
+                  disabled={isLoading || requires2FA}
                 />
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <button
@@ -140,6 +168,33 @@ export function Login() {
                 <p className="mt-1 text-sm text-destructive">{errors.password.message}</p>
               )}
             </div>
+
+            {requires2FA && (
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  {t('auth:login.verificationCode')}
+                </label>
+                <div className="relative">
+                  <input
+                    {...register('totpCode')}
+                    type="text"
+                    placeholder="000000"
+                    maxLength={6}
+                    className="w-full px-4 py-3 pl-12 bg-input backdrop-blur-md border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-200"
+                    autoComplete="one-time-code"
+                    disabled={isLoading}
+                    autoFocus
+                  />
+                  <Shield className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                </div>
+                {errors.totpCode && (
+                  <p className="mt-1 text-sm text-destructive">{errors.totpCode.message}</p>
+                )}
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {t('auth:login.verificationCodeHelp')}
+                </p>
+              </div>
+            )}
 
             <div className="text-sm">
               <Link

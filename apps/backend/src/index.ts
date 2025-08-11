@@ -5,6 +5,7 @@ import { ZodError } from 'zod';
 import { createDb } from './db';
 import type { Bindings, Variables } from './types';
 import authRoutes from './routes/auth';
+import twoFARoutes from './routes/2fa';
 import todosRoutes from './routes/todos';
 import goalsRoutes from './routes/goals';
 import pomodoroRoutes from './routes/pomodoro';
@@ -96,6 +97,7 @@ app.get('/api/v1', (c) => {
 
 // Mount routes
 app.route('/api/v1/auth', authRoutes);
+app.route('/api/v1/2fa', twoFARoutes);
 app.route('/api/v1/todos', todosRoutes);
 app.route('/api/v1/goals', goalsRoutes);
 app.route('/api/v1/pomodoro', pomodoroRoutes);
