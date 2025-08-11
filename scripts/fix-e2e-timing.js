@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-env node */
 
 /**
  * Script to automatically detect and suggest fixes for timing issues in E2E tests

@@ -1,13 +1,13 @@
 import { Page } from '@playwright/test';
 import { TEST_USER } from './auth';
-import { waitForReactHydration, waitForFormReady, waitForNavigation, fillWithRetry, clickWithRetry } from './retry-utils';
+import { waitForReactHydration, waitForFormReady } from './retry-utils';
 import { getTimingConfig } from './timing-config';
 
 /**
  * Creates a unique test user for the current test
  * This prevents conflicts between tests
  */
-export async function createUniqueTestUser(page: Page) {
+export async function createUniqueTestUser(page: Page, browserName?: string) {
   const timestamp = Date.now();
   const random = Math.floor(Math.random() * 1000);
   const shortId = `${timestamp}${random}`.slice(-8);
@@ -29,12 +29,17 @@ export async function createUniqueTestUser(page: Page) {
     // Reload to apply language setting
     await page.reload();
     
+    // Get timing config for the browser
+    // Try to detect browser name from context if not provided
+    const detectedBrowserName = browserName || 'chromium';
+    const config = getTimingConfig(detectedBrowserName);
+    
     // Wait for React hydration and form to be ready
-    await waitForReactHydration(page, { browserName: 'chromium' });
+    await waitForReactHydration(page, config.react.hydration);
     const formReady = await waitForFormReady(page, {
       formSelector: 'form',
       inputSelector: 'input[name="username"], input[type="text"]',
-      browserName: 'chromium'
+      timeout: config.element.visible
     });
     
     if (!formReady) {
@@ -75,7 +80,7 @@ export async function createUniqueTestUser(page: Page) {
  * Ensures the default TEST_USER exists in the backend
  * Only use this for tests that specifically need the TEST_USER
  */
-export async function setupTestUser(page: Page) {
+export async function setupTestUser(page: Page, browserName?: string) {
   // Check if user already exists by trying to login
   try {
     await page.goto('/login');
@@ -134,12 +139,17 @@ export async function setupTestUser(page: Page) {
     // Reload to apply language setting
     await page.reload();
     
+    // Get timing config for the browser
+    // Try to detect browser name from context if not provided
+    const detectedBrowserName = browserName || 'chromium';
+    const config = getTimingConfig(detectedBrowserName);
+    
     // Wait for React hydration and form to be ready
-    await waitForReactHydration(page, { browserName: 'chromium' });
+    await waitForReactHydration(page, config.react.hydration);
     const formReady = await waitForFormReady(page, {
       formSelector: 'form',
       inputSelector: 'input[name="username"], input[type="text"]',
-      browserName: 'chromium'
+      timeout: config.element.visible
     });
     
     if (!formReady) {

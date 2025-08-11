@@ -199,7 +199,9 @@ export async function clickWithRetry(
         if (i > 0) {
           try {
             await page.locator(selector).first().scrollIntoViewIfNeeded();
-          } catch {}
+          } catch {
+            // Ignore scroll errors - element might not be scrollable or already in view
+          }
         }
       } else {
         logTiming(`clickWithRetry: ${selector}`, startTime, false, maxRetries);
@@ -276,7 +278,9 @@ export async function fillWithRetry(
         if (i > 0) {
           try {
             await page.locator(selector).first().click();
-          } catch {}
+          } catch {
+            // Ignore click errors - field might already be focused
+          }
         }
       } else {
         logTiming(`fillWithRetry: ${selector}`, startTime, false, maxRetries);

@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { getTimingConfig, logTiming, getAdaptiveTimeout } from './timing-config';
+import { getTimingConfig, logTiming } from './timing-config';
 import { waitForNavigation, waitForApiResponse, waitForReactHydration } from './retry-utils';
 
 /**
@@ -38,7 +38,7 @@ export async function navigateToProtectedRoute(
     }
     
     // Wait for React to hydrate on the target page
-    await waitForReactHydration(page, { browserName: options.browserName });
+    await waitForReactHydration(page, config.react.hydration);
     
     logTiming(`navigateToProtectedRoute to ${route}`, startTime, true);
     return { redirected: false, finalUrl: page.url() };
@@ -75,8 +75,11 @@ export async function waitForAuthState(
         const hasUserMenu = !!userMenu;
         
         // Check for login/register links (unauthenticated indicators)
-        const loginLink = document.querySelector('a[href="/login"], button:has-text("Login")');
-        const hasLoginLink = !!loginLink;
+        const loginLink = document.querySelector('a[href="/login"]');
+        const hasLoginTextButton = Array.from(document.querySelectorAll('button')).some(
+          (b) => b.textContent?.trim().toLowerCase().includes('login')
+        );
+        const hasLoginLink = !!loginLink || hasLoginTextButton;
         
         if (state === 'authenticated') {
           return hasToken || hasUserMenu;
