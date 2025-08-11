@@ -1,4 +1,5 @@
 import { Page } from '@playwright/test';
+import { getTimingConfig, calculateBackoffDelay, logTiming, getAdaptiveTimeout } from './timing-config';
 
 /**
  * Retry a check function with page reload on failure
@@ -140,7 +141,7 @@ export async function waitForFormReady(
 }
 
 /**
- * Robust element click with retry
+ * Robust element click with retry and adaptive timing
  */
 export async function clickWithRetry(
   page: Page,
@@ -148,21 +149,62 @@ export async function clickWithRetry(
   options: {
     maxRetries?: number;
     timeout?: number;
+    browserName?: string;
+    force?: boolean;
   } = {}
 ) {
-  const { maxRetries = 3, timeout = 10000 } = options;
+  const config = getTimingConfig(options.browserName);
+  const { 
+    maxRetries = config.retry.maxAttempts, 
+    timeout = config.element.clickable,
+    force = false
+  } = options;
+  const startTime = Date.now();
   
   for (let i = 0; i < maxRetries; i++) {
     try {
       const element = page.locator(selector).first();
-      await element.waitFor({ state: 'visible', timeout });
-      await element.click();
+      const adaptiveTimeout = getAdaptiveTimeout(timeout, i + 1);
+      
+      // Wait for element to be ready
+      await element.waitFor({ state: 'visible', timeout: adaptiveTimeout });
+      
+      // Additional stability check
+      await page.waitForFunction(
+        (sel) => {
+          const el = document.querySelector(sel) as HTMLElement;
+          if (!el) return false;
+          const rect = el.getBoundingClientRect();
+          return rect.width > 0 && 
+                 rect.height > 0 && 
+                 !el.hasAttribute('disabled') &&
+                 el.style.pointerEvents !== 'none';
+        },
+        selector,
+        { timeout: Math.min(5000, adaptiveTimeout / 2) }
+      );
+      
+      // Try to click with force option if needed
+      await element.click({ force });
+      
+      logTiming(`clickWithRetry: ${selector}`, startTime, true, i + 1);
       return true;
     } catch (error) {
       if (i < maxRetries - 1) {
-        console.log(`Click attempt ${i + 1} failed for ${selector}, retrying...`);
-        await page.waitForTimeout(1000);
+        const delay = calculateBackoffDelay(i + 1, config.retry);
+        console.log(`Click attempt ${i + 1}/${maxRetries} failed for ${selector}, retrying in ${delay}ms...`);
+        await page.waitForTimeout(delay);
+        
+        // Try to scroll element into view on retry
+        if (i > 0) {
+          try {
+            await page.locator(selector).first().scrollIntoViewIfNeeded();
+          } catch {
+            // Ignore scroll errors - element might not be scrollable or already in view
+          }
+        }
       } else {
+        logTiming(`clickWithRetry: ${selector}`, startTime, false, maxRetries);
         throw error;
       }
     }
@@ -172,7 +214,7 @@ export async function clickWithRetry(
 }
 
 /**
- * Robust form fill with retry
+ * Robust form fill with retry and validation
  */
 export async function fillWithRetry(
   page: Page,
@@ -181,32 +223,154 @@ export async function fillWithRetry(
   options: {
     maxRetries?: number;
     timeout?: number;
+    browserName?: string;
+    clearFirst?: boolean;
   } = {}
 ) {
-  const { maxRetries = 3, timeout = 10000 } = options;
+  const config = getTimingConfig(options.browserName);
+  const { 
+    maxRetries = config.retry.maxAttempts, 
+    timeout = config.element.fillable,
+    clearFirst = true
+  } = options;
+  const startTime = Date.now();
   
   for (let i = 0; i < maxRetries; i++) {
     try {
       const element = page.locator(selector).first();
-      await element.waitFor({ state: 'visible', timeout });
+      const adaptiveTimeout = getAdaptiveTimeout(timeout, i + 1);
+      
+      await element.waitFor({ state: 'visible', timeout: adaptiveTimeout });
+      
+      // Clear field first if needed
+      if (clearFirst) {
+        await element.clear();
+        // Small delay after clear for some browsers
+        if (options.browserName === 'webkit') {
+          await page.waitForTimeout(100);
+        }
+      }
+      
+      // Fill the value
       await element.fill(value);
+      
+      // Trigger input event for React
+      await element.dispatchEvent('input');
+      
+      // Small delay for value to propagate
+      await page.waitForTimeout(100);
       
       // Verify the value was set
       const actualValue = await element.inputValue();
       if (actualValue === value) {
+        logTiming(`fillWithRetry: ${selector}`, startTime, true, i + 1);
         return true;
       }
       
       throw new Error(`Value mismatch: expected "${value}", got "${actualValue}"`);
     } catch (error) {
       if (i < maxRetries - 1) {
-        console.log(`Fill attempt ${i + 1} failed for ${selector}, retrying...`);
-        await page.waitForTimeout(1000);
+        const delay = calculateBackoffDelay(i + 1, config.retry);
+        console.log(`Fill attempt ${i + 1}/${maxRetries} failed for ${selector}, retrying in ${delay}ms...`);
+        await page.waitForTimeout(delay);
+        
+        // Try clicking the field first on retry
+        if (i > 0) {
+          try {
+            await page.locator(selector).first().click();
+          } catch {
+            // Ignore click errors - field might already be focused
+          }
+        }
       } else {
+        logTiming(`fillWithRetry: ${selector}`, startTime, false, maxRetries);
         throw error;
       }
     }
   }
   
   return false;
+}
+
+/**
+ * Wait for navigation with improved detection
+ */
+export async function waitForNavigation(
+  page: Page,
+  expectedUrl: string | RegExp,
+  options: {
+    timeout?: number;
+    browserName?: string;
+  } = {}
+) {
+  const config = getTimingConfig(options.browserName);
+  const timeout = options.timeout || config.navigation.timeout;
+  const startTime = Date.now();
+  
+  try {
+    await page.waitForFunction(
+      (expected) => {
+        const currentUrl = window.location.href;
+        if (typeof expected === 'string') {
+          return currentUrl.includes(expected);
+        } else {
+          return new RegExp(expected.source, expected.flags).test(currentUrl);
+        }
+      },
+      expectedUrl instanceof RegExp ? { source: expectedUrl.source, flags: expectedUrl.flags } : expectedUrl,
+      { timeout }
+    );
+    
+    // Wait for page to stabilize after navigation
+    await page.waitForLoadState('networkidle', { timeout: config.network.idle }).catch(() => {});
+    
+    logTiming(`waitForNavigation to ${expectedUrl}`, startTime, true);
+    return true;
+  } catch (error) {
+    logTiming(`waitForNavigation to ${expectedUrl}`, startTime, false);
+    throw error;
+  }
+}
+
+/**
+ * Wait for API response with retry
+ */
+export async function waitForApiResponse(
+  page: Page,
+  urlPattern: string | RegExp,
+  options: {
+    timeout?: number;
+    browserName?: string;
+    expectedStatus?: number;
+  } = {}
+) {
+  const config = getTimingConfig(options.browserName);
+  const timeout = options.timeout || config.network.response;
+  const startTime = Date.now();
+  
+  try {
+    const responsePromise = page.waitForResponse(
+      response => {
+        const matches = typeof urlPattern === 'string' 
+          ? response.url().includes(urlPattern)
+          : urlPattern.test(response.url());
+        
+        if (!matches) return false;
+        
+        if (options.expectedStatus !== undefined) {
+          return response.status() === options.expectedStatus;
+        }
+        
+        return response.ok();
+      },
+      { timeout }
+    );
+    
+    const response = await responsePromise;
+    logTiming(`waitForApiResponse: ${urlPattern}`, startTime, true);
+    return response;
+  } catch (error) {
+    logTiming(`waitForApiResponse: ${urlPattern}`, startTime, false);
+    throw error;
+  }
 }
