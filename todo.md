@@ -47,14 +47,17 @@ This file tracks pending tasks organized by feature.
 - [LOW] Set up translation keys extraction tool for maintainability
 
 ## Performance
-- [LOW] Performance optimizations - target <3s page load time and <250ms API response time for smoother user experience
+- [LOW] Performance optimizations - target p95 metrics: <2.5s LCP (Largest Contentful Paint), <250ms API response time
 
 ## Future Enhancements (Not Currently Planned)
 ### Two-Factor Authentication (2FA)
-- Implementation postponed due to significant system impact
+- Postponed due to significant system impact; not on current roadmap. Re-evaluate after prerequisites below are complete.
 - Required security hardening before implementation:
-  - Encrypt TOTP secrets in database (AES-GCM encryption)
-  - Add salt to recovery code hashes (prevent rainbow table attacks)
-  - Implement rate limiting on verification endpoints
-  - Add comprehensive audit logging for all 2FA events
-- Full implementation available in closed PR #47 for future reference
+  - Encrypt TOTP secrets at rest using AEAD (AES-GCM) with unique per-secret nonces; define key management and rotation (e.g., envelope encryption/KMS).
+  - Store recovery codes as one-time-use hashes using a password hashing function (Argon2id/bcrypt/scrypt) with per-code random salts.
+  - Add rate limiting and lockout/backoff on verification endpoints (per user + IP); provide a safe recovery flow.
+  - Add audit logging for enrollment, verification, backup-code use, disable/reset, and suspicious activity (actor, IP, UA, timestamp); define retention.
+  - Time drift policy: accept ±1 step and block replay within the window.
+  - UX flows: enrollment (QR/otpauth URI), backup codes issuance/regeneration, step-up auth for sensitive actions, recovery and admin override.
+- Full implementation details are preserved in closed PR #47.
+- Consider WebAuthn/passkeys as a phishing-resistant alternative in a future phase.
