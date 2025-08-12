@@ -17,9 +17,9 @@ app.use('*', authMiddleware);
 
 // Validation schemas
 const createNoteSchema = z.object({
-  title: z.string().min(1),
-  content: z.string().optional(),
-  tags: z.string().optional(),
+  title: z.string().min(1).max(255),
+  content: z.string().min(1).max(100000),
+  tags: z.string().max(1000).optional(),
 });
 
 const updateNoteSchema = createNoteSchema.partial();

@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { Moment, CreateMomentDto, UpdateMomentDto, DEFAULT_MOMENT_TAGS } from '@/types/moment';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
-import { TextArea } from '@/components/ui/TextArea';
+import { TextAreaWithCount } from '@/components/ui/TextAreaWithCount';
 import { X, Plus, Tag } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { validateTagsLength, getSerializedTagsLength, MAX_TAGS_LENGTH } from '@/lib/tag-utils';
 
 interface MomentFormProps {
   isOpen: boolean;
@@ -80,7 +81,12 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
     if (tags.includes(tag)) {
       setTags(tags.filter(t => t !== tag));
     } else {
-      setTags([...tags, tag]);
+      const newTags = [...tags, tag];
+      if (!validateTagsLength(newTags)) {
+        // Optionally show an error message here
+        return;
+      }
+      setTags(newTags);
     }
   };
 
@@ -88,7 +94,12 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
     const trimmedTag = currentTag.trim();
     if (trimmedTag && !tags.includes(trimmedTag)) {
       const formattedTag = trimmedTag.startsWith('#') ? trimmedTag : `#${trimmedTag}`;
-      setTags([...tags, formattedTag]);
+      const newTags = [...tags, formattedTag];
+      if (!validateTagsLength(newTags)) {
+        // Optionally show an error message here
+        return;
+      }
+      setTags(newTags);
       setCurrentTag('');
       setShowCustomTagInput(false);
     }
@@ -98,7 +109,7 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
-  const handleTagKeyPress = (e: React.KeyboardEvent) => {
+  const handleTagKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       addCustomTag();
@@ -114,18 +125,24 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
           <label className="block text-sm font-medium text-foreground mb-2">
             Moment Content *
           </label>
-          <TextArea
+          <TextAreaWithCount
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="What's on your mind?"
             rows={6}
             className="w-full"
+            maxLength={100000}
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-foreground mb-3">
             Tags
+            {tags.length > 0 && (
+              <span className="ml-2 text-xs text-muted-foreground">
+                ({getSerializedTagsLength(tags)} / {MAX_TAGS_LENGTH} characters)
+              </span>
+            )}
           </label>
           
           <div className="flex flex-wrap gap-2 mb-3">
@@ -177,7 +194,7 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
                 type="text"
                 value={currentTag}
                 onChange={(e) => setCurrentTag(e.target.value)}
-                onKeyPress={handleTagKeyPress}
+                onKeyDown={handleTagKeyDown}
                 placeholder="Enter custom tag"
                 className="flex-1 px-3 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
                 autoFocus

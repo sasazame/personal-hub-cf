@@ -17,11 +17,11 @@ app.use('*', authMiddleware);
 
 // Validation schemas
 const createMomentSchema = z.object({
-  content: z.string().min(1),
-  tags: z.string().optional(),
+  content: z.string().min(1).max(100000),
+  tags: z.string().max(1000).optional(),
 });
 
-const updateMomentSchema = createMomentSchema;
+const updateMomentSchema = createMomentSchema.partial();
 
 // GET /moments
 app.get('/', async (c) => {

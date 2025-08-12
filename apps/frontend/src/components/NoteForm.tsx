@@ -4,9 +4,10 @@ import { X, Plus } from 'lucide-react';
 import { Note, CreateNoteDto } from '@/types/note';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { TextArea } from '@/components/ui/TextArea';
+import { InputWithCount } from '@/components/ui/InputWithCount';
+import { TextAreaWithCount } from '@/components/ui/TextAreaWithCount';
 import { cn } from '@/lib/cn';
+import { validateTagsLength, getSerializedTagsLength, MAX_TAGS_LENGTH } from '@/lib/tag-utils';
 
 interface NoteFormProps {
   isOpen: boolean;
@@ -68,7 +69,12 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
   const addTag = () => {
     const trimmedTag = currentTag.trim();
     if (trimmedTag && !tags.includes(trimmedTag)) {
-      setTags([...tags, trimmedTag]);
+      const newTags = [...tags, trimmedTag];
+      if (!validateTagsLength(newTags)) {
+        // Optionally show an error message here
+        return;
+      }
+      setTags(newTags);
       setCurrentTag('');
     }
   };
@@ -98,13 +104,14 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {t('labels.noteTitleLabel')}
             </label>
-            <Input
+            <InputWithCount
               value={title}
               onChange={(e) => {
                 setTitle(e.target.value);
                 if (errors.title) setErrors({ ...errors, title: undefined });
               }}
               placeholder={t('noteTitlePlaceholder')}
+              maxLength={255}
             />
           </div>
 
@@ -112,7 +119,7 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {t('labels.noteContentLabel')}
             </label>
-            <TextArea
+            <TextAreaWithCount
               value={content}
               onChange={(e) => {
                 setContent(e.target.value);
@@ -120,12 +127,18 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
               }}
               placeholder={t('noteContentPlaceholder')}
               rows={12}
+              maxLength={100000}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {t('labels.tagsLabel')}
+              {tags.length > 0 && (
+                <span className="ml-2 text-xs text-muted-foreground">
+                  ({getSerializedTagsLength(tags)} / {MAX_TAGS_LENGTH} characters)
+                </span>
+              )}
             </label>
             
             {/* Current tags */}
@@ -155,7 +168,7 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
                 type="text"
                 value={currentTag}
                 onChange={(e) => setCurrentTag(e.target.value)}
-                onKeyPress={handleTagKeyPress}
+                onKeyDown={handleTagKeyPress}
                 placeholder={t('addTagPlaceholder')}
                 className={cn(
                   "flex-1 px-3 py-2 border rounded-lg bg-white dark:bg-gray-800",
