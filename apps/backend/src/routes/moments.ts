@@ -21,7 +21,7 @@ const createMomentSchema = z.object({
   tags: z.string().max(1000).optional(),
 });
 
-const updateMomentSchema = createMomentSchema;
+const updateMomentSchema = createMomentSchema.partial();
 
 // GET /moments
 app.get('/', async (c) => {

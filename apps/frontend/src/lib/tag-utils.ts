@@ -9,9 +9,10 @@ export const MAX_TAGS_LENGTH = 1000
 
 /**
  * Serialize an array of tags into a comma-separated string
+ * Normalizes tags by trimming whitespace and filtering empty values
  */
 export function serializeTags(tags: string[]): string {
-  return tags.join(',')
+  return tags.map(t => t.trim()).filter(Boolean).join(',')
 }
 
 /**

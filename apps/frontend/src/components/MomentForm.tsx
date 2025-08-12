@@ -109,7 +109,7 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
-  const handleTagKeyPress = (e: React.KeyboardEvent) => {
+  const handleTagKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       addCustomTag();
@@ -194,7 +194,7 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
                 type="text"
                 value={currentTag}
                 onChange={(e) => setCurrentTag(e.target.value)}
-                onKeyPress={handleTagKeyPress}
+                onKeyDown={handleTagKeyDown}
                 placeholder="Enter custom tag"
                 className="flex-1 px-3 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
                 autoFocus

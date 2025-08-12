@@ -168,7 +168,7 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
                 type="text"
                 value={currentTag}
                 onChange={(e) => setCurrentTag(e.target.value)}
-                onKeyPress={handleTagKeyPress}
+                onKeyDown={handleTagKeyPress}
                 placeholder={t('addTagPlaceholder')}
                 className={cn(
                   "flex-1 px-3 py-2 border rounded-lg bg-white dark:bg-gray-800",

@@ -16,8 +16,6 @@ export const InputWithCount = React.memo(React.forwardRef<HTMLInputElement, Inpu
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
       if (maxLength && e.target.value.length > maxLength) {
         e.target.value = e.target.value.slice(0, maxLength)
-        e.preventDefault()
-        return
       }
       onChange?.(e)
     }, [maxLength, onChange])

@@ -33,10 +33,7 @@ export async function login(page: Page, email: string, password: string) {
   await fillWithRetry(page, 'input[type="email"], input[name="email"]', email);
   await fillWithRetry(page, 'input[type="password"], input[name="password"]', password);
   
-  // Submit form with retry
-  await clickWithRetry(page, 'button[type="submit"]');
-  
-  // Fallback to text-based selectors if needed
+  // Find submit button with fallback selectors
   const submitButton = page.locator('button[type="submit"]').or(
     page.getByRole('button', { name: /sign in|log in|login/i })
   );
@@ -44,6 +41,9 @@ export async function login(page: Page, email: string, password: string) {
   if (await submitButton.count() === 0) {
     throw new Error('No submit button found on login form');
   }
+  
+  // Submit form by clicking the first matched button
+  await submitButton.first().click();
   
   // Wait for either redirect or error message with longer timeout
   await Promise.race([
