@@ -37,7 +37,7 @@ test.describe('Notes Feature E2E Tests', () => {
     // Skip tags for now - the input field might not be present or have different placeholder
     
     // Submit form
-    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    const createButton = page.locator('button[type="submit"]', { hasText: 'Create' });
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     
     // Click and wait for the note to be created
@@ -61,7 +61,7 @@ test.describe('Notes Feature E2E Tests', () => {
     
     await page.fill('input[placeholder="Enter note title"]', noteTitle);
     await page.fill('textarea[placeholder="Enter note content"]', noteContent);
-    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    const createButton = page.locator('button[type="submit"]', { hasText: 'Create' });
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     await createButton.click();
     
@@ -86,7 +86,7 @@ test.describe('Notes Feature E2E Tests', () => {
     const noteTitle = `Edit Test ${Date.now()}`;
     await page.fill('input[placeholder="Enter note title"]', noteTitle);
     await page.fill('textarea[placeholder="Enter note content"]', 'Original content');
-    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    const createButton = page.locator('button[type="submit"]', { hasText: 'Create' });
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     await createButton.click();
     
@@ -111,7 +111,7 @@ test.describe('Notes Feature E2E Tests', () => {
     await page.keyboard.press('Enter');
     
     // Save changes
-    const updateButton = page.locator('button[type="submit"]:has-text("Update")');
+    const updateButton = page.locator('button[type="submit"]', { hasText: 'Update' });
     await expect(updateButton).toBeEnabled({ timeout: 5000 });
     await updateButton.click();
     
@@ -126,7 +126,7 @@ test.describe('Notes Feature E2E Tests', () => {
     const noteTitle = `Delete Test ${Date.now()}`;
     await page.fill('input[placeholder="Enter note title"]', noteTitle);
     await page.fill('textarea[placeholder="Enter note content"]', 'To be deleted');
-    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    const createButton = page.locator('button[type="submit"]', { hasText: 'Create' });
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     await createButton.click();
     
@@ -157,7 +157,7 @@ test.describe('Notes Feature E2E Tests', () => {
       await page.getByRole('button', { name: 'New Note' }).click();
       await page.fill('input[placeholder="Enter note title"]', note.title);
       await page.fill('textarea[placeholder="Enter note content"]', note.content);
-      const createButton = page.locator('button[type="submit"]:has-text("Create")');
+      const createButton = page.locator('button[type="submit"]', { hasText: 'Create' });
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     await createButton.click();
       await page.waitForTimeout(500); // Brief wait between creations
@@ -201,7 +201,7 @@ test.describe('Notes Feature E2E Tests', () => {
         await page.keyboard.press('Enter');
       }
       
-      const createButton = page.locator('button[type="submit"]:has-text("Create")');
+      const createButton = page.locator('button[type="submit"]', { hasText: 'Create' });
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     await createButton.click();
       await page.waitForTimeout(500);
@@ -240,7 +240,7 @@ test.describe('Notes Feature E2E Tests', () => {
       await page.keyboard.press('Enter');
     }
     
-    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    const createButton = page.locator('button[type="submit"]', { hasText: 'Create' });
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     await createButton.click();
     
@@ -257,7 +257,7 @@ test.describe('Notes Feature E2E Tests', () => {
     await page.locator('span').filter({ hasText: 'urgent' }).locator('button').click();
     
     // Save changes
-    const updateButton = page.locator('button[type="submit"]:has-text("Update")');
+    const updateButton = page.locator('button[type="submit"]', { hasText: 'Update' });
     await expect(updateButton).toBeEnabled({ timeout: 5000 });
     await updateButton.click();
     
@@ -272,7 +272,7 @@ test.describe('Notes Feature E2E Tests', () => {
     await page.getByRole('button', { name: 'New Note' }).click();
     
     // Try to submit empty form
-    let createButton = page.locator('button[type="submit"]:has-text("Create")');
+    let createButton = page.locator('button[type="submit"]', { hasText: 'Create' });
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     await createButton.click();
     
@@ -282,7 +282,7 @@ test.describe('Notes Feature E2E Tests', () => {
     
     // Fill only title
     await page.fill('input[placeholder="Enter note title"]', 'Test Title');
-    createButton = page.locator('button[type="submit"]:has-text("Create")');
+    createButton = page.locator('button[type="submit"]', { hasText: 'Create' });
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     await createButton.click();
     
@@ -292,7 +292,7 @@ test.describe('Notes Feature E2E Tests', () => {
     
     // Fill content
     await page.fill('textarea[placeholder="Enter note content"]', 'Test content');
-    createButton = page.locator('button[type="submit"]:has-text("Create")');
+    createButton = page.locator('button[type="submit"]', { hasText: 'Create' });
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     await createButton.click();
     
@@ -309,7 +309,7 @@ test.describe('Notes Feature E2E Tests', () => {
     
     await page.fill('input[placeholder="Enter note title"]', noteTitle);
     await page.fill('textarea[placeholder="Enter note content"]', longContent);
-    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    const createButton = page.locator('button[type="submit"]', { hasText: 'Create' });
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     await createButton.click();
     
@@ -337,7 +337,7 @@ test.describe('Notes Feature E2E Tests', () => {
     
     await page.fill('input[placeholder="Enter note title"]', specialTitle);
     await page.fill('textarea[placeholder="Enter note content"]', specialContent);
-    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    const createButton = page.locator('button[type="submit"]', { hasText: 'Create' });
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     await createButton.click();
     

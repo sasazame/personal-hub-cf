@@ -9,7 +9,7 @@ test.describe('CI Critical Path Tests', () => {
     
     // Verify we're on dashboard
     await expect(page).toHaveURL(/.*dashboard/);
-    await expect(page.locator('h1:has-text("Welcome back")')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Welcome back', level: 1 })).toBeVisible();
   });
 
   test('should create and complete a todo', async ({ page }) => {
@@ -18,10 +18,10 @@ test.describe('CI Critical Path Tests', () => {
     
     // Navigate to todos
     await page.goto('/todos');
-    await page.waitForSelector('h1:has-text("TODOs")', { timeout: 5000 });
+    await page.getByRole('heading', { name: /TODOs?/i, level: 1 }).waitFor({ timeout: 5000 });
     
     // Create todo
-    await page.click('button:has-text("Add Todo")');
+    await page.getByRole('button', { name: /Add Todo/i }).first().click();
     await page.waitForSelector('input[name="title"]', { state: 'visible' });
     
     await page.fill('input[name="title"]', 'CI Test Task');
@@ -31,7 +31,7 @@ test.describe('CI Critical Path Tests', () => {
     // Submit form and wait for response
     const [response] = await Promise.all([
       page.waitForResponse(resp => resp.url().includes('/api/v1/todos'), { timeout: 10000 }),
-      page.click('button[type="submit"]:has-text("Add Todo")')
+      page.locator('form').getByRole('button', { name: /Add Todo/i }).click()
     ]);
     
     // Check response for debugging
@@ -59,7 +59,7 @@ test.describe('CI Critical Path Tests', () => {
     
     // Verify completion - check for Done status badge with more specific selector
     // The status is inside a span with rounded-full class
-    await expect(page.locator('span.rounded-full:has-text("Done")')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('span.rounded-full').filter({ hasText: 'Done' })).toBeVisible({ timeout: 5000 });
   });
 
   test.skip('should create a note', async ({ page }) => {
@@ -73,10 +73,10 @@ test.describe('CI Critical Path Tests', () => {
     
     // Wait for page to load
     await page.waitForLoadState('networkidle');
-    await page.waitForSelector('h1:has-text("Notes")', { timeout: 10000 });
+    await page.getByRole('heading', { name: 'Notes', level: 1 }).waitFor({ timeout: 10000 });
     
     // Basic verification that notes page loads
-    await expect(page.locator('h1:has-text("Notes")')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Notes', level: 1 })).toBeVisible();
   });
 
   test('should navigate between sections', async ({ page }) => {
@@ -96,7 +96,7 @@ test.describe('CI Critical Path Tests', () => {
     ];
     
     for (const section of sections) {
-      await page.click(`a:has-text("${section.link}")`);
+      await page.getByRole('link', { name: section.link }).first().click();
       await page.waitForLoadState('networkidle');
       await expect(page).toHaveURL(section.url);
     }

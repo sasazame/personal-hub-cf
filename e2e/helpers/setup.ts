@@ -57,7 +57,7 @@ export async function createUniqueTestUser(page: Page, browserName?: string) {
     await passwordInputs.nth(1).fill(uniqueUser.password);
     
     // Submit with robust selector
-    const submitButton = page.locator('button[type="submit"], button:has-text("Sign up"), button:has-text("Register"), button:has-text("Create account")').first();
+    const submitButton = page.locator('button[type="submit"]').or(page.getByRole('button', { name: /Sign up|Register|Create account/i })).first();
     await submitButton.click();
     
     // Wait for registration to complete - be more flexible with URL
@@ -98,7 +98,7 @@ export async function setupTestUser(page: Page, browserName?: string) {
     await page.fill('input[type="email"]', TEST_USER.email);
     await page.fill('input[type="password"]', TEST_USER.password);
     // Submit with robust selector for login page
-    const submitButton = page.locator('button[type="submit"], button:has-text("Sign in"), button:has-text("Log in"), button:has-text("Login")').first();
+    const submitButton = page.locator('button[type="submit"]').or(page.getByRole('button', { name: /Sign in|Log in|Login/i })).first();
     await submitButton.click();
     
     // Wait for login to complete
@@ -117,7 +117,7 @@ export async function setupTestUser(page: Page, browserName?: string) {
     if (menuVisible) {
       await userMenu.click();
       // Now click logout button in dropdown
-      const logoutButton = page.locator('button:has-text("Logout")');
+      const logoutButton = page.getByRole('button', { name: 'Logout' });
       await logoutButton.click();
       await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 10000 });
       console.log('TEST_USER exists and is ready');
@@ -173,7 +173,7 @@ export async function setupTestUser(page: Page, browserName?: string) {
     await page.waitForTimeout(100);
     
     // Submit with robust selector
-    const submitButton = page.locator('button[type="submit"], button:has-text("Sign up"), button:has-text("Register"), button:has-text("Create account")').first();
+    const submitButton = page.locator('button[type="submit"]').or(page.getByRole('button', { name: /Sign up|Register|Create account/i })).first();
     await submitButton.click();
     
     // Wait for registration to complete
@@ -192,7 +192,7 @@ export async function setupTestUser(page: Page, browserName?: string) {
     if (menuVisible) {
       await userMenu.click();
       // Now click logout button in dropdown
-      const logoutButton = page.locator('button:has-text("Logout")');
+      const logoutButton = page.getByRole('button', { name: 'Logout' });
       await logoutButton.click();
       await page.waitForFunction(() => window.location.pathname.includes('/login'), { timeout: 10000 });
     }

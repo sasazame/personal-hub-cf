@@ -58,7 +58,7 @@ test.describe('CI Critical Path Tests', () => {
     
     // Verify we're on dashboard
     await expect(page).toHaveURL(/.*dashboard/);
-    await expect(page.locator('h1:has-text("Welcome back")')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Welcome back/i, level: 1 })).toBeVisible();
   });
 
   test('Todo: Should create and manage todos', async ({ page }) => {
@@ -67,10 +67,10 @@ test.describe('CI Critical Path Tests', () => {
     
     // Navigate to todos
     await page.goto('/todos');
-    await page.waitForSelector('h1:has-text("TODOs")', { timeout: 10000 });
+    await page.getByRole('heading', { name: /TODOs?/i, level: 1 }).waitFor({ timeout: 10000 });
     
     // Create todo
-    await page.click('button:has-text("Add Todo")');
+    await page.getByRole('button', { name: /Add Todo/i }).first().click();
     await page.waitForSelector('input[name="title"]', { state: 'visible' });
     
     await page.fill('input[name="title"]', testData.todoTitle);
@@ -82,7 +82,7 @@ test.describe('CI Critical Path Tests', () => {
       resp => resp.url().includes('/api/v1/todos') && resp.status() === 201,
       { timeout: 10000 }
     );
-    await page.click('button[type="submit"]:has-text("Add Todo")');
+    await page.locator('form').getByRole('button', { name: /Add Todo/i }).click();
     await createPromise;
     
     // Verify todo appears
@@ -99,7 +99,7 @@ test.describe('CI Critical Path Tests', () => {
       resp => resp.url().includes('/api/v1/todos') && resp.status() === 200,
       { timeout: 5000 }
     );
-    await expect(page.locator('span:has-text("Done")').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('span').filter({ hasText: 'Done' }).first()).toBeVisible({ timeout: 10000 });
   });
 
   test('Note: Should create and view notes', async ({ page }) => {
@@ -112,17 +112,17 @@ test.describe('CI Critical Path Tests', () => {
       response => response.url().includes('/api/v1/notes') && response.status() === 200,
       { timeout: 10000 }
     );
-    await page.waitForSelector('h1:has-text("Notes")', { timeout: 10000 });
+    await page.getByRole('heading', { name: 'Notes', level: 1 }).waitFor({ timeout: 10000 });
     
     // Create note
-    await page.click('button:has-text("New Note")');
+    await page.getByRole('button', { name: 'New Note' }).click();
     await page.waitForSelector('input[placeholder="Enter note title"]', { state: 'visible' });
     
     await page.fill('input[placeholder="Enter note title"]', testData.noteTitle);
     await page.fill('textarea[placeholder="Enter note content"]', 'Test note content for CI');
     
     // Submit note
-    const createButton = page.locator('button[type="submit"]:has-text("Create")');
+    const createButton = page.locator('button[type="submit"]', { hasText: 'Create' });
     await expect(createButton).toBeEnabled({ timeout: 5000 });
     
     const createPromise = page.waitForResponse(
@@ -144,8 +144,8 @@ test.describe('CI Critical Path Tests', () => {
     });
     
     // Verify note appears
-    await page.waitForSelector(`h3:has-text("${testData.noteTitle}")`, { timeout: 10000 });
-    await expect(page.locator(`h3:has-text("${testData.noteTitle}")`)).toBeVisible();
+    await page.locator('h3').filter({ hasText: testData.noteTitle }).waitFor({ timeout: 10000 });
+    await expect(page.locator('h3').filter({ hasText: testData.noteTitle })).toBeVisible();
   });
 
   test('Navigation: Should navigate between main sections', async ({ page }) => {
@@ -161,7 +161,7 @@ test.describe('CI Critical Path Tests', () => {
     ];
     
     for (const section of sections) {
-      await page.click(`a:has-text("${section.link}")`);
+      await page.getByRole('link', { name: section.link }).first().click();
       await page.waitForURL(section.url, { timeout: 5000 });
       await expect(page).toHaveURL(section.url);
       
@@ -182,7 +182,7 @@ test.describe('CI Critical Path Tests', () => {
     
     // Should still be on dashboard (not redirected to login)
     await expect(page).toHaveURL(/.*dashboard/);
-    await expect(page.locator('h1:has-text("Welcome back")')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Welcome back/i, level: 1 })).toBeVisible();
   });
 
   test('Logout: Should logout successfully', async ({ page }) => {

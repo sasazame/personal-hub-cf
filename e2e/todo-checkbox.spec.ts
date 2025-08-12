@@ -14,18 +14,18 @@ test.describe('Todo Checkbox Functionality', () => {
     
     // Navigate to todos page
     await page.goto('/todos');
-    await expect(page.getByRole('heading', { name: 'TODO', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /TODOs?/i })).toBeVisible();
   });
 
   test('should complete todo by clicking checkbox', async ({ page }) => {
     // Create a new todo
-    await page.click('button:has-text("Add TODO")');
-    await expect(page.locator('h2:has-text("Create New Todo")')).toBeVisible();
+    await page.getByRole('button', { name: 'Add TODO' }).click();
+    await expect(page.getByRole('heading', { name: 'Create New Todo', level: 2 })).toBeVisible();
     
     const title = `Checkbox Test ${Date.now()}`;
     await page.fill('input[name="title"]', title);
     await page.fill('textarea[name="description"]', 'Test checkbox functionality');
-    await page.click('button:has-text("Create TODO")');
+    await page.getByRole('button', { name: 'Create TODO' }).click();
     
     // Wait for todo to appear
     await expect(page.locator('h3').filter({ hasText: title })).toBeVisible();
@@ -51,11 +51,11 @@ test.describe('Todo Checkbox Functionality', () => {
 
   test('should uncomplete todo by clicking completed checkbox', async ({ page }) => {
     // Create a completed todo via edit form
-    await page.click('button:has-text("Add TODO")');
+    await page.getByRole('button', { name: 'Add TODO' }).click();
     const title = `Uncomplete Test ${Date.now()}`;
     await page.fill('input[name="title"]', title);
     await page.selectOption('select[name="status"]', 'DONE');
-    await page.click('button:has-text("Create TODO")');
+    await page.getByRole('button', { name: 'Create TODO' }).click();
     
     // Wait for todo to appear
     await expect(page.locator('h3').filter({ hasText: title })).toBeVisible();
@@ -76,10 +76,10 @@ test.describe('Todo Checkbox Functionality', () => {
 
   test('should show loading state while updating', async ({ page }) => {
     // Create a todo
-    await page.click('button:has-text("Add TODO")');
+    await page.getByRole('button', { name: 'Add TODO' }).click();
     const title = `Loading Test ${Date.now()}`;
     await page.fill('input[name="title"]', title);
-    await page.click('button:has-text("Create TODO")');
+    await page.getByRole('button', { name: 'Create TODO' }).click();
     
     // Wait for todo to appear
     await expect(page.locator('h3').filter({ hasText: title })).toBeVisible();

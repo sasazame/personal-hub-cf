@@ -20,7 +20,7 @@ test.describe('Todo Basic Operations', () => {
     // Navigate to todos page
     await page.goto('/todos');
     await page.waitForLoadState('networkidle');
-    await expect(page.getByRole('heading', { name: 'TODOs' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /TODOs?/i })).toBeVisible();
     
     // Check for empty state message - updated to match current translation
     await expect(page.locator('text=No TODOs found')).toBeVisible();
@@ -32,14 +32,14 @@ test.describe('Todo Basic Operations', () => {
     
     // Navigate to todos page
     await page.goto('/todos');
-    await expect(page.getByRole('heading', { name: 'TODOs' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /TODOs?/i })).toBeVisible();
     
     // Click add todo button - updated to match current button text
-    await page.click('button:has-text("Add Todo")');
+    await page.getByRole('button', { name: 'Add Todo' }).first().click();
     
     // Wait for form to appear
     // Wait for form to appear - could be inline or in a dialog
-    await page.waitForSelector('h2:has-text("New Todo")', { state: 'visible', timeout: 10000 });
+    await page.getByRole('heading', { name: 'New Todo', level: 2 }).waitFor({ state: 'visible', timeout: 10000 });
     
     // Fill form
     const title = `Test Todo ${Date.now()}`;
@@ -47,8 +47,8 @@ test.describe('Todo Basic Operations', () => {
     await page.fill('textarea[name="description"]', 'Test description');
     await page.selectOption('select[name="priority"]', 'MEDIUM');
     
-    // Submit - updated to match current button text
-    await page.click('button[type="submit"]:has-text("Add Todo")');
+    // Submit - updated to match current button text (submit button in form)
+    await page.locator('form').getByRole('button', { name: 'Add Todo' }).click();
     
     // Wait for todo to appear in the list
     await expect(page.locator('h3').filter({ hasText: title })).toBeVisible({ timeout: 5000 });
@@ -60,16 +60,16 @@ test.describe('Todo Basic Operations', () => {
     
     // Navigate to todos page
     await page.goto('/todos');
-    await expect(page.getByRole('heading', { name: 'TODOs' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /TODOs?/i })).toBeVisible();
     
     // First create a todo
-    await page.click('button:has-text("Add Todo")');
+    await page.getByRole('button', { name: 'Add Todo' }).first().click();
     // Wait for form to appear - could be inline or in a dialog
-    await page.waitForSelector('h2:has-text("New Todo")', { state: 'visible', timeout: 10000 });
+    await page.getByRole('heading', { name: 'New Todo', level: 2 }).waitFor({ state: 'visible', timeout: 10000 });
     
     const title = `Delete Test ${Date.now()}`;
     await page.fill('input[name="title"]', title);
-    await page.click('button[type="submit"]:has-text("Add Todo")');
+    await page.locator('form').getByRole('button', { name: 'Add Todo' }).click();
     
     // Wait for todo to appear
     await expect(page.locator('h3').filter({ hasText: title })).toBeVisible();
@@ -91,16 +91,16 @@ test.describe('Todo Basic Operations', () => {
     
     // Navigate to todos page
     await page.goto('/todos');
-    await expect(page.getByRole('heading', { name: 'TODOs' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /TODOs?/i })).toBeVisible();
     
     // First create a todo
-    await page.click('button:has-text("Add Todo")');
+    await page.getByRole('button', { name: 'Add Todo' }).first().click();
     // Wait for form to appear - could be inline or in a dialog
-    await page.waitForSelector('h2:has-text("New Todo")', { state: 'visible', timeout: 10000 });
+    await page.getByRole('heading', { name: 'New Todo', level: 2 }).waitFor({ state: 'visible', timeout: 10000 });
     
     const title = `Status Test ${Date.now()}`;
     await page.fill('input[name="title"]', title);
-    await page.click('button[type="submit"]:has-text("Add Todo")');
+    await page.locator('form').getByRole('button', { name: 'Add Todo' }).click();
     
     // Wait for todo to appear
     await expect(page.locator('h3').filter({ hasText: title })).toBeVisible();
@@ -115,11 +115,11 @@ test.describe('Todo Basic Operations', () => {
     await page.selectOption('select[name="status"]', 'DONE');
     
     // Save - updated to match current button text
-    const updateButton = page.locator('button[type="submit"]:has-text("Update")');
+    const updateButton = page.locator('button[type="submit"]', { hasText: 'Update' });
     await updateButton.click();
     
     // Wait for modal to close and verify status changed
     await page.waitForTimeout(1000);
-    await expect(page.locator('span.rounded-full:has-text("Done")')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('span.rounded-full').filter({ hasText: 'Done' })).toBeVisible({ timeout: 5000 });
   });
 });

@@ -22,7 +22,7 @@ test.describe('Optimized Todo Tests', () => {
     // Navigate to todos page
     perf.mark('navigation-start');
     await authenticatedPage.goto('/todos');
-    await authenticatedPage.waitForSelector('h1:has-text("TODOs")', { timeout: 5000 });
+    await authenticatedPage.getByRole('heading', { name: /TODOs?/i, level: 1 }).waitFor({ timeout: 5000 });
     perf.measure('Navigation', 'navigation-start');
     
     // Verify todos appear (they were created via API)
@@ -47,11 +47,11 @@ test.describe('Optimized Todo Tests', () => {
     await expect(authenticatedPage).toHaveURL(/.*dashboard/);
     
     // Navigate to todos and verify count
-    await authenticatedPage.click('a:has-text("TODOs")');
+    await authenticatedPage.getByRole('link', { name: 'TODOs' }).click();
     await expect(authenticatedPage.locator('.todo-item')).toHaveCount(3, { timeout: 5000 });
     
     // Navigate to notes and verify count
-    await authenticatedPage.click('a:has-text("Notes")');
+    await authenticatedPage.getByRole('link', { name: 'Notes' }).click();
     await expect(authenticatedPage.locator('.note-card')).toHaveCount(3, { timeout: 5000 });
   });
 

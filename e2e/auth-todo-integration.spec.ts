@@ -21,7 +21,7 @@ async function createTestUser(page: Page) {
   await page.fill('input[name="email"]', user.email);
   await page.fill('input[name="password"]', user.password);
   await page.fill('input[name="confirmPassword"]', user.password);
-  await page.click('button:has-text("Create account")');
+  await page.getByRole('button', { name: 'Create account' }).click();
   
   // Wait for registration to complete and redirect to dashboard
   await page.waitForURL('/dashboard', { timeout: 5000 });
@@ -65,7 +65,7 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     
     // Should show landing page
     await expect(page).toHaveURL('http://localhost:3000/');
-    await expect(page.locator('h1:has-text("Your Life,")')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Your Life,/i, level: 1 })).toBeVisible();
   });
 
   test('should redirect authenticated user away from auth pages', async ({ page }) => {
@@ -87,7 +87,7 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     await page.fill('input[name="confirmPassword"]', uniqueUser.password);
     
     // Submit registration form
-    await page.click('button:has-text("Create account")');
+    await page.getByRole('button', { name: 'Create account' }).click();
     
     // Wait for registration to complete and redirect to dashboard (extended timeout)
     await page.waitForURL('/dashboard', { timeout: 5000 });
@@ -187,16 +187,16 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     await expect(page.getByRole('heading').filter({ hasText: 'Welcome back' })).toBeVisible();
 
     // Create a todo
-    await page.click('button:has-text("Add TODO")');
+    await page.getByRole('button', { name: 'Add TODO' }).click();
     await page.fill('input[name="title"]', 'User Todo Test');
     await page.fill('textarea[name="description"]', 'This is a test todo');
-    await page.click('button:has-text("Create TODO")');
+    await page.getByRole('button', { name: 'Create TODO' }).click();
 
     // Verify todo is created
     await expect(page.locator('h3').filter({ hasText: 'User Todo Test' })).toBeVisible();
 
     // Logout to test user isolation
-    await page.click('button:has-text("Logout")');
+    await page.getByRole('button', { name: 'Logout' }).click();
     await page.waitForURL(/.*\/login/, { timeout: 5000 });
   });
 
@@ -251,9 +251,9 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     await page.reload();
 
     // Try to create todo - should show error notification
-    await page.click('button:has-text("Add New Todo")');
+    await page.getByRole('button', { name: 'Add New Todo' }).click();
     await page.fill('input[id="title"]', 'Error Todo');
-    await page.click('button:has-text("Create Todo")');
+    await page.getByRole('button', { name: 'Create Todo' }).click();
 
     // Should show error toast notification
     await expect(page.locator('[data-testid="toast"]')).toBeVisible();

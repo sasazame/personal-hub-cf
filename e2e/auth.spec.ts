@@ -26,12 +26,12 @@ test.describe('Authentication', () => {
       
       // Should show landing page
       await expect(page).toHaveURL(/^http:\/\/localhost:3000\/$/);
-      await expect(page.locator('h1:has-text("Your Life,")')).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Your Life,/i, level: 1 })).toBeVisible();
       await expect(page.locator('text=Transform chaos into clarity')).toBeVisible();
       
       // Check for auth navigation links
       await expect(page.locator('nav a[href="/login"]')).toBeVisible();
-      await expect(page.locator('a[href="/register"]:has-text("Get Started")')).toBeVisible();
+      await expect(page.locator('a[href="/register"]', { hasText: 'Get Started' })).toBeVisible();
     });
 
     test('should redirect to login when accessing protected routes', async ({ page }) => {
