@@ -21,7 +21,7 @@ test.describe('CI Critical Path Tests', () => {
     await page.getByRole('heading', { name: /TODOs?/i, level: 1 }).waitFor({ timeout: 5000 });
     
     // Create todo
-    await page.getByRole('button', { name: 'Add Todo' }).first().click();
+    await page.getByRole('button', { name: /Add Todo/i }).first().click();
     await page.waitForSelector('input[name="title"]', { state: 'visible' });
     
     await page.fill('input[name="title"]', 'CI Test Task');
@@ -31,7 +31,7 @@ test.describe('CI Critical Path Tests', () => {
     // Submit form and wait for response
     const [response] = await Promise.all([
       page.waitForResponse(resp => resp.url().includes('/api/v1/todos'), { timeout: 10000 }),
-      page.locator('form').getByRole('button', { name: 'Add Todo' }).click()
+      page.locator('form').getByRole('button', { name: /Add Todo/i }).click()
     ]);
     
     // Check response for debugging

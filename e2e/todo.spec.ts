@@ -43,7 +43,7 @@ test.describe('Personal Hub E2E Tests', () => {
     await expect(page.locator('div.fixed.inset-0.bg-gray-600')).not.toBeVisible();
     
     await page.getByRole('button', { name: 'Add TODO' }).click();
-    await expect(page.getByRole('heading', { name: 'Create New TODO' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Create New TODO/i })).toBeVisible();
     await expect(page.locator('input[id="title"]')).toBeVisible();
     await expect(page.locator('textarea[id="description"]')).toBeVisible();
     await expect(page.locator('select[id="priority"]')).toBeVisible();
@@ -61,7 +61,7 @@ test.describe('Personal Hub E2E Tests', () => {
     await page.getByRole('button', { name: 'Add TODO' }).click();
 
     // Wait for the form to appear
-    await expect(page.getByRole('heading', { name: 'Create New TODO' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Create New TODO/i })).toBeVisible();
 
     // Fill in the form
     await page.fill('input[id="title"]', todoTitle);
@@ -72,7 +72,7 @@ test.describe('Personal Hub E2E Tests', () => {
     await page.getByRole('button', { name: 'Create TODO' }).click();
 
     // Wait for the modal to close
-    await expect(page.getByRole('heading', { name: 'Create New TODO' })).not.toBeVisible();
+    await expect(page.getByRole('heading', { name: /Create New TODO/i })).not.toBeVisible();
 
     // Wait for the todo to appear
     await page.waitForSelector(`text=${todoTitle}`, { timeout: 5000 });
@@ -95,14 +95,14 @@ test.describe('Personal Hub E2E Tests', () => {
     await page.getByRole('button', { name: 'Create TODO' }).click();
     
     // Wait for modal to close
-    await expect(page.getByRole('heading', { name: 'Create New TODO' })).not.toBeVisible();
+    await expect(page.getByRole('heading', { name: /Create New TODO/i })).not.toBeVisible();
     await page.waitForSelector(`text=${todoTitle}`, { timeout: 5000 });
 
     // Delete the todo using kebab menu
     await clickTodoMenuOption(page, todoTitle, 'Delete');
 
     // Confirm deletion in the modal
-    await expect(page.getByRole('heading', { name: 'Delete TODO', level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Delete TODO/i, level: 2 })).toBeVisible();
     
     // Confirm deletion
     await page.getByRole('button', { name: 'Delete' }).click();
@@ -119,7 +119,7 @@ test.describe('Personal Hub E2E Tests', () => {
     await expect(page.locator('div.fixed.inset-0.bg-gray-600')).not.toBeVisible();
     
     await page.getByRole('button', { name: 'Add TODO' }).click();
-    await expect(page.getByRole('heading', { name: 'Create New TODO' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Create New TODO/i })).toBeVisible();
     
     // Fill some data
     await page.fill('input[id="title"]', 'Test Todo');
@@ -128,7 +128,7 @@ test.describe('Personal Hub E2E Tests', () => {
     await page.getByRole('button', { name: 'Cancel' }).click();
     
     // Form should be closed
-    await expect(page.getByRole('heading', { name: 'Create New TODO' })).not.toBeVisible();
+    await expect(page.getByRole('heading', { name: /Create New TODO/i })).not.toBeVisible();
   });
 
   test('should cancel todo deletion', async ({ page }) => {
@@ -144,20 +144,20 @@ test.describe('Personal Hub E2E Tests', () => {
     await page.getByRole('button', { name: 'Create TODO' }).click();
     
     // Wait for modal to close
-    await expect(page.getByRole('heading', { name: 'Create New TODO' })).not.toBeVisible();
+    await expect(page.getByRole('heading', { name: /Create New TODO/i })).not.toBeVisible();
     await page.waitForSelector(`text=${todoTitle}`, { timeout: 5000 });
 
     // Click delete using kebab menu
     await clickTodoMenuOption(page, todoTitle, 'Delete');
 
     // Verify delete modal appears
-    await expect(page.getByRole('heading', { name: 'Delete TODO', level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Delete TODO/i, level: 2 })).toBeVisible();
     
     // Cancel deletion
     await page.getByRole('button', { name: 'Cancel' }).click();
     
     // Verify modal is closed and todo still exists in the list
-    await expect(page.getByRole('heading', { name: 'Delete TODO', level: 2 })).not.toBeVisible();
+    await expect(page.getByRole('heading', { name: /Delete TODO/i, level: 2 })).not.toBeVisible();
     await expect(page.locator('.space-y-4').getByText(todoTitle)).toBeVisible();
   });
 });
