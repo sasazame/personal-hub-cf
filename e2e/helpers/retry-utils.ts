@@ -26,11 +26,23 @@ export async function retryWithReload(
     if (i < maxRetries - 1) {
       console.log(`Retry ${i + 1}: ${message}`);
       try {
-        await page.reload({ waitUntil: 'domcontentloaded', timeout: 15000 });
+        // Check if page is still valid before attempting reload
+        if (!page.isClosed()) {
+          await page.reload({ waitUntil: 'domcontentloaded', timeout: 15000 });
+          await page.waitForTimeout(reloadDelay);
+        } else {
+          console.log('Page context closed, cannot retry');
+          return false;
+        }
       } catch (reloadErr) {
         console.log('Reload failed, continuing retries:', reloadErr);
+        // Only wait if page is still valid
+        if (!page.isClosed()) {
+          await page.waitForTimeout(reloadDelay);
+        } else {
+          return false;
+        }
       }
-      await page.waitForTimeout(reloadDelay);
     }
   }
   

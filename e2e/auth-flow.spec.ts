@@ -15,7 +15,7 @@ test.describe('Authentication Flow', () => {
     
     // Should show landing page
     await expect(page).toHaveURL(/^http:\/\/localhost:3000\/$/);
-    await expect(page.locator('h1:has-text("Your Life,")')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Your Life,', level: 1 })).toBeVisible();
     
     // Try to access protected route
     await navigateToProtectedRoute(page, '/dashboard');

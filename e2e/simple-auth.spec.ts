@@ -17,7 +17,7 @@ test.describe('Simple Auth Test', () => {
     await page.screenshot({ path: 'test-results/login-page.png' });
     
     // Check for landing page elements
-    const heading = await page.locator('h1:has-text("Your Life,")').isVisible();
+    const heading = await page.getByRole('heading', { name: 'Your Life,', level: 1 }).isVisible();
     console.log('Email input visible:', emailInput);
     
     // Check for password input  

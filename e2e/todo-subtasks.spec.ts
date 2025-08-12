@@ -5,26 +5,26 @@ test.describe('TODO Subtasks', () => {
   test.beforeEach(async ({ page }) => {
     await login(page, TEST_USER.email, TEST_USER.password);
     await page.goto('/todos');
-    await page.waitForSelector('h1:has-text("TODOs")');
+    await page.getByRole('heading', { name: 'TODOs', level: 1 }).waitFor();
   });
 
   test('should create a subtask from parent TODO', async ({ page }) => {
     // Create a parent TODO first
-    await page.click('button:has-text("Add TODO")');
+    await page.getByRole('button', { name: 'Add TODO' }).click();
     await page.fill('input[name="title"]', 'Parent Task');
     await page.fill('textarea[name="description"]', 'This is a parent task');
-    await page.click('button:has-text("Save")');
+    await page.getByRole('button', { name: 'Save' }).click();
 
     // Wait for the parent task to appear
     await page.waitForSelector('text=Parent Task');
 
     // Click "Add Subtask" button on the parent task
-    await page.click('button:has-text("Add Subtask")');
+    await page.getByRole('button', { name: 'Add Subtask' }).click();
 
     // Fill in subtask details
     await page.fill('input[name="title"]', 'Subtask 1');
     await page.fill('textarea[name="description"]', 'This is a subtask');
-    await page.click('button:has-text("Save")');
+    await page.getByRole('button', { name: 'Save' }).click();
 
     // Wait for success message
     await page.waitForSelector('text=TODO added successfully');
@@ -47,14 +47,14 @@ test.describe('TODO Subtasks', () => {
 
   test('should toggle subtasks visibility', async ({ page }) => {
     // Create parent and subtask
-    await page.click('button:has-text("Add TODO")');
+    await page.getByRole('button', { name: 'Add TODO' }).click();
     await page.fill('input[name="title"]', 'Parent with Subtasks');
-    await page.click('button:has-text("Save")');
+    await page.getByRole('button', { name: 'Save' }).click();
     await page.waitForSelector('text=Parent with Subtasks');
 
-    await page.click('button:has-text("Add Subtask")');
+    await page.getByRole('button', { name: 'Add Subtask' }).click();
     await page.fill('input[name="title"]', 'Hidden Subtask');
-    await page.click('button:has-text("Save")');
+    await page.getByRole('button', { name: 'Save' }).click();
 
     // Show subtasks
     await page.click('button[aria-label="Show subtasks"]');
@@ -67,14 +67,14 @@ test.describe('TODO Subtasks', () => {
 
   test('should complete parent and subtasks independently', async ({ page }) => {
     // Create parent with subtask
-    await page.click('button:has-text("Add TODO")');
+    await page.getByRole('button', { name: 'Add TODO' }).click();
     await page.fill('input[name="title"]', 'Parent Task Complete Test');
-    await page.click('button:has-text("Save")');
+    await page.getByRole('button', { name: 'Save' }).click();
     await page.waitForSelector('text=Parent Task Complete Test');
 
-    await page.click('button:has-text("Add Subtask")');
+    await page.getByRole('button', { name: 'Add Subtask' }).click();
     await page.fill('input[name="title"]', 'Subtask Complete Test');
-    await page.click('button:has-text("Save")');
+    await page.getByRole('button', { name: 'Save' }).click();
 
     // Show subtasks
     await page.click('button[aria-label="Show subtasks"]');
@@ -94,14 +94,14 @@ test.describe('TODO Subtasks', () => {
 
   test('should not allow subtasks for subtasks', async ({ page }) => {
     // Create parent with subtask
-    await page.click('button:has-text("Add TODO")');
+    await page.getByRole('button', { name: 'Add TODO' }).click();
     await page.fill('input[name="title"]', 'Parent for Nesting Test');
-    await page.click('button:has-text("Save")');
+    await page.getByRole('button', { name: 'Save' }).click();
     await page.waitForSelector('text=Parent for Nesting Test');
 
-    await page.click('button:has-text("Add Subtask")');
+    await page.getByRole('button', { name: 'Add Subtask' }).click();
     await page.fill('input[name="title"]', 'Subtask No Nesting');
-    await page.click('button:has-text("Save")');
+    await page.getByRole('button', { name: 'Save' }).click();
 
     // Show subtasks
     await page.click('button[aria-label="Show subtasks"]');
@@ -109,23 +109,23 @@ test.describe('TODO Subtasks', () => {
 
     // Verify subtask doesn't have "Add Subtask" button
     const subtaskElement = page.locator('text=Subtask No Nesting').locator('xpath=ancestor::div[contains(@class, "bg-card")]');
-    await expect(subtaskElement.locator('button:has-text("Add Subtask")')).not.toBeVisible();
+    await expect(subtaskElement.getByRole('button', { name: 'Add Subtask' })).not.toBeVisible();
   });
 
   test('should display multiple subtasks correctly', async ({ page }) => {
     // Create parent
-    await page.click('button:has-text("Add TODO")');
+    await page.getByRole('button', { name: 'Add TODO' }).click();
     await page.fill('input[name="title"]', 'Parent with Multiple Subtasks');
-    await page.click('button:has-text("Save")');
+    await page.getByRole('button', { name: 'Save' }).click();
     await page.waitForSelector('text=Parent with Multiple Subtasks');
 
     // Create multiple subtasks
     const subtasks = ['First Subtask', 'Second Subtask', 'Third Subtask'];
     
     for (const subtaskTitle of subtasks) {
-      await page.click('button:has-text("Add Subtask")');
+      await page.getByRole('button', { name: 'Add Subtask' }).click();
       await page.fill('input[name="title"]', subtaskTitle);
-      await page.click('button:has-text("Save")');
+      await page.getByRole('button', { name: 'Save' }).click();
       await page.waitForSelector('text=TODO added successfully');
     }
 

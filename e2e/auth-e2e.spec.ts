@@ -15,9 +15,9 @@ test.describe('Auth E2E Tests', () => {
     await expect(page).toHaveURL(/^http:\/\/localhost:3000\/$/);
     
     // Should see landing page elements
-    await expect(page.locator('h1:has-text("Your Life,")')).toBeVisible();
-    await expect(page.locator('a:has-text("Get Started")')).toBeVisible();
-    await expect(page.locator('nav a:has-text("Sign In")')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Your Life,', level: 1 })).toBeVisible();
+    await expect(page.locator('a').filter({ hasText: 'Get Started' })).toBeVisible();
+    await expect(page.locator('nav a').filter({ hasText: 'Sign In' })).toBeVisible();
   });
 
   test('should show login form', async ({ page }) => {
@@ -93,7 +93,7 @@ test.describe('Auth E2E Tests', () => {
     await page.goto('/login');
     
     // Wait for page to load
-    await page.waitForSelector('h1:has-text("Login")', { timeout: 5000 });
+    await page.getByRole('heading', { name: 'Login', level: 1 }).waitFor( { timeout: 5000 });
     
     // Click register link - try different selectors
     try {

@@ -11,12 +11,12 @@ test.describe('Basic Authentication Flow', () => {
     expect(page.url()).toMatch(/\/$/);
     
     // Check for landing page elements
-    await expect(page.locator('h1:has-text("Your Life,")')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Your Life,', level: 1 })).toBeVisible();
     await expect(page.locator('text=Transform chaos into clarity')).toBeVisible();
     
     // Check for auth links
     await expect(page.locator('nav a[href="/login"]')).toBeVisible();
-    await expect(page.locator('a[href="/register"]:has-text("Get Started")')).toBeVisible();
+    await expect(page.locator('a[href="/register"]', { hasText: 'Get Started' })).toBeVisible();
   });
 
   test('should handle invalid login attempt', async ({ page }) => {

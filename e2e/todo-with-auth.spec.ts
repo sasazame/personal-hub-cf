@@ -55,11 +55,11 @@ test.describe('Todo E2E Tests with Auth', () => {
     expect(currentUrl).not.toContain('/login');
     
     // Should see the Personal Hub heading
-    await expect(page.locator('h1:has-text("Personal Hub")')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Personal Hub', level: 1 })).toBeVisible();
   });
 
   test('should show Add New Todo button', async ({ page }) => {
-    await expect(page.locator('button:has-text("Add New Todo")')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Add New Todo' })).toBeVisible();
   });
 
   test('should create a new todo', async ({ page }) => {
@@ -67,10 +67,10 @@ test.describe('Todo E2E Tests with Auth', () => {
     const todoDescription = 'Test description';
     
     // Click Add New Todo
-    await page.click('button:has-text("Add New Todo")');
+    await page.getByRole('button', { name: 'Add New Todo' }).click();
     
     // Wait for form
-    await expect(page.locator('h2:has-text("Create New Todo")')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Create New Todo', level: 2 })).toBeVisible();
     
     // Fill form
     await page.fill('input[name="title"]', todoTitle);
@@ -78,7 +78,7 @@ test.describe('Todo E2E Tests with Auth', () => {
     await page.selectOption('select[name="priority"]', 'MEDIUM');
     
     // Submit
-    await page.click('button:has-text("Create Todo")');
+    await page.getByRole('button', { name: 'Create Todo' }).click();
     
     // Wait for todo to appear in the list (not in toast)
     await expect(page.locator('.space-y-4').getByText(todoTitle)).toBeVisible({ timeout: 5000 });

@@ -40,7 +40,7 @@ test.describe('CI Comprehensive Tests', () => {
       }
 
       // Verify dashboard loaded
-      await expect(page.locator('h1:has-text("Welcome"), h1:has-text("Dashboard")')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('h1').filter({ hasText: /Welcome|Dashboard/ })).toBeVisible({ timeout: 10000 });
     });
 
     test('should handle logout correctly', async ({ page }) => {
@@ -84,12 +84,12 @@ test.describe('CI Comprehensive Tests', () => {
 
     test('should create and manage todos', async ({ page }) => {
       await page.goto('/todos');
-      await page.waitForSelector('h1:has-text("TODO"), h1:has-text("Tasks")', { timeout: 10000 });
+      await page.locator('h1').filter({ hasText: /TODO|Tasks/ }).waitFor({ timeout: 10000 });
       
       // Create todo
-      const addButton = page.locator('button:has-text("Add Todo")')
-        .or(page.locator('button:has-text("New Todo")'))
-        .or(page.locator('button:has-text("Create Todo")'));
+      const addButton = page.getByRole('button', { name: 'Add Todo' })
+        .or(page.getByRole('button', { name: 'New Todo' }))
+        .or(page.getByRole('button', { name: 'Create Todo' }));
       await addButton.click();
       
       await page.fill('input[name="title"]', 'CI Todo Test');
@@ -102,8 +102,8 @@ test.describe('CI Comprehensive Tests', () => {
       await expect(page.locator('text="CI Todo Test"')).toBeVisible({ timeout: 10000 });
       
       // Mark as complete if possible
-      const completeButton = page.locator('button:has-text("Complete")')
-        .or(page.locator('button:has-text("Mark complete")'))
+      const completeButton = page.getByRole('button', { name: 'Complete' })
+        .or(page.getByRole('button', { name: 'Mark complete' }))
         .or(page.locator('input[type="checkbox"]'));
       if (await completeButton.first().isVisible().catch(() => false)) {
         await completeButton.first().click();
@@ -121,7 +121,7 @@ test.describe('CI Comprehensive Tests', () => {
 
       for (const section of sections) {
         // Find navigation link - try multiple selectors
-        const navLink = page.locator(`a:has-text("${section.name}")`).or(page.locator(`nav >> text="${section.name}"`));
+        const navLink = page.getByRole('link', { name: section.name }).or(page.locator(`nav >> text="${section.name}"`));
         
         if (await navLink.first().isVisible().catch(() => false)) {
           await navLink.first().click();
@@ -135,7 +135,7 @@ test.describe('CI Comprehensive Tests', () => {
 
     test('should display user profile information', async ({ page }) => {
       // Check for user avatar or menu
-      const userIndicator = page.locator('.rounded-full').or(page.locator('[class*="avatar"]')).or(page.locator('button:has-text("Profile")'));
+      const userIndicator = page.locator('.rounded-full').or(page.locator('[class*="avatar"]')).or(page.getByRole('button', { name: 'Profile' }));
       await expect(userIndicator.first()).toBeVisible({ timeout: 10000 });
       
       // Try to navigate to profile if available
@@ -187,8 +187,8 @@ test.describe('CI Comprehensive Tests', () => {
       
       // Try to create a todo
       await page.goto('/todos');
-      const addButton = page.locator('button:has-text("Add Todo")')
-        .or(page.locator('button:has-text("New Todo")'));
+      const addButton = page.getByRole('button', { name: 'Add Todo' })
+        .or(page.getByRole('button', { name: 'New Todo' }));
       
       if (await addButton.isVisible()) {
         await addButton.click();

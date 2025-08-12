@@ -38,7 +38,7 @@ test.describe('Pomodoro Feature E2E Tests', () => {
     await page.goto('/pomodoro');
     
     // Click create session button
-    await page.click('button:has-text("セッションを開始")');
+    await page.getByRole('button', { name: 'セッションを開始' }).click();
     
     // Wait for timer to appear
     await expect(page.locator('[data-testid="pomodoro-timer"]')).toBeVisible();
@@ -53,7 +53,7 @@ test.describe('Pomodoro Feature E2E Tests', () => {
   test('should add tasks to session', async ({ page }) => {
     // Navigate to Pomodoro and start session
     await page.goto('/pomodoro');
-    await page.click('button:has-text("セッションを開始")');
+    await page.getByRole('button', { name: 'セッションを開始' }).click();
     
     // Add a task
     await page.fill('input[placeholder="タスクを追加..."]', 'Test task 1');
@@ -74,7 +74,7 @@ test.describe('Pomodoro Feature E2E Tests', () => {
   test('should complete tasks', async ({ page }) => {
     // Navigate to Pomodoro and start session
     await page.goto('/pomodoro');
-    await page.click('button:has-text("セッションを開始")');
+    await page.getByRole('button', { name: 'セッションを開始' }).click();
     
     // Add a task
     await page.fill('input[placeholder="タスクを追加..."]', 'Task to complete');
@@ -90,34 +90,34 @@ test.describe('Pomodoro Feature E2E Tests', () => {
   test('should handle timer controls', async ({ page }) => {
     // Navigate to Pomodoro and start session
     await page.goto('/pomodoro');
-    await page.click('button:has-text("セッションを開始")');
+    await page.getByRole('button', { name: 'セッションを開始' }).click();
     
     // Start timer
-    await page.click('button:has-text("開始")');
+    await page.getByRole('button', { name: '開始' }).click();
     
     // Wait a moment
     await page.waitForTimeout(2000);
     
     // Pause timer
-    await page.click('button:has-text("一時停止")');
+    await page.getByRole('button', { name: '一時停止' }).click();
     
     // Verify pause button changed to resume
-    await expect(page.locator('button:has-text("再開")')).toBeVisible();
+    await expect(page.getByRole('button', { name: '再開' })).toBeVisible();
     
     // Stop timer
-    await page.click('button:has-text("停止")');
+    await page.getByRole('button', { name: '停止' }).click();
     
     // Verify session ended
-    await expect(page.locator('button:has-text("セッションを開始")')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'セッションを開始' })).toBeVisible();
   });
 
   test('should show session history', async ({ page }) => {
     // Navigate to Pomodoro and create a session
     await page.goto('/pomodoro');
-    await page.click('button:has-text("セッションを開始")');
+    await page.getByRole('button', { name: 'セッションを開始' }).click();
     
     // Complete the session immediately
-    await page.click('button:has-text("スキップ")');
+    await page.getByRole('button', { name: 'スキップ' }).click();
     
     // Verify session appears in history
     await expect(page.locator('[data-testid="session-history"]')).toBeVisible();
@@ -139,7 +139,7 @@ test.describe('Pomodoro Feature E2E Tests', () => {
     await page.fill('input[name="shortBreakDuration"]', '10');
     
     // Save settings
-    await page.click('button:has-text("保存")');
+    await page.getByRole('button', { name: '保存' }).click();
     
     // Verify settings were saved (would need to create new session to verify)
     await expect(page.locator('[data-testid="settings-saved-message"]')).toBeVisible();
@@ -153,7 +153,7 @@ test.describe('Pomodoro Feature E2E Tests', () => {
     
     // Navigate to Pomodoro
     await page.goto('/pomodoro');
-    await page.click('button:has-text("セッションを開始")');
+    await page.getByRole('button', { name: 'セッションを開始' }).click();
     
     // Link todo to Pomodoro
     await page.click('[data-testid="link-todo-button"]');
@@ -168,7 +168,7 @@ test.describe('Pomodoro Feature E2E Tests', () => {
     await page.goto('/pomodoro');
     
     // Try to add empty task (if session is active)
-    await page.click('button:has-text("セッションを開始")');
+    await page.getByRole('button', { name: 'セッションを開始' }).click();
     await page.fill('input[placeholder="タスクを追加..."]', '');
     await page.press('input[placeholder="タスクを追加..."]', 'Enter');
     
@@ -179,11 +179,11 @@ test.describe('Pomodoro Feature E2E Tests', () => {
   test('should handle multiple sessions correctly', async ({ page }) => {
     // Create first session
     await page.goto('/pomodoro');
-    await page.click('button:has-text("セッションを開始")');
-    await page.click('button:has-text("スキップ")');
+    await page.getByRole('button', { name: 'セッションを開始' }).click();
+    await page.getByRole('button', { name: 'スキップ' }).click();
     
     // Create second session
-    await page.click('button:has-text("セッションを開始")');
+    await page.getByRole('button', { name: 'セッションを開始' }).click();
     
     // Verify new session is active
     await expect(page.locator('[data-testid="pomodoro-timer"]')).toBeVisible();
@@ -213,18 +213,18 @@ test.describe('Pomodoro Feature E2E Tests', () => {
       }
       
       // Save settings
-      await page.click('button:has-text("保存")');
+      await page.getByRole('button', { name: '保存' }).click();
       await page.waitForTimeout(1000); // Wait for save to complete
       
       // Start work session
-      await page.click('button:has-text("セッションを開始")');
+      await page.getByRole('button', { name: 'セッションを開始' }).click();
       
       // Verify work session is created
       await expect(page.locator('[data-testid="session-type"]')).toContainText('作業');
       await expect(page.locator('[data-testid="timer-display"]')).toContainText('1:00');
       
       // Start the timer
-      await page.click('button:has-text("開始")');
+      await page.getByRole('button', { name: '開始' }).click();
       
       // Add a task to track
       await page.fill('input[placeholder="タスクを追加..."]', 'Test task for cycle');
@@ -239,10 +239,10 @@ test.describe('Pomodoro Feature E2E Tests', () => {
       await expect(page.locator('[data-testid="timer-display"]')).toContainText(/\d+:\d+/);
       
       // Complete break session immediately
-      await page.click('button:has-text("スキップ")');
+      await page.getByRole('button', { name: 'スキップ' }).click();
       
       // Verify we can start a new work session
-      await expect(page.locator('button:has-text("セッションを開始")')).toBeVisible();
+      await expect(page.getByRole('button', { name: 'セッションを開始' })).toBeVisible();
       
       // Check history shows both sessions
       await expect(page.locator('[data-testid="session-history"] [data-testid="session-item"]')).toHaveCount(2);
@@ -251,8 +251,8 @@ test.describe('Pomodoro Feature E2E Tests', () => {
     test('should handle session state recovery', async ({ page }) => {
       // Navigate to Pomodoro and start session
       await page.goto('/pomodoro');
-      await page.click('button:has-text("セッションを開始")');
-      await page.click('button:has-text("開始")');
+      await page.getByRole('button', { name: 'セッションを開始' }).click();
+      await page.getByRole('button', { name: '開始' }).click();
       
       // Navigate away and come back
       await page.goto('/dashboard');
@@ -274,7 +274,7 @@ test.describe('Pomodoro Feature E2E Tests', () => {
       await page.fill('input[name="cyclesBeforeLongBreak"]', '3');
       
       // Save settings
-      await page.click('button:has-text("保存")');
+      await page.getByRole('button', { name: '保存' }).click();
       await page.waitForTimeout(1000);
       
       // Reload page
@@ -290,23 +290,23 @@ test.describe('Pomodoro Feature E2E Tests', () => {
     test('should handle pause state correctly across navigation', async ({ page }) => {
       // Navigate to Pomodoro and start session
       await page.goto('/pomodoro');
-      await page.click('button:has-text("セッションを開始")');
-      await page.click('button:has-text("開始")');
+      await page.getByRole('button', { name: 'セッションを開始' }).click();
+      await page.getByRole('button', { name: '開始' }).click();
       
       // Wait a moment then pause
       await page.waitForTimeout(3000);
-      await page.click('button:has-text("一時停止")');
+      await page.getByRole('button', { name: '一時停止' }).click();
       
       // Navigate away and come back
       await page.goto('/dashboard');
       await page.goto('/pomodoro');
       
       // Verify session is still paused
-      await expect(page.locator('button:has-text("再開")')).toBeVisible();
+      await expect(page.getByRole('button', { name: '再開' })).toBeVisible();
       
       // Resume and verify it works
-      await page.click('button:has-text("再開")');
-      await expect(page.locator('button:has-text("一時停止")')).toBeVisible();
+      await page.getByRole('button', { name: '再開' }).click();
+      await expect(page.getByRole('button', { name: '一時停止' })).toBeVisible();
     });
   });
 });
