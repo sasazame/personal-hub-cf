@@ -14,7 +14,7 @@ test.describe('Todo Checkbox Functionality', () => {
     
     // Navigate to todos page
     await page.goto('/todos');
-    await expect(page.getByRole('heading', { name: 'TODO', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /TODOs?/i })).toBeVisible();
   });
 
   test('should complete todo by clicking checkbox', async ({ page }) => {

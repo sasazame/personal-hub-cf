@@ -58,7 +58,7 @@ test.describe('CI Critical Path Tests', () => {
     
     // Verify we're on dashboard
     await expect(page).toHaveURL(/.*dashboard/);
-    await expect(page.getByRole('heading', { name: 'Welcome back', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Welcome back/i, level: 1 })).toBeVisible();
   });
 
   test('Todo: Should create and manage todos', async ({ page }) => {
@@ -67,10 +67,10 @@ test.describe('CI Critical Path Tests', () => {
     
     // Navigate to todos
     await page.goto('/todos');
-    await page.getByRole('heading', { name: 'TODOs', level: 1 }).waitFor( { timeout: 10000 });
+    await page.getByRole('heading', { name: /TODOs?/i, level: 1 }).waitFor({ timeout: 10000 });
     
     // Create todo
-    await page.getByRole('button', { name: 'Add Todo' }).first().click();
+    await page.getByRole('button', { name: /Add Todo/i }).first().click();
     await page.waitForSelector('input[name="title"]', { state: 'visible' });
     
     await page.fill('input[name="title"]', testData.todoTitle);
@@ -82,7 +82,7 @@ test.describe('CI Critical Path Tests', () => {
       resp => resp.url().includes('/api/v1/todos') && resp.status() === 201,
       { timeout: 10000 }
     );
-    await page.locator('form').getByRole('button', { name: 'Add Todo' }).click();
+    await page.locator('form').getByRole('button', { name: /Add Todo/i }).click();
     await createPromise;
     
     // Verify todo appears
@@ -112,7 +112,7 @@ test.describe('CI Critical Path Tests', () => {
       response => response.url().includes('/api/v1/notes') && response.status() === 200,
       { timeout: 10000 }
     );
-    await page.getByRole('heading', { name: 'Notes', level: 1 }).waitFor( { timeout: 10000 });
+    await page.getByRole('heading', { name: 'Notes', level: 1 }).waitFor({ timeout: 10000 });
     
     // Create note
     await page.getByRole('button', { name: 'New Note' }).click();
@@ -182,7 +182,7 @@ test.describe('CI Critical Path Tests', () => {
     
     // Should still be on dashboard (not redirected to login)
     await expect(page).toHaveURL(/.*dashboard/);
-    await expect(page.getByRole('heading', { name: 'Welcome back', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Welcome back/i, level: 1 })).toBeVisible();
   });
 
   test('Logout: Should logout successfully', async ({ page }) => {

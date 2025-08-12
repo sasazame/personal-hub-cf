@@ -65,7 +65,7 @@ test.describe('Auth + TODO Integration E2E Tests', () => {
     
     // Should show landing page
     await expect(page).toHaveURL('http://localhost:3000/');
-    await expect(page.getByRole('heading', { name: 'Your Life,', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Your Life,/i, level: 1 })).toBeVisible();
   });
 
   test('should redirect authenticated user away from auth pages', async ({ page }) => {

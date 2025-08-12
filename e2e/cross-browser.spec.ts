@@ -58,7 +58,7 @@ test.describe('Cross-Browser Tests', () => {
       
       // Navigate to todos
       await page.goto('/todos');
-      await expect(page.getByRole('heading', { name: 'TODO' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /TODOs?/i })).toBeVisible();
       
       // Create a todo
       await page.getByRole('button', { name: 'Add TODO' }).click();

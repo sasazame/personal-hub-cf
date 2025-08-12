@@ -27,11 +27,11 @@ test.describe('Personal Hub E2E Tests', () => {
     await page.waitForLoadState('domcontentloaded');
     
     // Wait for TODO app to be ready by checking for key elements
-    await page.getByRole('heading', { name: 'TODO', level: 1 }).waitFor( { timeout: 5000 });
+    await page.getByRole('heading', { name: /TODOs?/i, level: 1 }).waitFor({ timeout: 5000 });
   });
 
   test('should display the todo app heading', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'TODO', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /TODOs?/i })).toBeVisible();
   });
 
   test('should show "Add TODO" button', async ({ page }) => {

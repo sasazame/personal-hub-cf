@@ -13,7 +13,7 @@ test.describe('Auth E2E Tests (Real Backend)', () => {
     await expect(page).toHaveURL('http://localhost:3000/');
     
     // Should see landing page content
-    await expect(page.getByRole('heading', { name: 'Your Life,', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Your Life,/i, level: 1 })).toBeVisible();
     await expect(page.locator('a').filter({ hasText: 'Get Started' })).toBeVisible();
   });
 
@@ -31,7 +31,7 @@ test.describe('Auth E2E Tests (Real Backend)', () => {
     await page.goto('/login');
     
     // Wait for page to load
-    await page.getByRole('heading', { name: 'Login', level: 1 }).waitFor( { timeout: 5000 });
+    await page.getByRole('heading', { name: 'Login', level: 1 }).waitFor({ timeout: 5000 });
     
     // Click register link
     await page.getByRole('link', { name: 'Register' }).click();

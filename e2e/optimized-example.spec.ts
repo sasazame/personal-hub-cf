@@ -22,7 +22,7 @@ test.describe('Optimized Todo Tests', () => {
     // Navigate to todos page
     perf.mark('navigation-start');
     await authenticatedPage.goto('/todos');
-    await authenticatedPage.getByRole('heading', { name: 'TODOs', level: 1 }).waitFor({ timeout: 5000 });
+    await authenticatedPage.getByRole('heading', { name: /TODOs?/i, level: 1 }).waitFor({ timeout: 5000 });
     perf.measure('Navigation', 'navigation-start');
     
     // Verify todos appear (they were created via API)

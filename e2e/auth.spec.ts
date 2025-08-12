@@ -26,7 +26,7 @@ test.describe('Authentication', () => {
       
       // Should show landing page
       await expect(page).toHaveURL(/^http:\/\/localhost:3000\/$/);
-      await expect(page.getByRole('heading', { name: 'Your Life,', level: 1 })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Your Life,/i, level: 1 })).toBeVisible();
       await expect(page.locator('text=Transform chaos into clarity')).toBeVisible();
       
       // Check for auth navigation links

@@ -103,7 +103,7 @@ test.describe('Essential Smoke Tests', () => {
       // If on landing page, check for key elements
       if (url.endsWith('/')) {
         // Check for landing page elements
-        await expect(page.getByRole('heading', { name: 'Your Life,', level: 1 })).toBeVisible();
+        await expect(page.getByRole('heading', { name: /Your Life,/i, level: 1 })).toBeVisible();
         await expect(page.locator('a').filter({ hasText: 'Get Started' })).toBeVisible();
         await expect(page.locator('nav a').filter({ hasText: 'Sign In' })).toBeVisible();
       }

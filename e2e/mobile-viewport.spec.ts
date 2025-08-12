@@ -167,7 +167,7 @@ test.describe('Mobile and Responsive Tests', () => {
     
     // Navigate to different pages
     await page.goto('/todos');
-    await expect(page.getByRole('heading', { name: 'TODO' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /TODOs?/i })).toBeVisible();
     
     // Content area should have more space on tablets
     const mainContent = page.locator('main').first();

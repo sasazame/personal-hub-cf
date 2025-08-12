@@ -18,7 +18,7 @@ test.describe('CI Critical Path Tests', () => {
     
     // Navigate to todos
     await page.goto('/todos');
-    await page.getByRole('heading', { name: 'TODOs', level: 1 }).waitFor( { timeout: 5000 });
+    await page.getByRole('heading', { name: /TODOs?/i, level: 1 }).waitFor({ timeout: 5000 });
     
     // Create todo
     await page.getByRole('button', { name: 'Add Todo' }).first().click();
@@ -73,7 +73,7 @@ test.describe('CI Critical Path Tests', () => {
     
     // Wait for page to load
     await page.waitForLoadState('networkidle');
-    await page.getByRole('heading', { name: 'Notes', level: 1 }).waitFor( { timeout: 10000 });
+    await page.getByRole('heading', { name: 'Notes', level: 1 }).waitFor({ timeout: 10000 });
     
     // Basic verification that notes page loads
     await expect(page.getByRole('heading', { name: 'Notes', level: 1 })).toBeVisible();

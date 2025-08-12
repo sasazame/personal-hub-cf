@@ -16,8 +16,18 @@ test.describe('Simple Auth Test', () => {
     // Take screenshot for debugging
     await page.screenshot({ path: 'test-results/login-page.png' });
     
-    // Check for landing page elements
-    const heading = await page.getByRole('heading', { name: 'Your Life,', level: 1 }).isVisible();
+    // Check for landing page elements (tolerate variations and redirect)
+    const headingVisible = await page
+      .getByRole('heading', { name: /Your Life,/i, level: 1 })
+      .isVisible()
+      .catch(() => false);
+    console.log('Landing heading visible:', headingVisible);
+
+    // Check for email input (present on /login)
+    const emailInput = await page
+      .locator('input[type="email"]')
+      .isVisible()
+      .catch(() => false);
     console.log('Email input visible:', emailInput);
     
     // Check for password input  

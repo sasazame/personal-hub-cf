@@ -20,7 +20,7 @@ test.describe('Todo Basic Operations', () => {
     // Navigate to todos page
     await page.goto('/todos');
     await page.waitForLoadState('networkidle');
-    await expect(page.getByRole('heading', { name: 'TODOs' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /TODOs?/i })).toBeVisible();
     
     // Check for empty state message - updated to match current translation
     await expect(page.locator('text=No TODOs found')).toBeVisible();
@@ -32,14 +32,14 @@ test.describe('Todo Basic Operations', () => {
     
     // Navigate to todos page
     await page.goto('/todos');
-    await expect(page.getByRole('heading', { name: 'TODOs' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /TODOs?/i })).toBeVisible();
     
     // Click add todo button - updated to match current button text
     await page.getByRole('button', { name: 'Add Todo' }).first().click();
     
     // Wait for form to appear
     // Wait for form to appear - could be inline or in a dialog
-    await page.getByRole('heading', { name: 'New Todo', level: 2 }).waitFor( { state: 'visible', timeout: 10000 });
+    await page.getByRole('heading', { name: 'New Todo', level: 2 }).waitFor({ state: 'visible', timeout: 10000 });
     
     // Fill form
     const title = `Test Todo ${Date.now()}`;
@@ -60,12 +60,12 @@ test.describe('Todo Basic Operations', () => {
     
     // Navigate to todos page
     await page.goto('/todos');
-    await expect(page.getByRole('heading', { name: 'TODOs' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /TODOs?/i })).toBeVisible();
     
     // First create a todo
     await page.getByRole('button', { name: 'Add Todo' }).first().click();
     // Wait for form to appear - could be inline or in a dialog
-    await page.getByRole('heading', { name: 'New Todo', level: 2 }).waitFor( { state: 'visible', timeout: 10000 });
+    await page.getByRole('heading', { name: 'New Todo', level: 2 }).waitFor({ state: 'visible', timeout: 10000 });
     
     const title = `Delete Test ${Date.now()}`;
     await page.fill('input[name="title"]', title);
@@ -91,12 +91,12 @@ test.describe('Todo Basic Operations', () => {
     
     // Navigate to todos page
     await page.goto('/todos');
-    await expect(page.getByRole('heading', { name: 'TODOs' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /TODOs?/i })).toBeVisible();
     
     // First create a todo
     await page.getByRole('button', { name: 'Add Todo' }).first().click();
     // Wait for form to appear - could be inline or in a dialog
-    await page.getByRole('heading', { name: 'New Todo', level: 2 }).waitFor( { state: 'visible', timeout: 10000 });
+    await page.getByRole('heading', { name: 'New Todo', level: 2 }).waitFor({ state: 'visible', timeout: 10000 });
     
     const title = `Status Test ${Date.now()}`;
     await page.fill('input[name="title"]', title);

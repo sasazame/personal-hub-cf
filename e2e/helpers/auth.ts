@@ -147,12 +147,16 @@ export async function ensureLoggedOut(page: Page) {
   try {
     // Clear all storage first before navigation
     await page.evaluate(() => {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.clear();
-        localStorage.setItem('i18nextLng', 'en');
-      }
-      if (typeof sessionStorage !== 'undefined') {
-        sessionStorage.clear();
+      try {
+        if ('localStorage' in globalThis && globalThis.localStorage) {
+          globalThis.localStorage.clear();
+          globalThis.localStorage.setItem('i18nextLng', 'en');
+        }
+        if ('sessionStorage' in globalThis && globalThis.sessionStorage) {
+          globalThis.sessionStorage.clear();
+        }
+      } catch {
+        // ignore storage access errors
       }
     }).catch(() => {
       // Ignore errors if page is not ready yet
@@ -161,7 +165,7 @@ export async function ensureLoggedOut(page: Page) {
     // Navigate to login page with error handling for redirects
     try {
       await page.goto('/login', { waitUntil: 'domcontentloaded', timeout: 10000 });
-    } catch (navError) {
+    } catch {
       // If navigation was interrupted, check where we ended up
       const currentUrl = page.url();
       console.log('Navigation interrupted, current URL:', currentUrl);

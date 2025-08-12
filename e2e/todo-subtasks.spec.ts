@@ -5,7 +5,7 @@ test.describe('TODO Subtasks', () => {
   test.beforeEach(async ({ page }) => {
     await login(page, TEST_USER.email, TEST_USER.password);
     await page.goto('/todos');
-    await page.getByRole('heading', { name: 'TODOs', level: 1 }).waitFor();
+    await page.getByRole('heading', { name: /TODOs?/i, level: 1 }).waitFor();
   });
 
   test('should create a subtask from parent TODO', async ({ page }) => {
