@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { waitForReactHydration, waitForFormReady, fillWithRetry, clickWithRetry } from './retry-utils';
+import { waitForReactHydration, waitForFormReady, fillFormField, clickElement } from './retry-utils';
 
 /**
  * Helper function to register and login a new test user
@@ -27,11 +27,11 @@ export async function registerAndLogin(page: Page) {
     throw new Error('Registration form not ready after retries');
   }
   
-  await fillWithRetry(page, 'input[name="username"]', username);
-  await fillWithRetry(page, 'input[name="email"], input[type="email"]', email);
-  await fillWithRetry(page, 'input[name="password"]', password);
-  await fillWithRetry(page, 'input[name="confirmPassword"]', password);
-  await clickWithRetry(page, 'button[type="submit"]');
+  await fillFormField(page, 'input[name="username"]', username);
+  await fillFormField(page, 'input[name="email"], input[type="email"]', email);
+  await fillFormField(page, 'input[name="password"]', password);
+  await fillFormField(page, 'input[name="confirmPassword"]', password);
+  await clickElement(page, 'button[type="submit"]');
   
   // Wait for redirect to dashboard or login
   await Promise.race([
@@ -54,9 +54,9 @@ export async function registerAndLogin(page: Page) {
       throw new Error('Login form not ready after retries');
     }
     
-    await fillWithRetry(page, 'input[name="email"], input[type="email"]', email);
-    await fillWithRetry(page, 'input[name="password"], input[type="password"]', password);
-    await clickWithRetry(page, 'button[type="submit"]');
+    await fillFormField(page, 'input[name="email"], input[type="email"]', email);
+    await fillFormField(page, 'input[name="password"], input[type="password"]', password);
+    await clickElement(page, 'button[type="submit"]');
     await page.waitForURL('**/dashboard', { timeout: 10000 });
   }
   

@@ -1,120 +1,27 @@
 import { Page } from '@playwright/test';
-import { waitForReactHydration, waitForFormReady, fillWithRetry, clickWithRetry } from './retry-utils';
 
 /**
- * Login helper with better error detection and handling
+ * Simplified login helper with minimal retry logic
  */
 export async function login(page: Page, email: string, password: string) {
   // Navigate to login page if not already there
   const currentUrl = page.url();
   if (!currentUrl.includes('/login')) {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    
-    // Set English locale in localStorage for i18n
-    await page.evaluate(() => {
-      localStorage.setItem('i18nextLng', 'en');
-    });
-    
-    // Reload to apply language setting
-    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.goto('/login', { waitUntil: 'networkidle' });
   }
   
-  // Wait for React hydration and form to be ready
-  await waitForReactHydration(page);
-  const formReady = await waitForFormReady(page, {
-    formSelector: 'form',
-    inputSelector: 'input[type="email"], input[name="email"]',
-    maxRetries: 2,
-    timeout: 5000
-  });
-  if (!formReady) {
-    console.warn('Login form not ready after retries, attempting to continue anyway');
-    // Don't throw, try to continue with the login attempt
-  }
+  // Wait for login form to be visible
+  await page.waitForSelector('form', { state: 'visible', timeout: 5000 });
   
-  // Fill in login form with retry logic
-  await fillWithRetry(page, 'input[type="email"], input[name="email"]', email);
-  await fillWithRetry(page, 'input[type="password"], input[name="password"]', password);
+  // Fill in login form using Playwright's built-in robust methods
+  await page.locator('input[type="email"], input[name="email"]').fill(email);
+  await page.locator('input[type="password"], input[name="password"]').fill(password);
   
-  // Find submit button with fallback selectors
-  const submitButton = page.locator('button[type="submit"]').or(
-    page.getByRole('button', { name: /sign in|log in|login/i })
-  );
+  // Submit form
+  await page.locator('button[type="submit"]').click();
   
-  if (await submitButton.count() === 0) {
-    throw new Error('No submit button found on login form');
-  }
-  
-  // Submit form by clicking the first matched button
-  await submitButton.first().click();
-  
-  // Wait for either redirect or error message with longer timeout
-  await Promise.race([
-    // Wait for successful redirect
-    page.waitForURL((url) => !url.href.includes('/login'), { timeout: 15000 }),
-    // Or wait for error message
-    page.waitForSelector('[data-sonner-toast][data-type="error"], .text-red-500, .text-red-600', { timeout: 15000 }).then(() => {
-      throw new Error('Login error detected');
-    })
-  ]).catch(async () => {
-    // Handle errors
-    const errorToast = page.locator('[data-sonner-toast][data-type="error"]');
-    const hasErrorToast = await errorToast
-      .waitFor({ state: 'visible', timeout: 2000 })
-      .then(() => true)
-      .catch(() => false);
-    
-    if (hasErrorToast) {
-      const errorText = await errorToast.textContent();
-      console.log('Login error toast:', errorText);
-      throw new Error(`Login failed: ${errorText}`);
-    }
-    
-    // Check for form validation errors
-    const formErrors = page.locator('.text-red-500, .text-red-600, .text-red-700');
-    const errorCount = await formErrors.count();
-    
-    if (errorCount > 0) {
-      const errorTexts = [];
-      for (let i = 0; i < Math.min(errorCount, 3); i++) {
-        const errorText = await formErrors.nth(i).textContent();
-        if (errorText?.trim()) {
-          errorTexts.push(errorText.trim());
-        }
-      }
-      
-      if (errorTexts.length > 0) {
-        console.log('Login form errors:', errorTexts);
-        throw new Error(`Login failed: ${errorTexts.join(', ')}`);
-      }
-    }
-    
-    // If still on login page, something went wrong
-    if (page.url().includes('/login')) {
-      console.log('Still on login page after attempt. URL:', page.url());
-      
-      // In CI environment, don't check backend directly
-      if (process.env.CI) {
-        throw new Error('Login failed - check test user credentials');
-      }
-      
-      // Only check backend in non-CI environments
-      try {
-        const response = await page.request.post('http://localhost:8787/api/v1/auth/login', {
-          data: { email, password }
-        });
-        
-        if (!response.ok()) {
-          throw new Error(`Backend authentication failed with status ${response.status()}`);
-        }
-      } catch (backendError) {
-        console.log('Backend direct check failed:', backendError);
-        throw new Error('Make sure the backend is running at http://localhost:8787');
-      }
-      
-      throw new Error('Login did not redirect from login page');
-    }
-  });
+  // Wait for navigation away from login page
+  await page.waitForURL((url) => !url.href.includes('/login'), { timeout: 10000 });
 }
 
 export async function logout(page: Page) {
@@ -144,65 +51,29 @@ export async function logout(page: Page) {
  * Ensures user is logged out and clears all authentication state
  */
 export async function ensureLoggedOut(page: Page) {
+  // Navigate to a valid page first to ensure context
   try {
-    // Clear all storage first before navigation
+    await page.goto('/login', { waitUntil: 'domcontentloaded', timeout: 10000 });
+  } catch {
+    // If navigation fails, continue anyway
+  }
+  
+  // Clear all storage - wrap in try-catch for security errors
+  try {
+    await page.context().clearCookies();
     await page.evaluate(() => {
-      try {
-        if ('localStorage' in globalThis && globalThis.localStorage) {
-          globalThis.localStorage.clear();
-          globalThis.localStorage.setItem('i18nextLng', 'en');
-        }
-        if ('sessionStorage' in globalThis && globalThis.sessionStorage) {
-          globalThis.sessionStorage.clear();
-        }
-      } catch {
-        // ignore storage access errors
-      }
-    }).catch(() => {
-      // Ignore errors if page is not ready yet
+      localStorage.clear();
+      // eslint-disable-next-line no-undef
+      sessionStorage.clear();
     });
-    
-    // Navigate to login page with error handling for redirects
-    try {
-      await page.goto('/login', { waitUntil: 'domcontentloaded', timeout: 10000 });
-    } catch {
-      // If navigation was interrupted, check where we ended up
-      const currentUrl = page.url();
-      console.log('Navigation interrupted, current URL:', currentUrl);
-      
-      // If we're already on login page, that's fine
-      if (!currentUrl.includes('/login')) {
-        // Try navigating again more forcefully
-        await page.goto('/login', { waitUntil: 'commit', timeout: 5000 }).catch(() => {});
-      }
-    }
-    
-    // Wait for the page to stabilize
-    await page.waitForTimeout(1000); // Give i18n and React time to initialize
-    
-    // Check if we're on the login page
-    const finalUrl = page.url();
-    if (!finalUrl.includes('/login')) {
-      console.log('Not on login page, attempting redirect');
-      await page.goto('/login', { waitUntil: 'domcontentloaded', timeout: 5000 });
-    }
-    
-    // Wait for React hydration and form to be ready
-    await waitForReactHydration(page);
-    
-    // Ensure login form is ready with reduced retries to avoid context issues
-    const formReady = await waitForFormReady(page, {
-      formSelector: 'form',
-      inputSelector: 'input[type="email"], input[name="email"]',
-      maxRetries: 2  // Reduce retries to avoid context closing
-    });
-    
-    if (!formReady) {
-      console.warn('Login form not ready after retries, continuing anyway');
-    }
   } catch (error) {
-    console.error('Error in ensureLoggedOut:', error);
-    // Don't throw, just log and continue
+    // Log but don't fail if storage clearing fails
+    console.log('Warning: Could not clear storage:', error);
+  }
+  
+  // Ensure we're on login page
+  if (!page.url().includes('/login')) {
+    await page.goto('/login', { waitUntil: 'networkidle', timeout: 10000 });
   }
 }
 
