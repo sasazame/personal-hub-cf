@@ -67,15 +67,27 @@ export async function setupTestUser(page: Page) {
   // Submit form
   await page.locator('button[type="submit"]').click();
   
-  // Wait for registration to complete
+  // Wait for registration to complete and navigate away from register page
   await page.waitForURL((url) => !url.href.includes('/register'), { timeout: 10000 });
   
-  // Logout after registration
+  // Wait for any post-registration redirects to complete
+  await page.waitForLoadState('networkidle', { timeout: 5000 });
+  
+  // Navigate to login page to ensure clean state
   await page.goto('/login', { waitUntil: 'networkidle' });
 }
 
 export async function waitForApp(page: Page) {
-  // Simple wait for app to be ready
+  // Wait for app to be ready
   await page.waitForLoadState('networkidle', { timeout: 10000 });
+  
+  // Ensure React root is present and hydrated
+  await page.waitForSelector('#root, #app, [data-reactroot]', { 
+    state: 'attached', 
+    timeout: 5000 
+  }).catch(() => {
+    // If no React root found, continue anyway (app might use different structure)
+  });
+  
   return true;
 }

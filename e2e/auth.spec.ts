@@ -15,9 +15,9 @@ test.describe('Authentication', () => {
       // Should redirect to landing page
       await expect(page).toHaveURL(/\/(landing)?$/);
       
-      // Should show login and register buttons
-      await expect(page.locator('text=Login')).toBeVisible();
-      await expect(page.locator('text=Register')).toBeVisible();
+      // Should show login and register buttons/links
+      await expect(page.locator('link:has-text("Sign In"), link:has-text("Login")').first()).toBeVisible();
+      await expect(page.locator('link:has-text("Get Started"), link:has-text("Register")').first()).toBeVisible();
     });
 
     test('should redirect to login when accessing protected routes', async ({ page }) => {
@@ -52,12 +52,9 @@ test.describe('Authentication', () => {
       await expect(page).toHaveURL(/\/login/);
       
       // Should show error message (check for toast or inline error)
-      const errorVisible = await page.locator('[data-sonner-toast][data-type="error"], .text-red-500, .text-red-600')
-        .waitFor({ state: 'visible', timeout: 5000 })
-        .then(() => true)
-        .catch(() => false);
-      
-      expect(errorVisible).toBeTruthy();
+      await expect(
+        page.locator('[data-sonner-toast][data-type="error"], .text-red-500, .text-red-600').first()
+      ).toBeVisible({ timeout: 5000 });
     });
 
     test('should login successfully with existing user', async ({ page }) => {
@@ -126,9 +123,8 @@ test.describe('Authentication', () => {
       const userMenu = page.locator('button').filter({ has: page.locator('.rounded-full') });
       await userMenu.click();
       
-      // Click logout button (last button in dropdown)
-      const logoutButton = page.locator('button').filter({ hasText: /logout|sign out/i }).last();
-      await logoutButton.click();
+      // Click logout button in dropdown menu
+      await page.locator('[role="menu"] button:has-text("Logout"), [role="menu"] button:has-text("Sign out")').click();
       
       // Should redirect to login
       await expect(page).toHaveURL(/\/login/);

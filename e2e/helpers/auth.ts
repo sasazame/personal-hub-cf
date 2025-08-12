@@ -63,6 +63,7 @@ export async function ensureLoggedOut(page: Page) {
     await page.context().clearCookies();
     await page.evaluate(() => {
       localStorage.clear();
+      // eslint-disable-next-line no-undef
       sessionStorage.clear();
     });
   } catch (error) {

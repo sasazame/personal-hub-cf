@@ -64,9 +64,9 @@ export async function waitForFormReady(
 }
 
 /**
- * Simple click - let Playwright handle retries
+ * Simple click wrapper - uses Playwright's built-in auto-waiting and retry
  */
-export async function clickWithRetry(
+export async function clickElement(
   page: Page,
   selector: string,
   options: {
@@ -83,9 +83,9 @@ export async function clickWithRetry(
 }
 
 /**
- * Simple form fill - let Playwright handle retries
+ * Simple form fill wrapper - uses Playwright's built-in auto-waiting and retry
  */
-export async function fillWithRetry(
+export async function fillFormField(
   page: Page,
   selector: string,
   value: string,
@@ -118,18 +118,8 @@ export async function waitForNavigation(
   const startTime = Date.now();
   
   try {
-    await page.waitForFunction(
-      (expected) => {
-        const currentUrl = window.location.href;
-        if (typeof expected === 'string') {
-          return currentUrl.includes(expected);
-        } else {
-          return new RegExp(expected.source, expected.flags).test(currentUrl);
-        }
-      },
-      expectedUrl instanceof RegExp ? { source: expectedUrl.source, flags: expectedUrl.flags } : expectedUrl,
-      { timeout }
-    );
+    // Use Playwright's built-in waitForURL which handles both string and regex patterns
+    await page.waitForURL(expectedUrl, { timeout });
     
     // Wait for page to stabilize after navigation
     await page.waitForLoadState('networkidle', { timeout: config.network.idle }).catch(() => {});
