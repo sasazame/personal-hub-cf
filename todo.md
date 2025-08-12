@@ -37,6 +37,7 @@ This file tracks pending tasks organized by feature.
 ## Profile Feature
 
 ## Testing
+- [HIGH] Fix E2E test deprecated selectors - Replace :has-text() syntax in 23 test files with valid Playwright selectors
 - [MEDIUM] Further improve E2E test reliability - Some timing issues persist despite infrastructure improvements
 - [LOW] Add E2E test documentation explaining test organization and running locally
 
