@@ -80,7 +80,7 @@ test.describe('Mobile and Responsive Tests', () => {
     await page.fill('textarea[name="description"]', 'Testing on mobile viewport');
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // TODO cards should be full width on mobile
+    // Task cards should be full width on mobile
     const todoCard = page.locator('.bg-card').filter({ hasText: todoTitle });
     await expect(todoCard).toBeVisible();
     

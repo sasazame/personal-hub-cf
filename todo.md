@@ -37,7 +37,6 @@ This file tracks pending tasks organized by feature.
 ## Profile Feature
 
 ## Testing
-- [MEDIUM] Further improve E2E test reliability - Some timing issues persist despite infrastructure improvements
 - [LOW] Add E2E test documentation explaining test organization and running locally
 
 ## i18n (Internationalization)
