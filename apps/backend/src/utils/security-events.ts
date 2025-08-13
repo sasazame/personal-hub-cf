@@ -37,9 +37,8 @@ interface SecurityEventOptions {
 }
 
 function isValidIP(ip: string): boolean {
+  // IPv4 validation
   const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
-  const ipv6Regex = /^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$/;
-  
   if (ipv4Regex.test(ip)) {
     const parts = ip.split('.');
     return parts.every(part => {
@@ -47,6 +46,9 @@ function isValidIP(ip: string): boolean {
       return num >= 0 && num <= 255;
     });
   }
+  
+  // Comprehensive IPv6 regex that handles all valid formats including compressed notation
+  const ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/i;
   
   return ipv6Regex.test(ip);
 }
@@ -71,8 +73,10 @@ function getClientIpAddress(c: Context<{ Bindings: Bindings; Variables: Variable
 }
 
 function maskEmail(email: string): string {
+  if (!email || typeof email !== 'string') return 'invalid-email';
+  
   const [localPart, domain] = email.split('@');
-  if (!domain) return 'invalid-email';
+  if (!localPart || !domain) return 'invalid-email';
   
   const maskedLocal = localPart.length > 2 
     ? localPart.substring(0, 2) + '***'
@@ -107,12 +111,22 @@ export async function logSecurityEvent(
     
     await db.insert(securityEvents).values(eventData);
   } catch (error) {
+    // Safely get and validate IP address for error logging
+    const safeIpAddress = (() => {
+      try {
+        const ip = getClientIpAddress(c);
+        return isValidIP(ip) ? ip : 'invalid-ip';
+      } catch {
+        return 'unknown';
+      }
+    })();
+    
     console.error('Critical: Failed to log security event:', {
       eventType: options.eventType,
       error: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString(),
       userId: options.userId,
-      ipAddress: getClientIpAddress(c)
+      ipAddress: safeIpAddress
     });
   }
 }
@@ -127,9 +141,11 @@ export function createSecurityEventLogger(
       if (metadata?.email && typeof metadata.email === 'string') {
         const email = metadata.email as string;
         const emailHash = await createHash(email);
+        // Remove email property and add hashed version
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { email: _, ...restMetadata } = metadata;
         metadata = {
-          ...metadata,
-          email: undefined,
+          ...restMetadata,
           emailHash,
           emailDomain: email.split('@')[1] || 'unknown'
         };
@@ -254,9 +270,11 @@ export function createSecurityEventLogger(
       if (metadata?.email && typeof metadata.email === 'string') {
         const email = metadata.email as string;
         const emailHash = await createHash(email);
+        // Remove email property and add hashed version
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { email: _, ...restMetadata } = metadata;
         metadata = {
-          ...metadata,
-          email: undefined,
+          ...restMetadata,
           emailHash,
           emailDomain: email.split('@')[1] || 'unknown'
         };
@@ -264,9 +282,11 @@ export function createSecurityEventLogger(
       if (metadata?.newEmail && typeof metadata.newEmail === 'string') {
         const newEmail = metadata.newEmail as string;
         const newEmailHash = await createHash(newEmail);
+        // Remove newEmail property and add hashed version
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { newEmail: _, ...restMetadata } = metadata;
         metadata = {
-          ...metadata,
-          newEmail: undefined,
+          ...restMetadata,
           newEmailHash,
           newEmailDomain: newEmail.split('@')[1] || 'unknown'
         };

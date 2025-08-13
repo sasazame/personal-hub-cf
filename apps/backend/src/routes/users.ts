@@ -273,6 +273,13 @@ app.put('/email', zValidator('json', updateEmailSchema, springBootValidator), as
       })
       .where(eq(users.id, userId as string));
     
+    // Log successful email change
+    await securityLogger.suspiciousActivity('Email change successful', {
+      userId: userId as string,
+      newEmail: email,
+      reason: 'email_changed'
+    });
+    
     // TODO: Send email verification
     
     return c.json({ 
