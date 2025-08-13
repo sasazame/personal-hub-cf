@@ -5,6 +5,7 @@ import type { Bindings, Variables } from '../types';
 import { nanoid } from '../utils/nanoid';
 import { createHash } from '../utils/crypto';
 import { createErrorResponse, ErrorCodes, StatusCodes } from '../utils/spring-boot-compat';
+import { createSecurityEventLogger } from '../utils/security-events';
 
 const CSRF_TOKEN_COOKIE = 'csrf-token';
 const CSRF_HEADER = 'X-CSRF-Token';
@@ -30,6 +31,8 @@ export async function csrfMiddleware(
 ) {
   const method = c.req.method;
   const path = c.req.path;
+  const db = c.get('db');
+  const securityLogger = createSecurityEventLogger(c, db);
 
   // Skip CSRF check for safe methods
   if (SAFE_METHODS.includes(method)) {
@@ -49,6 +52,12 @@ export async function csrfMiddleware(
 
   // Validate CSRF token
   if (!cookieToken || !headerToken) {
+    await securityLogger.csrfTokenMismatch({ 
+      endpoint: path, 
+      reason: 'missing', 
+      hasCookie: !!cookieToken, 
+      hasHeader: !!headerToken 
+    });
     return c.json(
       createErrorResponse(ErrorCodes.FORBIDDEN, 'CSRF token missing'),
       StatusCodes.FORBIDDEN as ContentfulStatusCode
@@ -60,6 +69,10 @@ export async function csrfMiddleware(
   const headerHash = await createHash(headerToken);
   
   if (cookieHash !== headerHash) {
+    await securityLogger.csrfTokenMismatch({ 
+      endpoint: path, 
+      reason: 'mismatch' 
+    });
     return c.json(
       createErrorResponse(ErrorCodes.FORBIDDEN, 'CSRF token invalid'),
       StatusCodes.FORBIDDEN as ContentfulStatusCode

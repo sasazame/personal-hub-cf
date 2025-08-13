@@ -11,7 +11,6 @@ This file tracks pending tasks organized by feature.
 ---
 
 ## Common
-- [LOW] Implement Security Event Logging - Use existing securityEvents table for auth attempts and suspicious activities
 - [LOW] Add Field-Level Encryption - Encrypt sensitive user data at rest using Cloudflare's Web Crypto API (requires Cloudflare Workers runtime)
 
 ## Auth Feature

@@ -10,6 +10,7 @@ import { verifyPassword, hashPassword } from '../utils/auth';
 import { springBootValidator } from '../utils/validation';
 import { createValidationError, StatusCodes } from '../utils/spring-boot-compat';
 import { createLocalizedError } from '../utils/i18n';
+import { createSecurityEventLogger } from '../utils/security-events';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -162,6 +163,7 @@ app.put('/password', zValidator('json', changePasswordSchema, springBootValidato
   const db = c.get('db');
   const userId = c.get('userId');
   const { currentPassword, newPassword } = c.req.valid('json');
+  const securityLogger = createSecurityEventLogger(c, db);
   
   try {
     const user = await db.select()
@@ -179,6 +181,10 @@ app.put('/password', zValidator('json', changePasswordSchema, springBootValidato
     // Verify current password
     const valid = await verifyPassword(currentPassword, user.password);
     if (!valid) {
+      await securityLogger.suspiciousActivity('Failed password change attempt - incorrect current password', {
+        userId: userId as string,
+        reason: 'incorrect_password'
+      });
       return c.json(
         createValidationError({ currentPassword: 'Current password is incorrect' }),
         400
@@ -195,9 +201,16 @@ app.put('/password', zValidator('json', changePasswordSchema, springBootValidato
       })
       .where(eq(users.id, userId as string));
     
+    // Log successful password change
+    await securityLogger.passwordResetSuccess(userId as string);
+    
     return c.json({ success: true, message: 'Password updated successfully' });
   } catch (error) {
     console.error('Change password error:', error);
+    await securityLogger.suspiciousActivity('Password change failed due to error', {
+      userId: userId as string,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
     return c.json(
       createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
@@ -210,6 +223,7 @@ app.put('/email', zValidator('json', updateEmailSchema, springBootValidator), as
   const db = c.get('db');
   const userId = c.get('userId');
   const { email, password } = c.req.valid('json');
+  const securityLogger = createSecurityEventLogger(c, db);
   
   try {
     const user = await db.select()
@@ -227,6 +241,11 @@ app.put('/email', zValidator('json', updateEmailSchema, springBootValidator), as
     // Verify password
     const valid = await verifyPassword(password, user.password);
     if (!valid) {
+      await securityLogger.suspiciousActivity('Failed email change attempt - incorrect password', {
+        userId: userId as string,
+        newEmail: email,
+        reason: 'incorrect_password'
+      });
       return c.json(
         createValidationError({ password: 'Password is incorrect' }),
         400

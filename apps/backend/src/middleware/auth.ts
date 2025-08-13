@@ -6,6 +6,7 @@ import { users } from '../db/schema';
 import type { Bindings, Variables } from '../types';
 import { verifyToken } from '../utils/auth';
 import { createErrorResponse, ErrorCodes, StatusCodes } from '../utils/spring-boot-compat';
+import { createSecurityEventLogger } from '../utils/security-events';
 
 // Cookie names (matching auth.ts)
 const ACCESS_TOKEN_COOKIE = 'access-token';
@@ -23,6 +24,10 @@ export async function authMiddleware(
   c: Context<{ Bindings: Bindings; Variables: Variables }>,
   next: Next
 ) {
+  const db = c.get('db');
+  const securityLogger = createSecurityEventLogger(c, db);
+  const endpoint = c.req.url;
+  
   // Check session timeout first
   const sessionCookie = getCookie(c, SESSION_COOKIE);
   if (sessionCookie) {
@@ -48,6 +53,7 @@ export async function authMiddleware(
           sameSite: sameSite as 'None' | 'Lax'
         });
         
+        await securityLogger.unauthorizedAccess(endpoint, session.userId || undefined);
         return c.json(
           createErrorResponse(ErrorCodes.UNAUTHORIZED, 'Session expired'),
           StatusCodes.UNAUTHORIZED as ContentfulStatusCode
@@ -74,6 +80,7 @@ export async function authMiddleware(
   if (!token) {
     const authHeader = c.req.header('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
+      await securityLogger.unauthorizedAccess(endpoint);
       return c.json(
         createErrorResponse(ErrorCodes.UNAUTHORIZED, 'Missing or invalid authorization'),
         StatusCodes.UNAUTHORIZED as ContentfulStatusCode
@@ -86,19 +93,20 @@ export async function authMiddleware(
     const decoded = await verifyToken(token, c.env.JWT_SECRET);
     
     if (decoded.type !== 'access') {
+      await securityLogger.invalidTokenAccess('Invalid token type');
       return c.json(
         createErrorResponse(ErrorCodes.UNAUTHORIZED, 'Invalid token type'),
         401
       );
     }
     
-    const db = c.get('db');
     const user = await db.select()
       .from(users)
       .where(eq(users.id, decoded.sub as string))
       .get();
     
     if (!user || !user.enabled) {
+      await securityLogger.unauthorizedAccess(endpoint, decoded.sub as string);
       return c.json(
         createErrorResponse(ErrorCodes.UNAUTHORIZED, 'User not found or disabled'),
         401
@@ -130,6 +138,7 @@ export async function authMiddleware(
     await next();
   } catch (error) {
     console.error('Auth middleware error:', error);
+    await securityLogger.invalidTokenAccess('Invalid or expired token');
     return c.json(
       createErrorResponse(ErrorCodes.UNAUTHORIZED, 'Invalid or expired token'),
       StatusCodes.UNAUTHORIZED as ContentfulStatusCode
