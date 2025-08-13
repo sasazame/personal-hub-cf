@@ -20,6 +20,7 @@ import { authRateLimiter } from '../middleware/rate-limiter';
 import { generateAndSetCSRFToken } from '../middleware/csrf';
 import { authMiddleware } from '../middleware/auth';
 import { setCookie, getCookie, deleteCookie } from 'hono/cookie';
+import { createSecurityEventLogger } from '../utils/security-events';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -135,11 +136,13 @@ const resetPasswordSchema = z.object({
 app.post('/register', authRateLimiter, zValidator('json', registerSchema, springBootValidator), async (c) => {
   const db = c.get('db');
   const { email, password, username } = c.req.valid('json');
+  const securityLogger = createSecurityEventLogger(c, db);
   
   try {
     // Check if user already exists
     const existing = await db.select().from(users).where(eq(users.email, email)).get();
     if (existing) {
+      await securityLogger.registerFailed(email, 'EMAIL_ALREADY_EXISTS', 'Email already exists');
       return c.json(
         createLocalizedError('EMAIL_ALREADY_EXISTS', c),
         StatusCodes.USER_EXISTS as ContentfulStatusCode
@@ -149,6 +152,7 @@ app.post('/register', authRateLimiter, zValidator('json', registerSchema, spring
     // Check if username is taken
     const existingUsername = await db.select().from(users).where(eq(users.username, username)).get();
     if (existingUsername) {
+      await securityLogger.registerFailed(email, 'USERNAME_ALREADY_EXISTS', 'Username already exists');
       return c.json(
         createLocalizedValidationError({ username: 'USERNAME_ALREADY_EXISTS' }, c),
         400 as ContentfulStatusCode
@@ -196,6 +200,9 @@ app.post('/register', authRateLimiter, zValidator('json', registerSchema, spring
     
     await db.insert(refreshTokens).values(refreshTokenData);
     
+    // Log successful registration
+    await securityLogger.registerSuccess(userId, email);
+    
     // Generate and set CSRF token
     const csrfToken = generateAndSetCSRFToken(c);
     
@@ -216,6 +223,7 @@ app.post('/register', authRateLimiter, zValidator('json', registerSchema, spring
     console.error('Registration error:', error);
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
     console.error('Error details:', JSON.stringify(error, null, 2));
+    await securityLogger.registerFailed(email, 'INTERNAL_ERROR', 'Registration failed due to internal error');
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
       500 as ContentfulStatusCode
@@ -227,12 +235,14 @@ app.post('/register', authRateLimiter, zValidator('json', registerSchema, spring
 app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootValidator), async (c) => {
   const db = c.get('db');
   const { email, password } = c.req.valid('json');
+  const securityLogger = createSecurityEventLogger(c, db);
   
   try {
     // Find user
     const user = await db.select().from(users).where(eq(users.email, email)).get();
     if (!user) {
       // Match Spring Boot behavior - returns AUTHENTICATION_FAILED for non-existent user
+      await securityLogger.loginFailed(email, 'USER_NOT_FOUND', 'User not found');
       return c.json(
         createLocalizedError('AUTHENTICATION_FAILED', c),
         StatusCodes.AUTHENTICATION_FAILED as ContentfulStatusCode
@@ -241,6 +251,7 @@ app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootVa
     
     if (!user.password) {
       // User registered via OAuth
+      await securityLogger.loginFailed(email, 'OAUTH_LOGIN_REQUIRED', 'User must login via OAuth');
       return c.json(
         createLocalizedError('OAUTH_LOGIN_REQUIRED', c),
         StatusCodes.AUTHENTICATION_FAILED as ContentfulStatusCode
@@ -250,6 +261,7 @@ app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootVa
     // Verify password
     const valid = await verifyPassword(password, user.password);
     if (!valid) {
+      await securityLogger.loginFailed(email, 'INVALID_CREDENTIALS', 'Invalid password');
       return c.json(
         createLocalizedError('AUTHENTICATION_FAILED', c),
         StatusCodes.AUTHENTICATION_FAILED as ContentfulStatusCode
@@ -258,6 +270,7 @@ app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootVa
     
     // Check if user is enabled
     if (!user.enabled) {
+      await securityLogger.accountDisabledLogin(user.id, email);
       const language = getUserLanguage(c);
       const message = language === 'ja' ? 'アカウントが無効です' : 'Account is disabled';
       return c.json(
@@ -288,6 +301,9 @@ app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootVa
       revoked: false
     });
     
+    // Log successful login
+    await securityLogger.loginSuccess(user.id, { email });
+    
     // Generate and set CSRF token
     const csrfToken = generateAndSetCSRFToken(c);
     
@@ -306,6 +322,7 @@ app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootVa
     });
   } catch (error) {
     console.error('Login error:', error);
+    await securityLogger.loginFailed(email, 'INTERNAL_ERROR', 'Login failed due to internal error');
     // Match Spring Boot - returns 500 for unexpected errors
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
@@ -317,10 +334,12 @@ app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootVa
 // POST /auth/refresh
 app.post('/refresh', async (c) => {
   const db = c.get('db');
+  const securityLogger = createSecurityEventLogger(c, db);
   // Get refresh token from cookie instead of body
   const refreshToken = getCookie(c, REFRESH_TOKEN_COOKIE);
   
   if (!refreshToken) {
+    await securityLogger.tokenRefreshFailed('NO_TOKEN', 'Refresh token not found');
     return c.json(
       createErrorResponse(ErrorCodes.INVALID_TOKEN, 'Refresh token not found'),
       StatusCodes.INVALID_TOKEN as ContentfulStatusCode
@@ -331,6 +350,7 @@ app.post('/refresh', async (c) => {
     // Verify refresh token
     const decoded = await verifyToken(refreshToken, c.env.JWT_SECRET);
     if (decoded.type !== 'refresh') {
+      await securityLogger.tokenRefreshFailed('INVALID_TOKEN_TYPE', 'Invalid token type');
       return c.json(
         createErrorResponse(ErrorCodes.INVALID_TOKEN),
         StatusCodes.INVALID_TOKEN as ContentfulStatusCode
@@ -345,6 +365,7 @@ app.post('/refresh', async (c) => {
       .get();
     
     if (!storedToken || storedToken.revoked) {
+      await securityLogger.tokenRefreshFailed('INVALID_TOKEN', 'Token not found or revoked');
       return c.json(
         createErrorResponse(ErrorCodes.INVALID_TOKEN),
         StatusCodes.INVALID_TOKEN as ContentfulStatusCode
@@ -352,6 +373,7 @@ app.post('/refresh', async (c) => {
     }
     
     if (new Date(storedToken.expiresAt) < new Date()) {
+      await securityLogger.tokenRefreshFailed('TOKEN_EXPIRED', 'Refresh token expired');
       return c.json(
         createErrorResponse(ErrorCodes.TOKEN_EXPIRED),
         StatusCodes.TOKEN_EXPIRED as ContentfulStatusCode
@@ -365,6 +387,7 @@ app.post('/refresh', async (c) => {
       .get();
     
     if (!user || !user.enabled) {
+      await securityLogger.tokenRefreshFailed('USER_NOT_FOUND', 'User not found or disabled');
       return c.json(
         createErrorResponse(ErrorCodes.USER_NOT_FOUND),
         StatusCodes.USER_NOT_FOUND as ContentfulStatusCode
@@ -390,6 +413,9 @@ app.post('/refresh', async (c) => {
       revoked: false
     });
     
+    // Log successful token refresh
+    await securityLogger.tokenRefreshSuccess(user.id);
+    
     // Generate and set CSRF token
     const csrfToken = generateAndSetCSRFToken(c);
     
@@ -408,6 +434,7 @@ app.post('/refresh', async (c) => {
     });
   } catch (error) {
     console.error('Refresh error:', error);
+    await securityLogger.tokenRefreshFailed('INTERNAL_ERROR', 'Token refresh failed');
     return c.json(
       createErrorResponse(ErrorCodes.INVALID_TOKEN),
       StatusCodes.INVALID_TOKEN as ContentfulStatusCode
@@ -448,6 +475,7 @@ app.get('/me', authMiddleware, async (c) => {
 app.post('/forgot-password', authRateLimiter, zValidator('json', forgotPasswordSchema, springBootValidator), async (c) => {
   const db = c.get('db');
   const { email } = c.req.valid('json');
+  const securityLogger = createSecurityEventLogger(c, db);
   
   try {
     // Find user
@@ -473,6 +501,9 @@ app.post('/forgot-password', authRateLimiter, zValidator('json', forgotPasswordS
       // TODO: Send email with reset link
     }
     
+    // Log password reset request
+    await securityLogger.passwordResetRequest(email, !!user);
+    
     return c.json({ success: true, message });
   } catch (error) {
     console.error('Forgot password error:', error);
@@ -487,6 +518,7 @@ app.post('/forgot-password', authRateLimiter, zValidator('json', forgotPasswordS
 app.post('/reset-password', zValidator('json', resetPasswordSchema, springBootValidator), async (c) => {
   const db = c.get('db');
   const { token, newPassword } = c.req.valid('json');
+  const securityLogger = createSecurityEventLogger(c, db);
   
   try {
     // Find valid reset token
@@ -496,6 +528,7 @@ app.post('/reset-password', zValidator('json', resetPasswordSchema, springBootVa
       .get();
     
     if (!resetToken || resetToken.used) {
+      await securityLogger.passwordResetFailed('INVALID_TOKEN', 'Invalid or used reset token');
       return c.json(
         createErrorResponse(ErrorCodes.INVALID_TOKEN, 'Invalid or expired reset token'),
         400
@@ -503,6 +536,7 @@ app.post('/reset-password', zValidator('json', resetPasswordSchema, springBootVa
     }
     
     if (new Date(resetToken.expiresAt) < new Date()) {
+      await securityLogger.passwordResetFailed('TOKEN_EXPIRED', 'Reset token expired');
       return c.json(
         createErrorResponse(ErrorCodes.TOKEN_EXPIRED, 'Reset token has expired'),
         400
@@ -525,11 +559,15 @@ app.post('/reset-password', zValidator('json', resetPasswordSchema, springBootVa
       .set({ used: true })
       .where(eq(passwordResetTokens.id, resetToken.id));
     
+    // Log successful password reset
+    await securityLogger.passwordResetSuccess(resetToken.userId);
+    
     const language = getUserLanguage(c);
     const message = language === 'ja' ? 'パスワードがリセットされました' : 'Password has been reset successfully';
     return c.json({ success: true, message });
   } catch (error) {
     console.error('Reset password error:', error);
+    await securityLogger.passwordResetFailed('INTERNAL_ERROR', 'Password reset failed');
     return c.json(
       createErrorResponse(ErrorCodes.INTERNAL_ERROR),
       500 as ContentfulStatusCode
@@ -590,15 +628,19 @@ app.post('/oidc/github/callback', (c) => {
 
 // POST /auth/logout - Spring Boot endpoint
 app.post('/logout', async (c) => {
+  const db = c.get('db');
+  const securityLogger = createSecurityEventLogger(c, db);
+  
   // Clear all auth cookies
   clearAuthCookies(c);
   
   // Optionally revoke refresh token in database
   const refreshToken = getCookie(c, REFRESH_TOKEN_COOKIE);
+  let userId: string | undefined;
   if (refreshToken) {
     try {
-      await verifyToken(refreshToken, c.env.JWT_SECRET);
-      const db = c.get('db');
+      const decoded = await verifyToken(refreshToken, c.env.JWT_SECRET);
+      userId = decoded.sub;
       const tokenHash = await createHash(refreshToken);
       await db.update(refreshTokens)
         .set({ revoked: true, revokedAt: new Date().toISOString() })
@@ -607,6 +649,9 @@ app.post('/logout', async (c) => {
       // Ignore errors during logout
     }
   }
+  
+  // Log logout event
+  await securityLogger.logout(userId);
   
   const language = getUserLanguage(c);
   const message = language === 'ja' ? 'ログアウトしました' : 'Logged out successfully';

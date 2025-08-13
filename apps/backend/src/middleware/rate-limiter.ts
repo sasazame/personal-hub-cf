@@ -2,6 +2,7 @@ import type { Context, Next } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import type { Bindings, Variables } from '../types';
 import { createErrorResponse, ErrorCodes, StatusCodes } from '../utils/spring-boot-compat';
+import { createSecurityEventLogger } from '../utils/security-events';
 
 interface RateLimitOptions {
   windowMs: number;
@@ -68,6 +69,16 @@ export function createRateLimiter(options: RateLimitOptions) {
         c.header('X-RateLimit-Remaining', '0');
         c.header('X-RateLimit-Reset', new Date(currentResetTime).toISOString());
         c.header('Retry-After', retryAfter.toString());
+
+        // Log rate limit exceeded event
+        const db = c.get('db');
+        const securityLogger = createSecurityEventLogger(c, db);
+        await securityLogger.rateLimitExceeded(c.req.path, {
+          key,
+          count,
+          max,
+          retryAfter
+        });
 
         return c.json(
           createErrorResponse(
