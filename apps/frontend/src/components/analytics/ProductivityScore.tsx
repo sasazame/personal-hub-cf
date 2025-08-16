@@ -30,9 +30,9 @@ export function ProductivityScore({ score, factors }: ProductivityScoreProps) {
   }, [score]);
 
   const getScoreColor = (value: number) => {
-    if (value >= 80) return 'text-green-600 dark:text-green-400';
-    if (value >= 60) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
+    if (value >= 80) return 'text-success';
+    if (value >= 60) return 'text-warning';
+    return 'text-destructive';
   };
 
   const getScoreLabel = (value: number) => {
@@ -50,12 +50,12 @@ export function ProductivityScore({ score, factors }: ProductivityScoreProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+    <div className="bg-card rounded-lg p-6 shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold">生産性スコア</h3>
         <div className="group relative">
-          <Info className="w-5 h-5 text-gray-400 cursor-help" />
-          <div className="absolute right-0 top-6 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+          <Info className="w-5 h-5 text-muted-foreground cursor-help" />
+          <div className="absolute right-0 top-6 w-64 p-3 bg-popover text-popover-foreground text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 border">
             生産性スコアは、タスク完了率、継続性、集中時間、目標達成率から算出されます。
           </div>
         </div>
@@ -68,7 +68,7 @@ export function ProductivityScore({ score, factors }: ProductivityScoreProps) {
         )}>
           {animatedScore}
         </div>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <p className="text-sm text-muted-foreground">
           {getScoreLabel(score)}
         </p>
       </div>
@@ -77,18 +77,18 @@ export function ProductivityScore({ score, factors }: ProductivityScoreProps) {
         {Object.entries(factors).map(([key, value]) => (
           <div key={key}>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600 dark:text-gray-400">
+              <span className="text-muted-foreground">
                 {factorLabels[key] || key}
               </span>
               <span className="font-medium">{value}%</span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div className="w-full bg-muted rounded-full h-2">
               <div
                 className={cn(
                   "h-2 rounded-full transition-all duration-1000",
-                  value >= 80 && "bg-green-500",
-                  value >= 60 && value < 80 && "bg-yellow-500",
-                  value < 60 && "bg-red-500"
+                  value >= 80 && "bg-success",
+                  value >= 60 && value < 80 && "bg-warning",
+                  value < 60 && "bg-destructive"
                 )}
                 style={{ width: `${value}%` }}
               />

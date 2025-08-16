@@ -3,9 +3,25 @@ import { AppLayout } from '@/components/layout';
 import { Button, Modal } from '@/components/ui';
 import { goalApi } from '@/lib/goal-api';
 import { toast } from '@/components/ui/toast';
-import { Goal, GoalType, GoalWithStatus, CreateGoalDto, UpdateGoalDto, GoalFilter } from '@/types/goal';
+import {
+  Goal,
+  GoalType,
+  GoalWithStatus,
+  CreateGoalDto,
+  UpdateGoalDto,
+  GoalFilter,
+} from '@/types/goal';
 import { format, addDays, subDays } from 'date-fns';
-import { Plus, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Zap, Target, TrendingUp } from 'lucide-react';
+import {
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Zap,
+  Target,
+  TrendingUp,
+} from 'lucide-react';
 import { GoalForm } from '@/components/GoalForm';
 
 export function Goals() {
@@ -67,7 +83,7 @@ export function Goals() {
 
   const handleDeleteGoal = async () => {
     if (!goalToDelete) return;
-    
+
     try {
       await goalApi.deleteGoal(goalToDelete.id);
       toast.success('Goal deleted successfully');
@@ -91,17 +107,17 @@ export function Goals() {
   };
 
   const toggleGroup = (type: GoalType) => {
-    setExpandedGroups(prev => ({
+    setExpandedGroups((prev) => ({
       ...prev,
-      [type]: !prev[type]
+      [type]: !prev[type],
     }));
   };
 
   const goalsByType = {
-    [GoalType.DAILY]: goals.filter(g => g.goalType === GoalType.DAILY),
-    [GoalType.WEEKLY]: goals.filter(g => g.goalType === GoalType.WEEKLY),
-    [GoalType.MONTHLY]: goals.filter(g => g.goalType === GoalType.MONTHLY),
-    [GoalType.ANNUAL]: goals.filter(g => g.goalType === GoalType.ANNUAL),
+    [GoalType.DAILY]: goals.filter((g) => g.goalType === GoalType.DAILY),
+    [GoalType.WEEKLY]: goals.filter((g) => g.goalType === GoalType.WEEKLY),
+    [GoalType.MONTHLY]: goals.filter((g) => g.goalType === GoalType.MONTHLY),
+    [GoalType.ANNUAL]: goals.filter((g) => g.goalType === GoalType.ANNUAL),
   };
 
   const typeLabels = {
@@ -134,64 +150,53 @@ export function Goals() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Goals
-            </h1>
-            <p className="text-gray-500 mt-1">
+            <h1 className="text-3xl font-bold text-foreground">Goals</h1>
+            <p className="text-muted-foreground mt-1">
               Track your progress and achieve your targets
             </p>
           </div>
-          <Button 
-            onClick={() => setIsFormOpen(true)} 
-            variant="primary"
-            size="lg"
-            className="gap-2"
-          >
+          <Button onClick={() => setIsFormOpen(true)} variant="primary" size="lg" className="gap-2">
             <Plus className="w-5 h-5" />
             New Goal
           </Button>
         </div>
 
         {/* Date Navigation */}
-        <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+        <div className="flex items-center justify-between bg-card rounded-lg shadow-sm p-4">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSelectedDate(subDays(selectedDate, 1))}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-2 hover:bg-accent rounded-lg transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            
-            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+
+            <h2 className="text-lg font-medium text-foreground">
               {format(selectedDate, 'EEEE, MMMM d, yyyy')}
             </h2>
-            
+
             <button
               onClick={() => setSelectedDate(addDays(selectedDate, 1))}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-2 hover:bg-accent rounded-lg transition-colors"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
-            
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setSelectedDate(new Date())}
-            >
+
+            <Button variant="secondary" size="sm" onClick={() => setSelectedDate(new Date())}>
               Today
             </Button>
           </div>
 
           {/* Filter Tabs */}
           <div className="flex gap-2">
-            {filterOptions.map(option => (
+            {filterOptions.map((option) => (
               <button
                 key={option.value}
                 onClick={() => setFilter(option.value as GoalFilter)}
                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                   filter === option.value
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-accent'
                 }`}
               >
                 {option.label}
@@ -204,79 +209,77 @@ export function Goals() {
         <div className="space-y-4">
           {Object.entries(goalsByType).map(([type, typeGoals]) => {
             const expanded = expandedGroups[type as GoalType];
-            
+
             return (
-              <div key={type} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+              <div key={type} className="bg-card rounded-lg shadow-sm">
                 <button
                   onClick={() => toggleGroup(type as GoalType)}
-                  className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-accent rounded-lg transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     {expanded ? (
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
+                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
                     ) : (
-                      <ChevronUp className="w-5 h-5 text-gray-400" />
+                      <ChevronUp className="w-5 h-5 text-muted-foreground" />
                     )}
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <h3 className="text-lg font-semibold text-foreground">
                       {typeLabels[type as GoalType]}
                     </h3>
-                    <span className="text-sm text-gray-500">({typeGoals.length})</span>
+                    <span className="text-sm text-muted-foreground">({typeGoals.length})</span>
                   </div>
                 </button>
-                
+
                 {expanded && (
                   <div className="p-4 pt-0">
                     {typeGoals.length === 0 ? (
-                      <p className="text-center py-8 text-gray-500">
+                      <p className="text-center py-8 text-muted-foreground">
                         No {typeLabels[type as GoalType].toLowerCase()} found
                       </p>
                     ) : (
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {typeGoals.map(goal => (
+                        {typeGoals.map((goal) => (
                           <div
                             key={goal.id}
-                            className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
+                            className="bg-muted/30 rounded-lg p-4 border border-border"
                           >
                             <div className="flex items-start justify-between mb-3">
-                              <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                                {goal.title}
-                              </h4>
+                              <h4 className="font-medium text-foreground">{goal.title}</h4>
                               <button
                                 onClick={() => handleToggleAchievement(goal.id)}
                                 className={`p-2 rounded-lg transition-colors ${
                                   goal.completed
-                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
-                                    : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'
+                                    ? 'bg-success/20 text-success'
+                                    : 'bg-muted text-muted-foreground hover:bg-accent'
                                 }`}
                               >
                                 <Target className="w-4 h-4" />
                               </button>
                             </div>
-                            
+
                             {goal.description && (
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                              <p className="text-sm text-muted-foreground mb-3">
                                 {goal.description}
                               </p>
                             )}
-                            
+
                             <div className="flex items-center justify-between text-sm">
-                              <div className="flex items-center gap-2 text-gray-500">
+                              <div className="flex items-center gap-2 text-muted-foreground">
                                 <Zap className="w-4 h-4" />
                                 <span>{goal.currentStreak} day streak</span>
                               </div>
-                              <div className="flex items-center gap-2 text-gray-500">
+                              <div className="flex items-center gap-2 text-muted-foreground">
                                 <TrendingUp className="w-4 h-4" />
                                 <span>{goal.progressPercentage}%</span>
                               </div>
                             </div>
-                            
-                            <div className="mt-3 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+
+                            <div className="mt-3 bg-muted rounded-full h-2 overflow-hidden">
                               <div
-                                className="bg-blue-600 h-full transition-all"
+                                className="bg-primary h-full transition-all"
                                 style={{ width: `${goal.progressPercentage}%` }}
                               />
                             </div>
-                            
+
                             <div className="mt-3 flex gap-2">
                               <Button
                                 variant="secondary"
@@ -292,7 +295,7 @@ export function Goals() {
                                 variant="secondary"
                                 size="sm"
                                 onClick={() => setGoalToDelete(goal)}
-                                className="text-red-600 hover:text-red-700"
+                                className="text-destructive hover:text-destructive/80"
                               >
                                 Delete
                               </Button>
@@ -310,15 +313,15 @@ export function Goals() {
 
         {/* Goal Form Modal */}
         {isFormOpen && (
-          <Modal 
-            open={isFormOpen} 
+          <Modal
+            open={isFormOpen}
             onClose={() => {
               setIsFormOpen(false);
               setSelectedGoal(null);
             }}
           >
             <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+              <h2 className="text-xl font-semibold mb-4 text-foreground">
                 {selectedGoal ? 'Edit Goal' : 'New Goal'}
               </h2>
               <GoalForm
@@ -343,15 +346,13 @@ export function Goals() {
         {goalToDelete && (
           <Modal open={true} onClose={() => setGoalToDelete(null)}>
             <div className="p-6 space-y-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Delete Goal</h2>
-              <p className="text-gray-500">
-                Are you sure you want to delete "{goalToDelete.title}"? This action cannot be undone.
+              <h2 className="text-xl font-semibold text-foreground">Delete Goal</h2>
+              <p className="text-muted-foreground">
+                Are you sure you want to delete "{goalToDelete.title}"? This action cannot be
+                undone.
               </p>
               <div className="flex gap-3 justify-end">
-                <Button
-                  variant="secondary"
-                  onClick={() => setGoalToDelete(null)}
-                >
+                <Button variant="secondary" onClick={() => setGoalToDelete(null)}>
                   Cancel
                 </Button>
                 <Button

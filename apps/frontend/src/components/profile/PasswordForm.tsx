@@ -85,7 +85,7 @@ export function PasswordForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold mb-4">パスワードを変更</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+        <p className="text-sm text-muted-foreground mb-6">
           セキュリティのため、定期的にパスワードを変更することをお勧めします
         </p>
       </div>
@@ -104,8 +104,8 @@ export function PasswordForm() {
               onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
               className={cn(
                 "w-full pl-10 pr-10 py-2 rounded-lg",
-                "bg-white dark:bg-gray-900",
-                "border border-gray-300 dark:border-gray-600",
+                "bg-background",
+                "border border-border",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500"
               )}
               required
@@ -140,11 +140,11 @@ export function PasswordForm() {
               }}
               className={cn(
                 "w-full pl-10 pr-10 py-2 rounded-lg",
-                "bg-white dark:bg-gray-900",
+                "bg-background",
                 "border",
                 errors.newPassword
-                  ? "border-red-500"
-                  : "border-gray-300 dark:border-gray-600",
+                  ? "border-destructive"
+                  : "border-border",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500"
               )}
               required
@@ -162,11 +162,11 @@ export function PasswordForm() {
             </button>
           </div>
           {errors.newPassword && (
-            <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+            <p className="text-sm text-destructive mt-1">
               {errors.newPassword}
             </p>
           )}
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             8文字以上、大文字・小文字・数字を含む
           </p>
         </div>
@@ -187,11 +187,11 @@ export function PasswordForm() {
               }}
               className={cn(
                 "w-full pl-10 pr-10 py-2 rounded-lg",
-                "bg-white dark:bg-gray-900",
+                "bg-background",
                 "border",
                 errors.confirmPassword
-                  ? "border-red-500"
-                  : "border-gray-300 dark:border-gray-600",
+                  ? "border-destructive"
+                  : "border-border",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500"
               )}
               required
@@ -209,7 +209,7 @@ export function PasswordForm() {
             </button>
           </div>
           {errors.confirmPassword && (
-            <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+            <p className="text-sm text-destructive mt-1">
               {errors.confirmPassword}
             </p>
           )}

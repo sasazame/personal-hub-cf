@@ -161,7 +161,7 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
             </div>
 
             {isRepeatable && (
-              <div className="space-y-4 pl-6 border-l-2 border-gray-200 dark:border-gray-700">
+              <div className="space-y-4 pl-6 border-l-2 border-border">
                 {/* Repeat Type */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
@@ -230,7 +230,7 @@ export function TodoEditForm({ todo, onSubmit, onCancel, onDelete, isSubmitting,
                           className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                             selectedDays.includes(index === 0 ? 7 : index)
                               ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                              : 'bg-muted text-muted-foreground hover:bg-muted/80'
                           }`}
                         >
                           {day}

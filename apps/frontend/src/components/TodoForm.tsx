@@ -174,7 +174,7 @@ export function TodoForm({ onSubmit, onCancel, isSubmitting, parentId }: TodoFor
                               w-10 h-10 flex items-center justify-center rounded-md text-xs font-medium cursor-pointer
                               ${selectedDays.includes(index)
                                 ? 'bg-primary text-white'
-                                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
                               }
                             `}>
                               {day}

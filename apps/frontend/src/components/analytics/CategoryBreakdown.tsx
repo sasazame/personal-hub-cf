@@ -96,7 +96,7 @@ export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: entry.color }}
             />
-            <span className="text-gray-700 dark:text-gray-300">
+            <span className="text-muted-foreground">
               {entry.value} ({entry.payload.percentage}%)
             </span>
           </li>
@@ -106,7 +106,7 @@ export function CategoryBreakdown({ data }: CategoryBreakdownProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+    <div className="bg-card rounded-lg p-6 shadow-sm">
       <h3 className="text-lg font-semibold mb-4">カテゴリー別分析</h3>
       <ResponsiveContainer width="100%" height={300}>
         <PieChart>

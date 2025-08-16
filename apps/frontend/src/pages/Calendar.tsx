@@ -31,7 +31,7 @@ export function Calendar() {
       setIsLoading(true);
       const data = await calendarApi.getEvents({
         year: currentDate.getFullYear(),
-        month: currentDate.getMonth() + 1
+        month: currentDate.getMonth() + 1,
       });
       setEvents(data);
     } catch (error) {
@@ -60,7 +60,7 @@ export function Calendar() {
 
   const handleUpdateEvent = async (data: UpdateCalendarEventDto) => {
     if (!selectedEvent?.id) return;
-    
+
     try {
       setIsSubmitting(true);
       await calendarApi.updateEvent(selectedEvent.id, data);
@@ -78,7 +78,7 @@ export function Calendar() {
 
   const handleDeleteEvent = async () => {
     if (!eventToDelete?.id) return;
-    
+
     try {
       setIsSubmitting(true);
       await calendarApi.deleteEvent(eventToDelete.id);
@@ -125,7 +125,7 @@ export function Calendar() {
   };
 
   const handleEventDateChange = async (eventId: number, newDate: Date) => {
-    const event = events.find(e => e.id === eventId);
+    const event = events.find((e) => e.id === eventId);
     if (!event) return;
 
     try {
@@ -135,9 +135,9 @@ export function Calendar() {
 
       await calendarApi.updateEvent(eventId, {
         startDateTime: newStartDateTime.toISOString(),
-        endDateTime: newEndDateTime.toISOString()
+        endDateTime: newEndDateTime.toISOString(),
       });
-      
+
       toast.success(t('messages.eventMoved'));
       loadEvents();
     } catch (error) {
@@ -162,15 +162,11 @@ export function Calendar() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              {t('labels.calendar')}
-            </h1>
-            <p className="text-gray-500 mt-1">
-              {t('labels.subtitle')}
-            </p>
+            <h1 className="text-3xl font-bold text-foreground">{t('labels.calendar')}</h1>
+            <p className="text-muted-foreground mt-1">{t('labels.subtitle')}</p>
           </div>
           <div className="flex gap-2">
-            <Button 
+            <Button
               variant="secondary"
               onClick={() => setShowGoogleSettings(!showGoogleSettings)}
               className="gap-2"
@@ -178,12 +174,7 @@ export function Calendar() {
               <Settings className="w-4 h-4" />
               {t('labels.googleSettings')}
             </Button>
-            <Button 
-              onClick={handleNewEvent} 
-              variant="primary"
-              size="lg"
-              className="gap-2"
-            >
+            <Button onClick={handleNewEvent} variant="primary" size="lg" className="gap-2">
               <Plus className="w-5 h-5" />
               {t('newEvent')}
             </Button>
@@ -195,28 +186,25 @@ export function Calendar() {
           <div className="flex items-center gap-4">
             <button
               onClick={handlePrevMonth}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              className="p-2 hover:bg-accent rounded-lg transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 min-w-[200px] text-center">
+
+            <h2 className="text-xl font-semibold text-foreground min-w-[200px] text-center">
               {format(currentDate, 'MMMM yyyy')}
             </h2>
-            
+
             <button
               onClick={handleNextMonth}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              className="p-2 hover:bg-accent rounded-lg transition-colors"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => setCurrentDate(new Date())}
-            >
+            <Button variant="secondary" onClick={() => setCurrentDate(new Date())}>
               {t('today')}
             </Button>
           </div>
@@ -256,8 +244,8 @@ export function Calendar() {
         {eventToDelete && (
           <Modal open={true} onClose={() => setEventToDelete(null)}>
             <div className="p-6 space-y-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{t('labels.deleteEvent')}</h2>
-              <p className="text-gray-500">
+              <h2 className="text-xl font-semibold text-foreground">{t('labels.deleteEvent')}</h2>
+              <p className="text-muted-foreground">
                 {t('messages.confirmDelete', { title: eventToDelete.title })}
               </p>
               <div className="flex gap-3 justify-end">

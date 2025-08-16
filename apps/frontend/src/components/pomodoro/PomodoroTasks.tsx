@@ -90,7 +90,7 @@ export function PomodoroTasks({
     <div className="space-y-4">
       {error && (
         <div 
-          className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded"
+          className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded"
           data-testid="error-message"
         >
           {error}
@@ -100,7 +100,7 @@ export function PomodoroTasks({
 
       <div className="space-y-2" data-testid="linked-todos">
         {sortedTasks.length === 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+          <p className="text-sm text-muted-foreground text-center py-4">
             {sessionId ? 'タスクがまだ追加されていません' : 'セッションを開始してタスクを追加'}
           </p>
         )}
@@ -110,8 +110,8 @@ export function PomodoroTasks({
             key={task.id}
             className={cn(
               "flex items-center gap-3 p-3 rounded-lg",
-              "bg-gray-50 dark:bg-gray-800",
-              "group hover:bg-gray-100 dark:hover:bg-gray-700",
+              "bg-muted/50",
+              "group hover:bg-muted",
               "transition-colors"
             )}
           >
@@ -120,8 +120,8 @@ export function PomodoroTasks({
               className={cn(
                 "shrink-0 transition-colors",
                 task.completed 
-                  ? "text-green-600 dark:text-green-400" 
-                  : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                  ? "text-green-600" 
+                  : "text-muted-foreground hover:text-foreground"
               )}
               disabled={!isActiveSession}
             >
@@ -135,7 +135,7 @@ export function PomodoroTasks({
             <span
               className={cn(
                 "flex-1 text-sm",
-                task.completed && "line-through text-gray-500 dark:text-gray-400"
+                task.completed && "line-through text-muted-foreground"
               )}
             >
               {task.description}
@@ -145,8 +145,7 @@ export function PomodoroTasks({
               onClick={() => handleDeleteTask(task.id)}
               className={cn(
                 "shrink-0 opacity-0 group-hover:opacity-100",
-                "text-gray-400 hover:text-red-600",
-                "dark:text-gray-500 dark:hover:text-red-400",
+                "text-muted-foreground hover:text-destructive",
                 "transition-all"
               )}
               disabled={!isActiveSession}
@@ -171,10 +170,10 @@ export function PomodoroTasks({
           placeholder="タスクを追加..."
           className={cn(
             "flex-1 px-3 py-2 text-sm rounded-lg",
-            "bg-white dark:bg-gray-800",
-            "border border-gray-300 dark:border-gray-600",
+            "bg-background",
+            "border border-border",
             "focus:outline-none focus:ring-2 focus:ring-blue-500",
-            "placeholder:text-gray-400 dark:placeholder:text-gray-500"
+            "placeholder:text-muted-foreground"
           )}
         />
         <Button

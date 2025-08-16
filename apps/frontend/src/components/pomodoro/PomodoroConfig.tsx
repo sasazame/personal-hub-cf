@@ -54,8 +54,8 @@ export function PomodoroConfig() {
         className={cn(
           "absolute top-4 right-4",
           "p-2 rounded-lg",
-          "text-gray-600 dark:text-gray-400",
-          "hover:bg-gray-100 dark:hover:bg-gray-700",
+          "text-muted-foreground",
+          "hover:bg-accent",
           "transition-colors"
         )}
         aria-label="設定"
@@ -68,12 +68,12 @@ export function PomodoroConfig() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="bg-card rounded-lg shadow-xl w-full max-w-md">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-lg font-semibold">ポモドーロ設定</h2>
           <button
             onClick={() => setIsOpen(false)}
-            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="p-1 rounded hover:bg-accent"
           >
             <X className="w-5 h-5" />
           </button>
@@ -96,9 +96,9 @@ export function PomodoroConfig() {
               })}
               className={cn(
                 "w-full px-3 py-2 rounded-lg",
-                "bg-white dark:bg-gray-900",
-                "border border-gray-300 dark:border-gray-600",
-                "focus:outline-none focus:ring-2 focus:ring-blue-500"
+                "bg-background",
+                "border border-border",
+                "focus:outline-none focus:ring-2 focus:ring-ring"
               )}
             />
           </div>
@@ -119,9 +119,9 @@ export function PomodoroConfig() {
               })}
               className={cn(
                 "w-full px-3 py-2 rounded-lg",
-                "bg-white dark:bg-gray-900",
-                "border border-gray-300 dark:border-gray-600",
-                "focus:outline-none focus:ring-2 focus:ring-blue-500"
+                "bg-background",
+                "border border-border",
+                "focus:outline-none focus:ring-2 focus:ring-ring"
               )}
             />
           </div>
@@ -142,9 +142,9 @@ export function PomodoroConfig() {
               })}
               className={cn(
                 "w-full px-3 py-2 rounded-lg",
-                "bg-white dark:bg-gray-900",
-                "border border-gray-300 dark:border-gray-600",
-                "focus:outline-none focus:ring-2 focus:ring-blue-500"
+                "bg-background",
+                "border border-border",
+                "focus:outline-none focus:ring-2 focus:ring-ring"
               )}
             />
           </div>
@@ -165,9 +165,9 @@ export function PomodoroConfig() {
               })}
               className={cn(
                 "w-full px-3 py-2 rounded-lg",
-                "bg-white dark:bg-gray-900",
-                "border border-gray-300 dark:border-gray-600",
-                "focus:outline-none focus:ring-2 focus:ring-blue-500"
+                "bg-background",
+                "border border-border",
+                "focus:outline-none focus:ring-2 focus:ring-ring"
               )}
             />
           </div>
@@ -223,21 +223,25 @@ export function PomodoroConfig() {
                 type="range"
                 min="0"
                 max="100"
-                value={(formData.soundVolume || 50) * 100}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  soundVolume: parseInt(e.target.value) / 100
-                })}
+                value={Math.round((formData.soundVolume ?? 0.5) * 100)}
+                onChange={(e) => {
+                  const raw = Number(e.target.value);
+                  const clamped = Number.isFinite(raw) ? Math.min(100, Math.max(0, raw)) : 50;
+                  setFormData({
+                    ...formData,
+                    soundVolume: clamped / 100,
+                  });
+                }}
                 className="w-full"
               />
-              <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                {Math.round((formData.soundVolume || 0.5) * 100)}%
+              <div className="text-xs text-muted-foreground text-center">
+                {Math.round((formData.soundVolume ?? 0.5) * 100)}%
               </div>
             </div>
           )}
         </div>
 
-        <div className="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-end gap-2 p-4 border-t border-border">
           <Button
             variant="secondary"
             onClick={() => setIsOpen(false)}

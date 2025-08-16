@@ -30,14 +30,14 @@ export function NoteViewer({ note, isOpen, onClose, onEdit, onDelete }: NoteView
       <div className="p-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex-1 mr-4">
+          <h2 className="text-2xl font-semibold text-foreground flex-1 mr-4">
             {note.title}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="p-2 rounded-lg hover:bg-muted transition-colors"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
 
@@ -47,7 +47,7 @@ export function NoteViewer({ note, isOpen, onClose, onEdit, onDelete }: NoteView
             {note.tags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-primary/10 text-primary"
               >
                 <Tag className="w-4 h-4" />
                 {tag}
@@ -59,14 +59,14 @@ export function NoteViewer({ note, isOpen, onClose, onEdit, onDelete }: NoteView
         {/* Content */}
         <div className="mb-6">
           <div className="prose prose-gray dark:prose-invert max-w-none">
-            <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+            <p className="whitespace-pre-wrap text-muted-foreground">
               {note.content}
             </p>
           </div>
         </div>
 
         {/* Metadata */}
-        <div className="text-sm text-gray-500 dark:text-gray-400 mb-6 space-y-1">
+        <div className="text-sm text-muted-foreground mb-6 space-y-1">
           {note.createdAt && (
             <div>Created: {formatDate(note.createdAt)}</div>
           )}
@@ -76,7 +76,7 @@ export function NoteViewer({ note, isOpen, onClose, onEdit, onDelete }: NoteView
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex gap-3 justify-end pt-4 border-t border-border">
           <Button
             variant="secondary"
             onClick={onEdit}

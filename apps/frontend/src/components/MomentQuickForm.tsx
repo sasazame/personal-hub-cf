@@ -56,7 +56,7 @@ export function MomentQuickForm({ onSubmit, isSubmitting }: MomentQuickFormProps
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+    <div className="bg-card rounded-xl shadow-sm border border-border p-4">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="relative">
           <textarea
@@ -64,7 +64,7 @@ export function MomentQuickForm({ onSubmit, isSubmitting }: MomentQuickFormProps
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="What's on your mind?"
-            className="w-full px-4 py-3 pr-16 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500"
+            className="w-full px-4 py-3 pr-16 bg-muted border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-foreground placeholder-muted-foreground"
             rows={3}
           />
           <div className="absolute bottom-3 right-3 text-xs text-gray-500">
@@ -85,8 +85,8 @@ export function MomentQuickForm({ onSubmit, isSubmitting }: MomentQuickFormProps
                   aria-pressed={isSelected}
                   className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-all ${
                     isSelected 
-                      ? `${tagColorClass} ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-800` 
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      ? `${tagColorClass} ring-2 ring-offset-2 ring-offset-background` 
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                   }`}
                 >
                   <Tag className="w-3 h-3" />
@@ -98,7 +98,7 @@ export function MomentQuickForm({ onSubmit, isSubmitting }: MomentQuickFormProps
             <button
               type="button"
               onClick={() => setShowCustomTagInput(!showCustomTagInput)}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all"
             >
               <Hash className="w-3 h-3" />
               Add custom
@@ -110,7 +110,7 @@ export function MomentQuickForm({ onSubmit, isSubmitting }: MomentQuickFormProps
               {tags.filter(tag => !(DEFAULT_MOMENT_TAGS as readonly string[]).includes(tag)).map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground"
                 >
                   <Hash className="w-3 h-3" />
                   {tag}
@@ -139,7 +139,7 @@ export function MomentQuickForm({ onSubmit, isSubmitting }: MomentQuickFormProps
                   }
                 }}
                 placeholder="Enter tag name"
-                className="flex-1 px-3 py-1 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-3 py-1 text-sm border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 autoFocus
               />
               <Button
