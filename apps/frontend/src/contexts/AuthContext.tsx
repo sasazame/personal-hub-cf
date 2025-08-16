@@ -198,7 +198,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       dispatch({ type: 'AUTH_LOADING' })
       const response = await apiClient.get('/api/v1/auth/me')
-      dispatch({ type: 'AUTH_SUCCESS', payload: response.data })
+      
+      // Extract csrf token and user fields from /auth/me response
+      const { csrfToken, ...userFields } = response.data ?? {}
+      
+      // Cache CSRF token if provided
+      if (csrfToken) {
+        setCachedCSRFToken(csrfToken)
+      }
+      
+      // Normalize user shape (ensure roles field exists)
+      const user: User = {
+        id: userFields.id,
+        username: userFields.username,
+        email: userFields.email,
+        roles: Array.isArray(userFields.roles) ? userFields.roles : [],
+      }
+      
+      dispatch({ type: 'AUTH_SUCCESS', payload: user })
     } catch (error) {
       const axiosError = error as ApiErrorResponse
       
