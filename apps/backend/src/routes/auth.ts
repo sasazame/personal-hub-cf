@@ -460,7 +460,10 @@ app.get('/me', authMiddleware, async (c) => {
     return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode);
   }
   
-  // Return user data in Spring Boot format
+  // Generate and set CSRF token for authenticated user
+  const csrfToken = generateAndSetCSRFToken(c);
+  
+  // Return user data in Spring Boot format with CSRF token
   return c.json({
     id: user.id,
     username: user.username,
@@ -468,6 +471,7 @@ app.get('/me', authMiddleware, async (c) => {
     weekStartDay: user.weekStartDay,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
+    csrfToken
   });
 });
 

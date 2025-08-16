@@ -198,6 +198,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       dispatch({ type: 'AUTH_LOADING' })
       const response = await apiClient.get('/api/v1/auth/me')
+      
+      // Cache CSRF token if provided
+      if (response.data.csrfToken) {
+        setCachedCSRFToken(response.data.csrfToken)
+      }
+      
       dispatch({ type: 'AUTH_SUCCESS', payload: response.data })
     } catch (error) {
       const axiosError = error as ApiErrorResponse
