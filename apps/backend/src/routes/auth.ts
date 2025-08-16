@@ -102,6 +102,21 @@ function clearAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variables 
     secure: isProduction,
     sameSite: sameSite as 'None' | 'Lax',
   });
+  
+  // Clear CSRF token cookie (not httpOnly since it needs to be read by JavaScript)
+  setCookie(c, 'csrf-token', '', {
+    httpOnly: false,
+    secure: isProduction,
+    sameSite: sameSite as 'None' | 'Lax',
+    path: '/',
+    maxAge: 0,
+    expires: new Date(0),
+  });
+  deleteCookie(c, 'csrf-token', {
+    path: '/',
+    secure: isProduction,
+    sameSite: sameSite as 'None' | 'Lax',
+  });
 }
 
 // Validation schemas - matching Spring Boot requirements
@@ -460,8 +475,11 @@ app.get('/me', authMiddleware, async (c) => {
     return c.text('Forbidden', StatusCodes.FORBIDDEN as ContentfulStatusCode);
   }
   
-  // Generate and set CSRF token for authenticated user
-  const csrfToken = generateAndSetCSRFToken(c);
+  // Only generate and set CSRF token if one doesn't exist
+  let csrfToken = getCookie(c, 'csrf-token');
+  if (!csrfToken) {
+    csrfToken = generateAndSetCSRFToken(c);
+  }
   
   // Return user data in Spring Boot format with CSRF token
   return c.json({
