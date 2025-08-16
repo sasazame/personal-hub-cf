@@ -138,6 +138,7 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
                 key={tag}
                 type="button"
                 onClick={() => toggleTag(tag)}
+                aria-pressed={tags.includes(tag)}
                 className={cn(
                   'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm transition-colors',
                   tags.includes(tag)

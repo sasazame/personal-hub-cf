@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button } from './ui'
 import { CreateMomentDto, DEFAULT_MOMENT_TAGS } from '../types/moment'
 import { Send, Tag, Hash } from 'lucide-react'
-import { getTagColorClasses } from '../utils/momentUtils'
+import { getTagColorClasses } from '@/utils/momentUtils'
 
 interface MomentQuickFormProps {
   onSubmit: (data: CreateMomentDto) => void
@@ -82,6 +82,7 @@ export function MomentQuickForm({ onSubmit, isSubmitting }: MomentQuickFormProps
                   key={tag}
                   type="button"
                   onClick={() => toggleTag(tag)}
+                  aria-pressed={isSelected}
                   className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-all ${
                     isSelected 
                       ? `${tagColorClass} ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-800` 

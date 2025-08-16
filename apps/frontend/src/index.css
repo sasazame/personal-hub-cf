@@ -177,6 +177,7 @@
   .tag-blue {
     background-color: hsl(217 91% 60% / 0.1);
     color: hsl(217 91% 45%);
+    --tw-ring-color: hsl(217 91% 60%);
   }
   .tag-blue:hover {
     background-color: hsl(217 91% 60% / 0.2);
@@ -184,6 +185,7 @@
   .dark .tag-blue {
     background-color: hsl(217 91% 60% / 0.15);
     color: hsl(217 91% 65%);
+    --tw-ring-color: hsl(217 91% 65%);
   }
   .dark .tag-blue:hover {
     background-color: hsl(217 91% 60% / 0.25);
@@ -192,6 +194,7 @@
   .tag-purple {
     background-color: hsl(271 91% 65% / 0.1);
     color: hsl(271 91% 45%);
+    --tw-ring-color: hsl(271 91% 65%);
   }
   .tag-purple:hover {
     background-color: hsl(271 91% 65% / 0.2);
@@ -199,6 +202,7 @@
   .dark .tag-purple {
     background-color: hsl(271 91% 65% / 0.15);
     color: hsl(271 91% 70%);
+    --tw-ring-color: hsl(271 91% 70%);
   }
   .dark .tag-purple:hover {
     background-color: hsl(271 91% 65% / 0.25);
@@ -207,6 +211,7 @@
   .tag-pink {
     background-color: hsl(330 87% 67% / 0.1);
     color: hsl(330 87% 45%);
+    --tw-ring-color: hsl(330 87% 67%);
   }
   .tag-pink:hover {
     background-color: hsl(330 87% 67% / 0.2);
@@ -214,6 +219,7 @@
   .dark .tag-pink {
     background-color: hsl(330 87% 67% / 0.15);
     color: hsl(330 87% 70%);
+    --tw-ring-color: hsl(330 87% 70%);
   }
   .dark .tag-pink:hover {
     background-color: hsl(330 87% 67% / 0.25);
@@ -222,6 +228,7 @@
   .tag-green {
     background-color: hsl(142 71% 45% / 0.1);
     color: hsl(142 71% 35%);
+    --tw-ring-color: hsl(142 71% 45%);
   }
   .tag-green:hover {
     background-color: hsl(142 71% 45% / 0.2);
@@ -229,6 +236,7 @@
   .dark .tag-green {
     background-color: hsl(142 71% 45% / 0.15);
     color: hsl(142 71% 60%);
+    --tw-ring-color: hsl(142 71% 60%);
   }
   .dark .tag-green:hover {
     background-color: hsl(142 71% 45% / 0.25);
@@ -237,6 +245,7 @@
   .tag-orange {
     background-color: hsl(38 92% 50% / 0.1);
     color: hsl(38 92% 40%);
+    --tw-ring-color: hsl(38 92% 50%);
   }
   .tag-orange:hover {
     background-color: hsl(38 92% 50% / 0.2);
@@ -244,6 +253,7 @@
   .dark .tag-orange {
     background-color: hsl(38 92% 50% / 0.15);
     color: hsl(38 92% 65%);
+    --tw-ring-color: hsl(38 92% 65%);
   }
   .dark .tag-orange:hover {
     background-color: hsl(38 92% 50% / 0.25);
@@ -267,6 +277,7 @@
   .tag-gray {
     background-color: hsl(var(--muted));
     color: hsl(var(--muted-foreground));
+    --tw-ring-color: hsl(var(--muted-foreground));
   }
   .tag-gray:hover {
     background-color: hsl(var(--muted) / 0.8);

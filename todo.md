@@ -27,8 +27,7 @@ This file tracks pending tasks organized by feature.
 ## Goals Feature
 
 ## Moments Feature
-- [HIGH] Add visual feedback for selected tags in moment tag post area - Apply distinct colors to selected tags for better visibility (reference personal-hub implementation for color scheme)
-- [MEDIUM] Add keyboard shortcuts for moment tag selection - Enable shift+f1~f12 shortcuts for quick tag selection
+- [MEDIUM] Add keyboard shortcuts for moment tag selection - Enable Shift+F1-F12 shortcuts for quick tag selection
 
 ## Pomodoro Feature
 
