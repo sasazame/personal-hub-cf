@@ -2,16 +2,11 @@ import { useState } from 'react'
 import { Button } from './ui'
 import { CreateMomentDto, DEFAULT_MOMENT_TAGS } from '../types/moment'
 import { Send, Tag, Hash } from 'lucide-react'
-import { getTagColorStyle as getTagColorStyleUtil } from '../utils/momentUtils'
+import { getTagColorClasses } from '@/utils/momentUtils'
 
 interface MomentQuickFormProps {
   onSubmit: (data: CreateMomentDto) => void
   isSubmitting?: boolean
-}
-
-const getTagColorStyle = (tag: string, isSelected: boolean) => {
-  if (!isSelected) return {}
-  return getTagColorStyleUtil(tag)
 }
 
 export function MomentQuickForm({ onSubmit, isSubmitting }: MomentQuickFormProps) {
@@ -81,15 +76,18 @@ export function MomentQuickForm({ onSubmit, isSubmitting }: MomentQuickFormProps
           <div className="flex flex-wrap gap-2">
             {DEFAULT_MOMENT_TAGS.map((tag) => {
               const isSelected = tags.includes(tag)
+              const tagColorClass = getTagColorClasses(tag)
               return (
                 <button
                   key={tag}
                   type="button"
                   onClick={() => toggleTag(tag)}
+                  aria-pressed={isSelected}
                   className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                    isSelected ? 'ring-1 ring-offset-1 ring-blue-500' : ''
+                    isSelected 
+                      ? `${tagColorClass} ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-800` 
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
-                  style={getTagColorStyle(tag, isSelected)}
                 >
                   <Tag className="w-3 h-3" />
                   {tag}

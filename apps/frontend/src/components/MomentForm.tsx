@@ -6,6 +6,7 @@ import { TextAreaWithCount } from '@/components/ui/TextAreaWithCount';
 import { X, Plus, Tag } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { validateTagsLength, getSerializedTagsLength, MAX_TAGS_LENGTH } from '@/lib/tag-utils';
+import { getTagColorClasses } from '@/utils/momentUtils';
 
 interface MomentFormProps {
   isOpen: boolean;
@@ -13,20 +14,6 @@ interface MomentFormProps {
   onSubmit: (data: CreateMomentDto | UpdateMomentDto) => void;
   moment?: Moment;
   isSubmitting?: boolean;
-}
-
-const TAG_COLOR_MAP = {
-  Ideas: 'tag-blue',
-  Discoveries: 'tag-purple',
-  Emotions: 'tag-pink',
-  Log: 'tag-green',
-  Other: 'tag-gray'
-};
-
-const DEFAULT_TAG_COLOR = 'tag-orange';
-
-function getTagColorClasses(tag: string): string {
-  return TAG_COLOR_MAP[tag as keyof typeof TAG_COLOR_MAP] || DEFAULT_TAG_COLOR;
 }
 
 export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: MomentFormProps) {
@@ -151,10 +138,11 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
                 key={tag}
                 type="button"
                 onClick={() => toggleTag(tag)}
+                aria-pressed={tags.includes(tag)}
                 className={cn(
                   'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm transition-colors',
                   tags.includes(tag)
-                    ? `${getTagColorClasses(tag)} ring-2 ring-offset-1 ring-blue-500`
+                    ? `${getTagColorClasses(tag)} ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-800`
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 )}
               >
