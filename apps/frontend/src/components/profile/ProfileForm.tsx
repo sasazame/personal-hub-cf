@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useProfile, useUpdateProfile, useUploadAvatar } from '@/hooks/useUser';
 import { Button } from '@/components/ui';
 import { User, Mail, FileText, Camera, Loader } from 'lucide-react';
@@ -17,7 +17,7 @@ export function ProfileForm() {
   });
 
   // Initialize form data when profile loads
-  useState(() => {
+  useEffect(() => {
     if (profile) {
       setFormData({
         username: profile.username || '',
@@ -25,7 +25,7 @@ export function ProfileForm() {
         bio: profile.bio || '',
       });
     }
-  });
+  }, [profile]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

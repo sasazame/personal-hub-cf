@@ -143,7 +143,7 @@ export function PasswordForm() {
                 "bg-background",
                 "border",
                 errors.newPassword
-                  ? "border-red-500"
+                  ? "border-destructive"
                   : "border-border",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500"
               )}
@@ -190,7 +190,7 @@ export function PasswordForm() {
                 "bg-background",
                 "border",
                 errors.confirmPassword
-                  ? "border-red-500"
+                  ? "border-destructive"
                   : "border-border",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500"
               )}

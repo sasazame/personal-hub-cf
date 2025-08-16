@@ -223,15 +223,19 @@ export function PomodoroConfig() {
                 type="range"
                 min="0"
                 max="100"
-                value={(formData.soundVolume || 50) * 100}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  soundVolume: parseInt(e.target.value) / 100
-                })}
+                value={Math.round((formData.soundVolume ?? 0.5) * 100)}
+                onChange={(e) => {
+                  const raw = Number(e.target.value);
+                  const clamped = Number.isFinite(raw) ? Math.min(100, Math.max(0, raw)) : 50;
+                  setFormData({
+                    ...formData,
+                    soundVolume: clamped / 100,
+                  });
+                }}
                 className="w-full"
               />
               <div className="text-xs text-muted-foreground text-center">
-                {Math.round((formData.soundVolume || 0.5) * 100)}%
+                {Math.round((formData.soundVolume ?? 0.5) * 100)}%
               </div>
             </div>
           )}

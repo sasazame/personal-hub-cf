@@ -58,7 +58,7 @@ export function NoteViewer({ note, isOpen, onClose, onEdit, onDelete }: NoteView
 
         {/* Content */}
         <div className="mb-6">
-          <div className="prose prose-gray prose-invert max-w-none">
+          <div className="prose prose-gray dark:prose-invert max-w-none">
             <p className="whitespace-pre-wrap text-muted-foreground">
               {note.content}
             </p>
