@@ -95,13 +95,13 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
       <div className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            <h2 className="text-xl font-semibold text-foreground mb-4">
               {note ? t('labels.editNote') : t('labels.addNote')}
             </h2>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               {t('labels.noteTitleLabel')}
             </label>
             <InputWithCount
@@ -116,7 +116,7 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               {t('labels.noteContentLabel')}
             </label>
             <TextAreaWithCount
@@ -132,7 +132,7 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               {t('labels.tagsLabel')}
               {tags.length > 0 && (
                 <span className="ml-2 text-xs text-muted-foreground">
@@ -147,7 +147,7 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
                 {tags.map((tag) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm bg-primary/10 text-primary"
                   >
                     {tag}
                     <button
@@ -171,9 +171,9 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
                 onKeyDown={handleTagKeyPress}
                 placeholder={t('addTagPlaceholder')}
                 className={cn(
-                  "flex-1 px-3 py-2 border rounded-lg bg-white dark:bg-gray-800",
-                  "text-gray-900 dark:text-gray-100 placeholder-gray-400",
-                  "border-gray-300 dark:border-gray-600",
+                  "flex-1 px-3 py-2 border rounded-lg bg-card",
+                  "text-foreground placeholder-muted-foreground",
+                  "border-border",
                   "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 )}
               />
@@ -188,7 +188,7 @@ export function NoteForm({ isOpen, onClose, onSubmit, note, isSubmitting }: Note
             </div>
           </div>
 
-          <div className="flex gap-3 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex gap-3 justify-end pt-4 border-t border-border">
             <Button
               type="button"
               variant="secondary"

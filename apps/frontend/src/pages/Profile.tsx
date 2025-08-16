@@ -25,9 +25,7 @@ export function Profile() {
             <User className="h-8 w-8" />
             アカウント設定
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            プロフィールと設定を管理します
-          </p>
+          <p className="text-muted-foreground mt-2">プロフィールと設定を管理します</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -42,10 +40,10 @@ export function Profile() {
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
                       className={cn(
-                        "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors",
+                        'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors',
                         activeTab === tab.id
-                          ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                          : "hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+                          ? 'bg-primary/10 text-primary'
+                          : 'hover:bg-accent text-muted-foreground'
                       )}
                     >
                       <Icon className="w-5 h-5" />

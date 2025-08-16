@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react'
 
-type Theme = 'light' | 'dark'
+type Theme = 'light' | 'dark' | 'system'
 
 interface ThemeContextType {
   theme: Theme
@@ -13,21 +13,49 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     const savedTheme = localStorage.getItem('theme')
-    if (savedTheme === 'light' || savedTheme === 'dark') {
+    if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system') {
       return savedTheme
     }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    return 'system'
   })
+
+  const getSystemTheme = useCallback(() => {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }, [])
+
+  const getEffectiveTheme = useCallback(() => {
+    return theme === 'system' ? getSystemTheme() : theme
+  }, [theme, getSystemTheme])
 
   useEffect(() => {
     const root = document.documentElement
+    const effectiveTheme = getEffectiveTheme()
     root.classList.remove('light', 'dark')
-    root.classList.add(theme)
+    root.classList.add(effectiveTheme)
     localStorage.setItem('theme', theme)
-  }, [theme])
+  }, [theme, getEffectiveTheme])
+
+  useEffect(() => {
+    if (theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      const handleChange = () => {
+        const root = document.documentElement
+        const effectiveTheme = getSystemTheme()
+        root.classList.remove('light', 'dark')
+        root.classList.add(effectiveTheme)
+      }
+      
+      mediaQuery.addEventListener('change', handleChange)
+      return () => mediaQuery.removeEventListener('change', handleChange)
+    }
+  }, [theme, getSystemTheme])
 
   const toggleTheme = useCallback(() => {
-    setThemeState(prev => prev === 'light' ? 'dark' : 'light')
+    setThemeState(prev => {
+      if (prev === 'light') return 'dark'
+      if (prev === 'dark') return 'system'
+      return 'light'
+    })
   }, [])
 
   const setTheme = useCallback((newTheme: Theme) => {

@@ -14,8 +14,8 @@ export const NoteList = memo(function NoteList({ notes, onNoteClick, onEditNote,
   if (!notes || notes.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500 text-lg">No notes found</div>
-        <p className="text-sm text-gray-400 mt-2">
+        <div className="text-muted-foreground text-lg">No notes found</div>
+        <p className="text-sm text-muted-foreground mt-2">
           Create a new note to get started
         </p>
       </div>
@@ -59,7 +59,7 @@ export const NoteList = memo(function NoteList({ notes, onNoteClick, onEditNote,
         >
           {/* Header */}
           <div className="flex items-start justify-between mb-3">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 flex-1 mr-2">
+            <h3 className="font-semibold text-foreground line-clamp-2 flex-1 mr-2">
               {note.title}
             </h3>
             
@@ -70,7 +70,7 @@ export const NoteList = memo(function NoteList({ notes, onNoteClick, onEditNote,
                   e.stopPropagation();
                   onEditNote(note);
                 }}
-                className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-400 hover:text-blue-500"
+                className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-blue-500"
                 title="Edit"
               >
                 <Edit className="w-4 h-4" />
@@ -81,7 +81,7 @@ export const NoteList = memo(function NoteList({ notes, onNoteClick, onEditNote,
                   e.stopPropagation();
                   onDeleteNote(note);
                 }}
-                className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-400 hover:text-red-500"
+                className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-red-500"
                 title="Delete"
               >
                 <Trash2 className="w-4 h-4" />
@@ -90,7 +90,7 @@ export const NoteList = memo(function NoteList({ notes, onNoteClick, onEditNote,
           </div>
 
           {/* Content preview */}
-          <div className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-4">
+          <div className="text-sm text-muted-foreground mb-3 line-clamp-4">
             {truncateContent(note.content)}
           </div>
 
@@ -100,14 +100,14 @@ export const NoteList = memo(function NoteList({ notes, onNoteClick, onEditNote,
               {note.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-muted text-muted-foreground"
                 >
                   <Tag className="w-3 h-3" />
                   {tag}
                 </span>
               ))}
               {note.tags.length > 3 && (
-                <span className="text-xs text-gray-500 dark:text-gray-400">
+                <span className="text-xs text-muted-foreground">
                   +{note.tags.length - 3}
                 </span>
               )}
@@ -115,7 +115,7 @@ export const NoteList = memo(function NoteList({ notes, onNoteClick, onEditNote,
           )}
 
           {/* Footer */}
-          <div className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="text-xs text-muted-foreground">
             {note.createdAt && <div>Created: {formatDate(note.createdAt)}</div>}
             {note.updatedAt && note.updatedAt !== note.createdAt && (
               <div>Updated: {formatDateTime(note.updatedAt)}</div>

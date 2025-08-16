@@ -19,7 +19,7 @@ export function MomentViewer({ isOpen, onClose, moment, onEdit, onDelete }: Mome
     <Modal open={isOpen} onClose={onClose}>
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="text-xl font-semibold text-foreground">
             Moment Details
           </h2>
           <div className="flex gap-2">
@@ -54,7 +54,7 @@ export function MomentViewer({ isOpen, onClose, moment, onEdit, onDelete }: Mome
         </div>
 
         <div className="mb-6">
-          <div className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words text-lg leading-relaxed">
+          <div className="text-foreground whitespace-pre-wrap break-words text-lg leading-relaxed">
             {moment.content}
           </div>
         </div>
@@ -75,7 +75,7 @@ export function MomentViewer({ isOpen, onClose, moment, onEdit, onDelete }: Mome
           </div>
         )}
 
-        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="pt-4 border-t border-border">
           <div className="flex justify-between text-xs text-gray-500">
             <div>
               {moment.createdAt && (

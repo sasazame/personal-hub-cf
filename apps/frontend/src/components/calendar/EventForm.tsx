@@ -249,9 +249,9 @@ export function EventForm({
                   type={allDay ? 'date' : 'datetime-local'}
                   value={startDateTime}
                   onChange={(e) => setStartDateTime(e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.startDateTime ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  } bg-white dark:bg-gray-800`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring ${
+                    errors.startDateTime ? 'border-destructive' : 'border-border'
+                  } bg-background`}
                 />
                 {errors.startDateTime && (
                   <p className="text-red-500 text-xs mt-1">{errors.startDateTime}</p>
@@ -266,9 +266,9 @@ export function EventForm({
                   type={allDay ? 'date' : 'datetime-local'}
                   value={endDateTime}
                   onChange={(e) => setEndDateTime(e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.endDateTime ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  } bg-white dark:bg-gray-800`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring ${
+                    errors.endDateTime ? 'border-destructive' : 'border-border'
+                  } bg-background`}
                 />
                 {errors.endDateTime && (
                   <p className="text-red-500 text-xs mt-1">{errors.endDateTime}</p>

@@ -81,8 +81,8 @@ export function SettingsForm() {
                 className={cn(
                   "p-3 rounded-lg border-2 transition-colors",
                   formData.theme === 'light'
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                    : "border-gray-300 dark:border-gray-600"
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-border"
                 )}
               >
                 <Sun className="w-5 h-5 mx-auto mb-1" />
@@ -94,8 +94,8 @@ export function SettingsForm() {
                 className={cn(
                   "p-3 rounded-lg border-2 transition-colors",
                   formData.theme === 'dark'
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                    : "border-gray-300 dark:border-gray-600"
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-border"
                 )}
               >
                 <Moon className="w-5 h-5 mx-auto mb-1" />
@@ -107,8 +107,8 @@ export function SettingsForm() {
                 className={cn(
                   "p-3 rounded-lg border-2 transition-colors",
                   formData.theme === 'system'
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                    : "border-gray-300 dark:border-gray-600"
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-border"
                 )}
               >
                 <Monitor className="w-5 h-5 mx-auto mb-1" />
@@ -135,8 +135,8 @@ export function SettingsForm() {
               onChange={(e) => setFormData({ ...formData, language: e.target.value as 'ja' | 'en' })}
               className={cn(
                 "w-full px-3 py-2 rounded-lg",
-                "bg-white dark:bg-gray-900",
-                "border border-gray-300 dark:border-gray-600",
+                "bg-background",
+                "border border-border",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500"
               )}
             >
@@ -154,8 +154,8 @@ export function SettingsForm() {
               onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
               className={cn(
                 "w-full px-3 py-2 rounded-lg",
-                "bg-white dark:bg-gray-900",
-                "border border-gray-300 dark:border-gray-600",
+                "bg-background",
+                "border border-border",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500"
               )}
             >
@@ -174,8 +174,8 @@ export function SettingsForm() {
               onChange={(e) => setFormData({ ...formData, timeFormat: e.target.value as '12h' | '24h' })}
               className={cn(
                 "w-full px-3 py-2 rounded-lg",
-                "bg-white dark:bg-gray-900",
-                "border border-gray-300 dark:border-gray-600",
+                "bg-background",
+                "border border-border",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500"
               )}
             >
@@ -193,8 +193,8 @@ export function SettingsForm() {
               onChange={(e) => setFormData({ ...formData, weekStartsOn: parseInt(e.target.value) as 0 | 1 | 6 })}
               className={cn(
                 "w-full px-3 py-2 rounded-lg",
-                "bg-white dark:bg-gray-900",
-                "border border-gray-300 dark:border-gray-600",
+                "bg-background",
+                "border border-border",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500"
               )}
             >
@@ -213,7 +213,7 @@ export function SettingsForm() {
           通知
         </h3>
         <div className="space-y-4">
-          <label className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+          <label className="flex items-center justify-between p-3 rounded-lg hover:bg-muted cursor-pointer">
             <span className="text-sm font-medium">メール通知</span>
             <input
               type="checkbox"
@@ -223,7 +223,7 @@ export function SettingsForm() {
             />
           </label>
 
-          <label className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+          <label className="flex items-center justify-between p-3 rounded-lg hover:bg-muted cursor-pointer">
             <span className="text-sm font-medium">プッシュ通知</span>
             <input
               type="checkbox"
@@ -242,7 +242,7 @@ export function SettingsForm() {
           ポモドーロ
         </h3>
         <div className="space-y-4">
-          <label className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+          <label className="flex items-center justify-between p-3 rounded-lg hover:bg-muted cursor-pointer">
             <span className="text-sm font-medium">サウンド通知</span>
             <input
               type="checkbox"
@@ -276,7 +276,7 @@ export function SettingsForm() {
       </div>
 
       {/* Submit Button */}
-      <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="flex justify-end pt-4 border-t border-border">
         <Button
           type="submit"
           variant="primary"

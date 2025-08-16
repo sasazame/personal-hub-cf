@@ -160,13 +160,13 @@ export function PomodoroTimer({ session, onComplete, onUpdate }: PomodoroTimerPr
   const getSessionColor = () => {
     switch (session.sessionType) {
       case SessionType.WORK:
-        return 'text-blue-600 dark:text-blue-400';
+        return 'text-blue-600';
       case SessionType.SHORT_BREAK:
-        return 'text-green-600 dark:text-green-400';
+        return 'text-green-600';
       case SessionType.LONG_BREAK:
-        return 'text-purple-600 dark:text-purple-400';
+        return 'text-purple-600';
       default:
-        return 'text-slate-600 dark:text-slate-400';
+        return 'text-muted-foreground';
     }
   };
 
@@ -203,7 +203,7 @@ export function PomodoroTimer({ session, onComplete, onUpdate }: PomodoroTimerPr
             stroke="currentColor"
             strokeWidth="8"
             fill="none"
-            className="text-gray-300/50 dark:text-gray-700"
+            className="text-muted-foreground/30"
           />
           <circle
             cx="128"
@@ -218,7 +218,7 @@ export function PomodoroTimer({ session, onComplete, onUpdate }: PomodoroTimerPr
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-5xl font-bold text-slate-900 dark:text-slate-100" data-testid="timer-display">
+          <span className="text-5xl font-bold text-foreground" data-testid="timer-display">
             {formatTime(timeLeft)}
           </span>
         </div>
@@ -289,7 +289,7 @@ export function PomodoroTimer({ session, onComplete, onUpdate }: PomodoroTimerPr
         )}
       </div>
       
-      <div className="mt-6 text-sm text-slate-600 dark:text-slate-400">
+      <div className="mt-6 text-sm text-muted-foreground">
         サイクル {session.completedCycles + 1}
       </div>
     </div>

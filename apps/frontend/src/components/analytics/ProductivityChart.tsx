@@ -30,7 +30,7 @@ export function ProductivityChart({ data, title = 'タスク完了率', height =
   const tooltipValueFormatter = (value: number | string) => `${value}%`;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+    <div className="bg-card rounded-lg p-6 shadow-sm">
       {title && (
         <h3 className="text-lg font-semibold mb-4">{title}</h3>
       )}

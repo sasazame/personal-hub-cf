@@ -70,8 +70,8 @@ export function ProfileForm() {
         <div className="relative group">
           <div className={cn(
             "w-24 h-24 rounded-full overflow-hidden",
-            "bg-gray-200 dark:bg-gray-700",
-            "border-4 border-white dark:border-gray-800",
+            "bg-muted",
+            "border-4 border-background",
             "shadow-lg cursor-pointer"
           )}>
             {profile?.avatar ? (
@@ -109,7 +109,7 @@ export function ProfileForm() {
         
         <div>
           <h3 className="text-lg font-semibold">プロフィール画像</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             JPG、PNG、GIF形式（最大5MB）
           </p>
         </div>
@@ -129,8 +129,8 @@ export function ProfileForm() {
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               className={cn(
                 "w-full pl-10 pr-3 py-2 rounded-lg",
-                "bg-white dark:bg-gray-900",
-                "border border-gray-300 dark:border-gray-600",
+                "bg-background",
+                "border border-border",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500"
               )}
               required
@@ -150,8 +150,8 @@ export function ProfileForm() {
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className={cn(
                 "w-full pl-10 pr-3 py-2 rounded-lg",
-                "bg-white dark:bg-gray-900",
-                "border border-gray-300 dark:border-gray-600",
+                "bg-background",
+                "border border-border",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500"
               )}
               required
@@ -171,15 +171,15 @@ export function ProfileForm() {
               rows={4}
               className={cn(
                 "w-full pl-10 pr-3 py-2 rounded-lg",
-                "bg-white dark:bg-gray-900",
-                "border border-gray-300 dark:border-gray-600",
+                "bg-background",
+                "border border-border",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500",
                 "resize-none"
               )}
               placeholder="自己紹介を入力..."
             />
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             最大500文字
           </p>
         </div>

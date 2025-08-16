@@ -60,13 +60,13 @@ export function PomodoroHistory({ showTaskDetails = false }: PomodoroHistoryProp
     switch (status) {
       case SessionStatus.COMPLETED:
         return <>
-          <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-          <span className="text-xs text-green-600 dark:text-green-400">完了</span>
+          <CheckCircle className="w-4 h-4 text-green-600" />
+          <span className="text-xs text-green-600">完了</span>
         </>;
       case SessionStatus.CANCELLED:
         return <>
-          <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
-          <span className="text-xs text-red-600 dark:text-red-400">キャンセル</span>
+          <XCircle className="w-4 h-4 text-destructive" />
+          <span className="text-xs text-destructive">キャンセル</span>
         </>;
       default:
         return null;
@@ -108,7 +108,7 @@ export function PomodoroHistory({ showTaskDetails = false }: PomodoroHistoryProp
   if (isLoading) {
     return (
       <div className="text-center py-8">
-        <p className="text-sm text-gray-500 dark:text-gray-400">履歴を読み込み中...</p>
+        <p className="text-sm text-muted-foreground">履歴を読み込み中...</p>
       </div>
     );
   }
@@ -121,14 +121,14 @@ export function PomodoroHistory({ showTaskDetails = false }: PomodoroHistoryProp
       <h3 className="text-lg font-semibold">履歴</h3>
 
       {sessions.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+        <p className="text-sm text-muted-foreground text-center py-8">
           セッションがまだありません。最初のポモドーロを始めましょう！
         </p>
       ) : (
         <div className="space-y-6">
           {Object.entries(groupedSessions).map(([date, dateSessions]) => (
             <div key={date}>
-              <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">
                 {date}
               </h4>
               
@@ -141,15 +141,15 @@ export function PomodoroHistory({ showTaskDetails = false }: PomodoroHistoryProp
                       key={session.id}
                       className={cn(
                         "rounded-lg border",
-                        "border-gray-200 dark:border-gray-700",
-                        "bg-white dark:bg-gray-800"
+                        "border-border",
+                        "bg-card"
                       )}
                       data-testid="session-item"
                     >
                       <div
                         className={cn(
                           "flex items-center gap-3 p-3",
-                          showTaskDetails && session.tasks && session.tasks.length > 0 && "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                          showTaskDetails && session.tasks && session.tasks.length > 0 && "cursor-pointer hover:bg-accent/50"
                         )}
                         onClick={() => {
                           if (showTaskDetails && session.tasks && session.tasks.length > 0) {
@@ -160,8 +160,8 @@ export function PomodoroHistory({ showTaskDetails = false }: PomodoroHistoryProp
                         <div className={cn(
                           "flex items-center gap-2",
                           session.sessionType === SessionType.WORK 
-                            ? "text-blue-600 dark:text-blue-400"
-                            : "text-green-600 dark:text-green-400"
+                            ? "text-blue-600"
+                            : "text-green-600"
                         )}>
                           {getSessionIcon(session.sessionType)}
                           <span className="text-sm font-medium">
@@ -169,7 +169,7 @@ export function PomodoroHistory({ showTaskDetails = false }: PomodoroHistoryProp
                           </span>
                         </div>
 
-                        <div className="flex-1 flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="flex-1 flex items-center gap-4 text-sm text-muted-foreground">
                           <span>{format(new Date(session.createdAt), 'HH:mm')}</span>
                           <span>{getSessionDuration(session)}</span>
                           {session.completedCycles > 0 && (
@@ -180,7 +180,7 @@ export function PomodoroHistory({ showTaskDetails = false }: PomodoroHistoryProp
                         <div className="flex items-center gap-2">
                           {getSessionStatusIcon(session.status)}
                           {showTaskDetails && session.tasks && session.tasks.length > 0 && (
-                            <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
                               <span>{session.tasks.filter(t => t.completed).length}/{session.tasks.length}</span>
                               {isExpanded ? (
                                 <ChevronUp className="w-4 h-4" />
@@ -194,19 +194,19 @@ export function PomodoroHistory({ showTaskDetails = false }: PomodoroHistoryProp
 
                       {isExpanded && session.tasks && session.tasks.length > 0 && (
                         <div className="px-3 pb-3">
-                          <div className="border-t border-gray-200 dark:border-gray-700 pt-3 space-y-1">
+                          <div className="border-t border-border pt-3 space-y-1">
                             {session.tasks.map((task) => (
                               <div
                                 key={task.id}
                                 className="flex items-center gap-2 text-sm"
                               >
                                 {task.completed ? (
-                                  <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400 shrink-0" />
+                                  <CheckCircle className="w-3 h-3 text-green-600 shrink-0" />
                                 ) : (
-                                  <Circle className="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
+                                  <Circle className="w-3 h-3 text-muted-foreground/60 shrink-0" />
                                 )}
                                 <span className={cn(
-                                  task.completed && "line-through text-gray-500 dark:text-gray-400"
+                                  task.completed && "line-through text-muted-foreground"
                                 )}>
                                   {task.description}
                                 </span>
@@ -231,9 +231,9 @@ export function PomodoroHistory({ showTaskDetails = false }: PomodoroHistoryProp
             disabled={page === 0}
             className={cn(
               "px-3 py-1 text-sm rounded",
-              "border border-gray-300 dark:border-gray-600",
+              "border border-border",
               "disabled:opacity-50 disabled:cursor-not-allowed",
-              "hover:bg-gray-100 dark:hover:bg-gray-700"
+              "hover:bg-accent"
             )}
           >
             前
@@ -246,9 +246,9 @@ export function PomodoroHistory({ showTaskDetails = false }: PomodoroHistoryProp
             disabled={page >= data.totalPages - 1}
             className={cn(
               "px-3 py-1 text-sm rounded",
-              "border border-gray-300 dark:border-gray-600",
+              "border border-border",
               "disabled:opacity-50 disabled:cursor-not-allowed",
-              "hover:bg-gray-100 dark:hover:bg-gray-700"
+              "hover:bg-accent"
             )}
           >
             次

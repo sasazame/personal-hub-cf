@@ -40,7 +40,7 @@ export function DropdownMenu({ items, buttonClassName }: DropdownMenuProps) {
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors',
+          'p-2 rounded-md hover:bg-accent transition-colors',
           buttonClassName
         )}
       >
@@ -48,7 +48,7 @@ export function DropdownMenu({ items, buttonClassName }: DropdownMenuProps) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-10">
+        <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-popover ring-1 ring-border z-10">
           <div className="py-1">
             {items.map((item, index) => (
               <button
@@ -61,8 +61,8 @@ export function DropdownMenu({ items, buttonClassName }: DropdownMenuProps) {
                 className={cn(
                   'flex items-center w-full text-left px-4 py-2 text-sm',
                   item.variant === 'danger'
-                    ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
-                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'
+                    ? 'text-destructive hover:bg-destructive/10'
+                    : 'text-popover-foreground hover:bg-accent'
                 )}
               >
                 {item.icon && <span className="mr-3">{item.icon}</span>}

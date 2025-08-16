@@ -114,12 +114,15 @@ export function Settings() {
                 </button>
 
                 <button
-                  disabled
-                  className="p-4 rounded-lg border-2 border-border opacity-50 cursor-not-allowed"
+                  onClick={() => setTheme('system')}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    theme === 'system'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:border-border/80'
+                  }`}
                 >
-                  <Monitor className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">{t('appearance.system')}</span>
-                  <span className="text-xs text-muted-foreground block">{t('appearance.systemComingSoon')}</span>
+                  <Monitor className="h-6 w-6 mx-auto mb-2 text-primary" />
+                  <span className="text-sm text-foreground">{t('appearance.system')}</span>
                 </button>
               </div>
             </div>

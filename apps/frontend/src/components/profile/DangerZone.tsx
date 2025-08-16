@@ -20,17 +20,17 @@ export function DangerZone() {
   };
 
   return (
-    <div className="border border-red-200 dark:border-red-900 rounded-lg p-6 bg-red-50 dark:bg-red-900/10">
+    <div className="border border-destructive/20 rounded-lg p-6 bg-destructive/5">
       <div className="flex items-start gap-4">
-        <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/20">
-          <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+        <div className="p-3 rounded-full bg-destructive/10">
+          <AlertTriangle className="w-6 h-6 text-destructive" />
         </div>
         
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">
+          <h3 className="text-lg font-semibold text-destructive mb-2">
             危険な操作
           </h3>
-          <p className="text-sm text-red-700 dark:text-red-300 mb-4">
+          <p className="text-sm text-destructive/80 mb-4">
             アカウントを削除すると、すべてのデータが永久に失われます。この操作は取り消すことができません。
           </p>
           
@@ -48,18 +48,18 @@ export function DangerZone() {
       <Modal open={showModal} onClose={() => setShowModal(false)}>
         <div className="p-6">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/20">
-              <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+            <div className="p-3 rounded-full bg-destructive/10">
+              <AlertTriangle className="w-6 h-6 text-destructive" />
             </div>
             <h2 className="text-xl font-semibold">アカウントを削除しますか？</h2>
           </div>
 
           <div className="space-y-4 mb-6">
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-              <p className="text-sm text-red-700 dark:text-red-300">
+            <div className="p-4 bg-destructive/5 rounded-lg">
+              <p className="text-sm text-destructive/80">
                 <strong>警告:</strong> この操作により以下のデータがすべて削除されます：
               </p>
-              <ul className="mt-2 text-sm text-red-600 dark:text-red-400 list-disc list-inside space-y-1">
+              <ul className="mt-2 text-sm text-destructive/70 list-disc list-inside space-y-1">
                 <li>プロフィール情報</li>
                 <li>すべてのノート</li>
                 <li>すべてのタスク</li>
@@ -79,8 +79,8 @@ export function DangerZone() {
                 onChange={(e) => setPassword(e.target.value)}
                 className={cn(
                   "w-full px-3 py-2 rounded-lg",
-                  "bg-white dark:bg-gray-900",
-                  "border border-gray-300 dark:border-gray-600",
+                  "bg-background",
+                  "border border-border",
                   "focus:outline-none focus:ring-2 focus:ring-red-500"
                 )}
                 placeholder="現在のパスワード"
@@ -97,11 +97,11 @@ export function DangerZone() {
                 onChange={(e) => setConfirmText(e.target.value)}
                 className={cn(
                   "w-full px-3 py-2 rounded-lg",
-                  "bg-white dark:bg-gray-900",
+                  "bg-background",
                   "border",
                   confirmText === 'DELETE'
                     ? "border-green-500"
-                    : "border-gray-300 dark:border-gray-600",
+                    : "border-border",
                   "focus:outline-none focus:ring-2 focus:ring-red-500"
                 )}
                 placeholder="DELETE"

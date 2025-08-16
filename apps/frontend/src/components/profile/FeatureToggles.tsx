@@ -48,7 +48,7 @@ export function FeatureToggles() {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold mb-2">{t('settings.featureToggles', 'Feature Toggles')}</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+        <p className="text-sm text-muted-foreground mb-6">
           {t('settings.featureTogglesDescription', 'Enable or disable features to customize your dashboard experience')}
         </p>
       </div>
@@ -63,8 +63,8 @@ export function FeatureToggles() {
                   <Icon className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900 dark:text-white">{feature.label}</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{feature.description}</p>
+                  <h4 className="font-medium text-foreground">{feature.label}</h4>
+                  <p className="text-sm text-muted-foreground">{feature.description}</p>
                 </div>
               </div>
               <Switch
@@ -72,7 +72,7 @@ export function FeatureToggles() {
                 onChange={() => handleToggle(feature.key)}
                 disabled={saving}
                 className={`${
-                  preferences[feature.key] ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700'
+                  preferences[feature.key] ? 'bg-primary' : 'bg-muted'
                 } relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                   saving ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
@@ -89,8 +89,8 @@ export function FeatureToggles() {
         })}
       </div>
 
-      <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-        <p className="text-sm text-amber-800 dark:text-amber-200">
+      <div className="mt-6 p-4 bg-warning/10 rounded-lg border border-warning/20">
+        <p className="text-sm text-warning">
           <strong>{t('settings.note', 'Note')}:</strong>{' '}
           {t('settings.featureToggleNote', 'Disabled features will be hidden from your dashboard and sidebar navigation.')}
         </p>

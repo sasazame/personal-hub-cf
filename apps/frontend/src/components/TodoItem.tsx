@@ -144,9 +144,9 @@ export const TodoItem = memo(function TodoItem({ todo, onUpdate, onDelete, onAdd
     <div className="space-y-2">
       <div
         className={cn(
-          'bg-white dark:bg-gray-800 border rounded-lg shadow-sm hover:shadow-md transition-all duration-200',
+          'bg-card border rounded-lg shadow-sm hover:shadow-md transition-all duration-200',
           level > 0 ? 'ml-8 border-l-4 border-primary/30' : '',
-          isOverdue ? 'border-red-500 border-2' : 'border-gray-200 dark:border-gray-700'
+          isOverdue ? 'border-red-500 border-2' : 'border-border'
         )}
       >
         <div className="flex items-start p-4 gap-3">
@@ -182,7 +182,7 @@ export const TodoItem = memo(function TodoItem({ todo, onUpdate, onDelete, onAdd
                 {hasChildren && level === 0 && (
                   <button
                     onClick={() => setShowChildren(!showChildren)}
-                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                    className="p-1 hover:bg-muted rounded transition-colors"
                     aria-label={showChildren ? 'Hide subtasks' : 'Show subtasks'}
                   >
                     {showChildren ? (
@@ -193,7 +193,7 @@ export const TodoItem = memo(function TodoItem({ todo, onUpdate, onDelete, onAdd
                   </button>
                 )}
                 <div className="flex items-center gap-2">
-                  <h3 className={`text-lg font-semibold ${todo.status === 'DONE' ? 'line-through text-gray-500' : 'text-gray-900 dark:text-white'}`}>
+                  <h3 className={`text-lg font-semibold ${todo.status === 'DONE' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                     {todo.title}
                   </h3>
                   {todo.isRepeatable && (
@@ -219,13 +219,13 @@ export const TodoItem = memo(function TodoItem({ todo, onUpdate, onDelete, onAdd
             </div>
             
             {todo.description && (
-              <p className={`text-gray-600 dark:text-gray-400 mb-3 ${todo.status === 'DONE' ? 'line-through' : ''}`}>
+              <p className={`text-muted-foreground mb-3 ${todo.status === 'DONE' ? 'line-through' : ''}`}>
                 {todo.description}
               </p>
             )}
             
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 {todo.dueDate && (
                   <span className={isOverdue ? 'text-red-600 font-medium' : ''}>
                     Due: {new Date(todo.dueDate).toLocaleDateString()}
@@ -272,7 +272,7 @@ export const TodoItem = memo(function TodoItem({ todo, onUpdate, onDelete, onAdd
       )}
       
       {showChildren && isLoading && (
-        <div className="ml-8 text-gray-500">Loading subtasks...</div>
+        <div className="ml-8 text-muted-foreground">Loading subtasks...</div>
       )}
     </div>
   )
