@@ -1,6 +1,17 @@
 import { Note, CreateNoteDto, UpdateNoteDto, NoteFilters } from '@/types/note';
 import { getCachedCSRFToken } from './csrf';
 
+// Type for note data as received from backend (with tags as string)
+interface BackendNote {
+  id: string;
+  title: string;
+  content: string;
+  tags: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+}
+
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8787';
 
 function getAuthHeaders(includeCSRF: boolean = false): HeadersInit {
@@ -34,7 +45,12 @@ export async function fetchNotes(filters?: NoteFilters): Promise<Note[]> {
   }
 
   const data = await response.json();
-  return data.items || [];
+  // Convert tags from string to array for each note
+  const notes = (data.items || []).map((note: BackendNote) => ({
+    ...note,
+    tags: note.tags ? note.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t) : []
+  }));
+  return notes;
 }
 
 export async function fetchNoteTags(): Promise<string[]> {
@@ -72,7 +88,11 @@ export async function createNote(note: CreateNoteDto): Promise<Note> {
   }
 
   const data = await response.json();
-  return data; // Backend returns the note object directly
+  // Convert tags from string to array
+  return {
+    ...data,
+    tags: data.tags ? data.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t) : []
+  };
 }
 
 export async function updateNote(id: string, updates: UpdateNoteDto): Promise<Note> {
@@ -95,7 +115,11 @@ export async function updateNote(id: string, updates: UpdateNoteDto): Promise<No
   }
 
   const data = await response.json();
-  return data; // Backend returns the note object directly
+  // Convert tags from string to array
+  return {
+    ...data,
+    tags: data.tags ? data.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t) : []
+  };
 }
 
 export async function deleteNote(id: string): Promise<void> {

@@ -22,6 +22,7 @@ This file tracks pending tasks organized by feature.
 ## Calendar Feature
 
 ## Notes Feature
+- [HIGH] Fix NoteList.tsx TypeError when adding notes - tags.slice is not a function (Fixed in PR)
 
 ## Goals Feature
 
