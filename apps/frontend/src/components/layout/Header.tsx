@@ -62,15 +62,11 @@ export function Header({ onMenuClick }: HeaderProps) {
             {/* Command Palette Button */}
             <button
               onClick={openCommandPalette}
-              className="p-2 rounded-md text-foreground hover:bg-muted transition-colors group relative"
+              className="p-2 rounded-md text-foreground hover:bg-muted transition-colors"
               aria-label="Open command palette (Ctrl+K)"
               title="Command Palette (Ctrl+K)"
             >
               <Terminal className="h-5 w-5" />
-              {/* Tooltip on hover */}
-              <span className="absolute hidden group-hover:block bottom-full right-0 mb-2 px-2 py-1 text-xs bg-gray-900 dark:bg-gray-700 text-white rounded whitespace-nowrap">
-                Ctrl+K
-              </span>
             </button>
             
             {/* Theme Toggle */}
