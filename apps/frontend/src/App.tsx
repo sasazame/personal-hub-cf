@@ -5,8 +5,11 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { FeatureProvider } from './contexts/FeatureContext'
+import { CommandPaletteProvider } from './contexts/CommandPaletteContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { PublicRoute } from './components/PublicRoute'
+import { CommandPalette } from './components/CommandPalette'
+import { useCommandRegistration } from './hooks/useCommandRegistration'
 import { I18nextProvider, useTranslation } from 'react-i18next'
 import i18n from './i18n/config'
 
@@ -46,6 +49,17 @@ const PageLoader = () => {
   )
 }
 
+// Component to setup command palette
+const CommandPaletteSetup = ({ children }: { children: React.ReactNode }) => {
+  useCommandRegistration()
+  return (
+    <>
+      {children}
+      <CommandPalette />
+    </>
+  )
+}
+
 function App() {
   return (
     <I18nextProvider i18n={i18n}>
@@ -54,8 +68,10 @@ function App() {
           <Router>
             <AuthProvider>
               <FeatureProvider>
-                <Suspense fallback={<PageLoader />}>
-                <Routes>
+                <CommandPaletteProvider>
+                  <CommandPaletteSetup>
+                    <Suspense fallback={<PageLoader />}>
+                      <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/terms" element={<Terms />} />
@@ -148,14 +164,16 @@ function App() {
                 </PublicRoute>
               }
             />
-            </Routes>
-          </Suspense>
-          <Toaster position="top-right" />
-        </FeatureProvider>
-        </AuthProvider>
-      </Router>
-    </ThemeProvider>
-    </QueryClientProvider>
+                      </Routes>
+                    </Suspense>
+                    <Toaster position="top-right" />
+                  </CommandPaletteSetup>
+                </CommandPaletteProvider>
+              </FeatureProvider>
+            </AuthProvider>
+          </Router>
+        </ThemeProvider>
+      </QueryClientProvider>
     </I18nextProvider>
   )
 }
