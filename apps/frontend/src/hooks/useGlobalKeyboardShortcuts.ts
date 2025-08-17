@@ -10,18 +10,20 @@ export function useGlobalKeyboardShortcuts() {
     const handleKeyboardShortcuts = (e: KeyboardEvent) => {
       // Alt shortcuts for navigation (Alt+D, Alt+T, Alt+N, etc.)
       if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
-        const key = e.key.toLowerCase();
+        const code = e.code; // layout-stable (KeyD, KeyT, ...)
         let commandId: string | null = null;
 
-        switch (key) {
-          case 'd': commandId = 'nav-dashboard'; break;
-          case 't': commandId = 'nav-todos'; break;
-          case 'n': commandId = 'nav-notes'; break;
-          case 'g': commandId = 'nav-goals'; break;
-          case 'p': commandId = 'nav-pomodoro'; break;
-          case 'c': commandId = 'nav-calendar'; break;
-          case 'm': commandId = 'nav-moments'; break;
-          case 'a': commandId = 'nav-analytics'; break;
+        switch (code) {
+          case 'KeyD': commandId = 'nav-dashboard'; break;
+          case 'KeyT': commandId = 'nav-todos'; break;
+          case 'KeyN': commandId = 'nav-notes'; break;
+          case 'KeyG': commandId = 'nav-goals'; break;
+          case 'KeyP': commandId = 'nav-pomodoro'; break;
+          case 'KeyC': commandId = 'nav-calendar'; break;
+          case 'KeyM': commandId = 'nav-moments'; break;
+          case 'KeyA': commandId = 'nav-analytics'; break;
+          case 'KeyU': commandId = 'nav-profile'; break;  // Added missing profile shortcut
+          case 'KeyS': commandId = 'nav-settings'; break; // Added missing settings shortcut
         }
 
         if (commandId) {
@@ -35,12 +37,12 @@ export function useGlobalKeyboardShortcuts() {
 
       // Alt+Shift shortcuts for settings (Alt+Shift+T for theme, Alt+Shift+L for logout)
       if (e.altKey && e.shiftKey && !e.ctrlKey && !e.metaKey) {
-        const key = e.key.toLowerCase();
+        const code = e.code; // layout-stable (KeyT, KeyL, ...)
         let commandId: string | null = null;
 
-        switch (key) {
-          case 't': commandId = 'settings-toggle-theme'; break;
-          case 'l': commandId = 'settings-logout'; break;
+        switch (code) {
+          case 'KeyT': commandId = 'settings-toggle-theme'; break;
+          case 'KeyL': commandId = 'settings-logout'; break;
         }
 
         if (commandId) {

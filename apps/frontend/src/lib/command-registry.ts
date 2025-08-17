@@ -18,7 +18,9 @@ class CommandRegistry {
   private searchCache: Map<string, SearchCache> = new Map();
   private searchIndex: Map<string, SearchIndex> = new Map();
   private availableCommandsCache: Command[] | null = null;
+  private availableCacheTimestamp: number | null = null;
   private cacheTimeout = 5000; // 5 seconds cache
+  private availableCacheTTL = 5000; // 5 seconds availability cache
 
   constructor() {
     this.categories.set('navigation', new Set());
@@ -93,8 +95,12 @@ class CommandRegistry {
   }
 
   getAvailableCommands(): Command[] {
-    // Return cached results if available
-    if (this.availableCommandsCache) {
+    // Return cached results if fresh
+    if (
+      this.availableCommandsCache &&
+      this.availableCacheTimestamp &&
+      Date.now() - this.availableCacheTimestamp < this.availableCacheTTL
+    ) {
       return this.availableCommandsCache;
     }
     
@@ -103,6 +109,7 @@ class CommandRegistry {
     );
     
     this.availableCommandsCache = available;
+    this.availableCacheTimestamp = Date.now();
     return available;
   }
 
@@ -152,14 +159,16 @@ class CommandRegistry {
 
       // Multi-word search optimization
       if (score === 0 && normalizedQuery.includes(' ')) {
-        const words = normalizedQuery.split(' ');
-        const matchCount = words.filter(
-          (word) =>
-            index.titleLower.includes(word) ||
-            index.descriptionLower.includes(word) ||
-            index.keywordsLower.some(k => k.includes(word))
-        ).length;
-        score = (matchCount / words.length) * 20;
+        const words = normalizedQuery.split(/\s+/).filter(Boolean);
+        if (words.length > 0) {
+          const matchCount = words.filter(
+            (word) =>
+              index.titleLower.includes(word) ||
+              index.descriptionLower.includes(word) ||
+              index.keywordsLower.some(k => k.includes(word))
+          ).length;
+          score = (matchCount / words.length) * 20;
+        }
       }
 
       if (score > 0) {
@@ -192,6 +201,7 @@ class CommandRegistry {
   private invalidateCaches(): void {
     this.searchCache.clear();
     this.availableCommandsCache = null;
+    this.availableCacheTimestamp = null;
   }
 }
 

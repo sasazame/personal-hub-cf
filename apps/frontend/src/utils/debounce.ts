@@ -8,7 +8,7 @@ export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): DebouncedFunction<T> {
-  let timeout: NodeJS.Timeout | null = null;
+  let timeout: ReturnType<typeof setTimeout> | null = null;
   
   const debounced = function(...args: Parameters<T>) {
     if (timeout) {

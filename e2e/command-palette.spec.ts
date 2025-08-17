@@ -3,9 +3,8 @@ import { login, TEST_USER, ensureLoggedOut } from './helpers/auth';
 
 test.describe('Command Palette', () => {
   test.beforeEach(async ({ page }) => {
-    await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
-    
     await ensureLoggedOut(page);
+    await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
     await page.goto('/login');
     await login(page, TEST_USER.email, TEST_USER.password);
     

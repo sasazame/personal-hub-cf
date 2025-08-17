@@ -1,3 +1,5 @@
+import type { ComponentType } from 'react';
+
 export type CommandCategory = 'navigation' | 'action' | 'search' | 'settings';
 
 export interface Command {
@@ -6,7 +8,7 @@ export interface Command {
   description?: string;
   category: CommandCategory;
   keywords?: string[];
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: ComponentType<{ className?: string }>;
   shortcut?: string;
   action: () => void | Promise<void>;
   isAvailable?: () => boolean;

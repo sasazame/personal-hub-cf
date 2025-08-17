@@ -27,12 +27,17 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [recentCommands, setRecentCommands] = useState<string[]>(() => {
     // Use sessionStorage for temporary data to avoid security issues
-    const stored = sessionStorage.getItem('commandPalette.recentCommands');
     try {
-      return stored ? JSON.parse(stored) : [];
+      // Check if sessionStorage is available (not in SSR, private mode, etc.)
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        const stored = sessionStorage.getItem('commandPalette.recentCommands');
+        return stored ? JSON.parse(stored) : [];
+      }
     } catch {
+      // Silently handle SecurityError, JSON parse errors, etc.
       return [];
     }
+    return [];
   });
   
   // Version tracking for race condition prevention
@@ -119,8 +124,12 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
         .slice(0, MAX_RECENT_COMMANDS);
       // Use sessionStorage for temporary data to avoid security issues
       try {
-        sessionStorage.setItem('commandPalette.recentCommands', JSON.stringify(updated));
+        // Check if sessionStorage is available (not in SSR, private mode, etc.)
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+          sessionStorage.setItem('commandPalette.recentCommands', JSON.stringify(updated));
+        }
       } catch (e) {
+        // Silently handle SecurityError in private browsing, CSP restrictions, etc.
         console.warn('Failed to save recent commands:', e);
       }
       return updated;

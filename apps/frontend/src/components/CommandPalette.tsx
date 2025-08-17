@@ -16,7 +16,7 @@ const CommandItem = memo(({
 }: {
   command: Command;
   isSelected: boolean;
-  onExecute: () => void;
+  onExecute: (index: number) => void;
   onHover: (index: number) => void;
   index: number;
 }) => {
@@ -24,6 +24,10 @@ const CommandItem = memo(({
   const handleMouseEnter = useCallback(() => {
     onHover(index);
   }, [index, onHover]);
+  
+  const handleClick = useCallback(() => {
+    onExecute(index);
+  }, [index, onExecute]);
   
   return (
     <div
@@ -38,7 +42,7 @@ const CommandItem = memo(({
             : 'hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
         }
       `}
-      onClick={onExecute}
+      onClick={handleClick}
       onMouseEnter={handleMouseEnter}
     >
       <div className="flex items-center">
@@ -165,9 +169,11 @@ export function CommandPalette() {
   }, [state.selectedIndex, setSelectedIndex]);
   
   // Memoize handler for item execute
-  const handleItemExecute = useCallback(() => {
+  const handleItemExecute = useCallback((index: number) => {
+    // Ensure the clicked item is selected before execution
+    setSelectedIndex(index);
     executeSelectedCommand();
-  }, [executeSelectedCommand]);
+  }, [setSelectedIndex, executeSelectedCommand]);
 
   let globalIndex = -1;
 

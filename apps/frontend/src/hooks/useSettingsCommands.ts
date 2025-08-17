@@ -9,7 +9,7 @@ import { Command } from '../types/command-palette';
 export function useSettingsCommands() {
   const { t, i18n } = useTranslation('common');
   const { logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const settingsCommands: Command[] = [
@@ -26,31 +26,8 @@ export function useSettingsCommands() {
         action: () => {
           // For command palette, do a simple toggle between light and dark
           // Skip system mode for predictability
-          const root = document.documentElement;
-          const currentIsDark = root.classList.contains('dark');
-          if (currentIsDark) {
-            root.classList.remove('dark');
-            root.classList.add('light');
-            localStorage.setItem('theme', 'light');
-            // Dispatch storage event to sync with theme context
-            window.dispatchEvent(new StorageEvent('storage', {
-              key: 'theme',
-              newValue: 'light',
-              oldValue: 'dark',
-              storageArea: localStorage
-            }));
-          } else {
-            root.classList.remove('light');
-            root.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-            // Dispatch storage event to sync with theme context
-            window.dispatchEvent(new StorageEvent('storage', {
-              key: 'theme',
-              newValue: 'dark',
-              oldValue: 'light',
-              storageArea: localStorage
-            }));
-          }
+          const newTheme = theme === 'dark' ? 'light' : 'dark';
+          setTheme(newTheme);
         },
       },
       {
@@ -91,5 +68,5 @@ export function useSettingsCommands() {
     return () => {
       settingsCommands.forEach(cmd => commandRegistry.unregister(cmd.id));
     };
-  }, [t, i18n, theme, toggleTheme, logout]);
+  }, [t, i18n, theme, setTheme, logout]);
 }
