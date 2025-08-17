@@ -4,34 +4,41 @@ A modern, edge-native personal productivity hub built on Cloudflare's platform, 
 
 ## ✅ Project Status
 
-**Completed:**
-- ✅ Backend API migration with 100% Spring Boot compatibility
-- ✅ D1 database schema fully migrated
+**Recently Completed (August 2025):**
+- ✅ **Command Palette System** - Global keyboard shortcuts with Cmd/Ctrl+K
+- ✅ **Dark Mode Improvements** - Semantic tokens and system theme support
+- ✅ **Pomodoro Timer** - Full implementation with task integration
+- ✅ **Security Event Logging** - Comprehensive audit trail system
+- ✅ **Enhanced UI/UX** - Visual feedback improvements across all features
+- ✅ **Bug Fixes** - CSRF token issues, note tags, E2E test reliability
+
+**Core Infrastructure:**
+- ✅ Backend API with 100% Spring Boot compatibility
+- ✅ D1 database schema fully migrated (15+ tables)
 - ✅ All 13 API endpoint groups implemented
-- ✅ Authentication system with JWT tokens
-- ✅ Comprehensive test suite (93.44% coverage, 243 tests passing)
+- ✅ JWT Authentication with CSRF protection
+- ✅ Comprehensive test suite (93.44% coverage, 279 tests)
 - ✅ CI/CD pipeline with GitHub Actions
-- ✅ API documentation (OpenAPI 3.0)
-- ✅ **Frontend migration from Next.js to Vite+React**
-- ✅ **All main features implemented in new frontend**
-- ✅ **E2E test suite with Playwright (32 test files)**
+- ✅ Frontend migration from Next.js to Vite+React
+- ✅ E2E test suite with Playwright (32 test files)
+- ✅ Internationalization (English/Japanese)
 
 **In Progress:**
-- 🚧 Cloudflare Pages deployment setup
-- 🚧 E2E test stability improvements
-- 🚧 OAuth integration (GitHub/Google)
+- 🚧 OAuth integration completion (GitHub/Google)
+- 🚧 Cloudflare Pages deployment finalization
+- 🚧 Performance optimizations
 
 **Next Steps:**
-- 📋 Deploy to Cloudflare Pages for staging
-- 📋 Implement missing OAuth flows
-- 📋 Performance optimizations
-- 📋 Dark mode toggle
+- 📋 Complete OAuth implementation
+- 📋 Add field-level encryption for sensitive data
+- 📋 Implement backup and restore functionality
+- 📋 Add more keyboard shortcuts
 
 ## 📋 Prerequisites
 
 - Node.js 20+
 - pnpm 10.13.1
-- Cloudflare account
+- Cloudflare account (for deployment)
 - Wrangler CLI (`npm install -g wrangler`)
 
 ## 🚀 Quick Start
@@ -42,19 +49,22 @@ pnpm install
 
 # Run all services in development
 pnpm dev
+# Frontend: http://localhost:5173
+# Backend: http://localhost:8787
 
 # Run specific workspace
 pnpm --filter @personal-hub/backend dev
 pnpm --filter @personal-hub/frontend dev
 
 # Run tests
-pnpm test
+pnpm test          # Unit tests
+pnpm test:e2e      # E2E tests with UI
+pnpm test:e2e:ci   # E2E tests headless
 
-# Type checking
-pnpm typecheck
-
-# Linting
-pnpm lint
+# Code quality checks
+pnpm typecheck     # TypeScript validation
+pnpm lint          # ESLint checks
+pnpm build         # Production build
 ```
 
 ## 🌐 Deployment
@@ -107,31 +117,48 @@ personal-hub-cf/
 ## 🛠️ Technology Stack
 
 ### Backend
-- **Runtime**: Cloudflare Workers
+- **Runtime**: Cloudflare Workers (Edge computing)
 - **Framework**: Hono (lightweight web framework)
 - **Database**: Cloudflare D1 (SQLite-compatible edge database)
-- **ORM**: Drizzle ORM
+- **ORM**: Drizzle ORM with type-safe queries
 - **Authentication**: JWT with @tsndr/cloudflare-worker-jwt
-- **Validation**: Zod
-- **Testing**: Vitest with Miniflare
-- **Coverage**: 93.44% statement coverage
+- **Validation**: Zod schemas for all endpoints
+- **Rate Limiting**: Cloudflare KV for distributed rate limiting
+- **Testing**: Vitest with Miniflare for edge environment
+- **Coverage**: 93.44% statement coverage (279 tests)
 
 ### Frontend
-- **Framework**: React with Vite
-- **UI Library**: Material-UI (MUI)
-- **Styling**: Tailwind CSS + Emotion
-- **State Management**: React Query + Zustand
-- **Calendar**: FullCalendar
-- **Charts**: Recharts
-- **Markdown**: React Markdown
-- **Testing**: Playwright for E2E
+- **Framework**: React 18 with Vite for fast HMR
+- **UI Components**: Custom components with Tailwind CSS
+- **Styling**: Tailwind CSS with semantic design tokens
+- **State Management**: React Query + Context API
+- **Calendar**: FullCalendar with event management
+- **Charts**: Recharts for analytics visualization
+- **Markdown**: React Markdown for rich text
+- **Icons**: React Icons library
+- **Testing**: Playwright for E2E (32 test files)
+- **Performance**: Virtual scrolling, lazy loading, memoization
 
-## 📝 Migration Principles
+## 🔄 Development Workflow
 
-1. **100% API Compatibility** - Backend maintains exact API contracts
-2. **Incremental Migration** - Page-by-page frontend migration
-3. **Continuous Validation** - Every change tested against original
-4. **Feature Freeze** - No new features during migration
+### Branch Strategy
+- **main** - Production-ready code
+- **feat/** - New features
+- **fix/** - Bug fixes
+- **docs/** - Documentation updates
+
+### Commit Guidelines
+- Use conventional commits (feat:, fix:, docs:, etc.)
+- Include `[skip ci]` for documentation-only changes
+- Reference issues when applicable
+
+### Pull Request Process
+1. Create feature branch from main
+2. Make changes with proper testing
+3. Ensure all quality checks pass
+4. Create PR with detailed description
+5. Wait for CI checks and review
+6. Merge after approval
 
 ## 🧪 Testing Strategy
 
@@ -159,23 +186,42 @@ pnpm test:e2e:ui
 
 ## 🌟 Features
 
-- **Task Management**: Create, organize, and track todos with priorities and tags
-- **Note Taking**: Rich text notes with categories and full-text search
-- **Moments**: Capture quick thoughts and insights with tags
-- **Event Calendar**: Schedule and manage events with reminders
-- **Goal Tracking**: Set goals and monitor progress over time
-- **Pomodoro Timer**: Focus sessions with integrated task tracking
-- **Analytics Dashboard**: Productivity insights, habit tracking, and time analysis
-- **User Management**: Profile settings and secure password management
+### Core Productivity Features
+- **📝 Task Management**: Advanced todo system with priorities (Low/Medium/High/Urgent), statuses (Todo/In Progress/Done/Cancelled), recurring tasks (Daily/Weekly/Monthly/Yearly), and subtask hierarchy
+- **📔 Note Taking**: Rich text notes with tags, full-text search, and organization
+- **💭 Moments**: Quick capture for thoughts and insights with tag categorization
+- **📅 Event Calendar**: Full-featured calendar with reminders and Google Calendar integration ready
+- **🎯 Goal Tracking**: Set goals, track achievements, and monitor progress over time
+- **🍅 Pomodoro Timer**: Advanced timer with task integration, customizable work/break durations, cycle tracking, audio alerts, auto-start options, and session history
+- **📊 Analytics Dashboard**: Comprehensive insights including completion rates, productivity streaks, hourly/weekly patterns, tag analytics, goal progress tracking, and activity heatmaps
+
+### User Experience Features
+- **⌨️ Command Palette**: Global keyboard shortcuts (Cmd/Ctrl+K) with fuzzy search, command history, categories, and virtual scrolling for 1000+ commands
+- **🌓 Theme System**: Light, dark, and system theme support with semantic design tokens and CSS variables
+- **🌐 Internationalization**: Full English and Japanese language support with namespaced translations
+- **📱 Responsive Design**: Mobile-friendly interface with touch support and responsive layouts
+- **⚡ Performance**: Virtual scrolling, lazy loading, memoization, search caching (99% faster), and optimized rendering
+- **♿ Accessibility**: Comprehensive ARIA attributes, keyboard navigation, focus management, and screen reader support
+
+### Advanced Features
+- **🔄 Recurring Tasks**: Complex repeat patterns with custom intervals and specific days/dates
+- **🏗️ Feature Toggles**: User-configurable feature enablement for personalized experience
+- **📡 Google Calendar Ready**: Database schema and API endpoints prepared for calendar sync
+- **🏷️ Tag Analytics**: Cross-feature tag analysis for notes and moments
+- **📦 Session Storage**: Sophisticated session management with timeout handling
+- **📝 Audit Trail**: Comprehensive security event logging for compliance
 
 ## 🔒 Security Features
 
 - **JWT Authentication**: Secure token-based authentication with refresh tokens
 - **Session Management**: HTTP-only secure cookies with 30-minute inactivity timeout
 - **CSRF Protection**: Double-submit cookie pattern with secure SameSite attributes
+- **Security Event Logging**: Comprehensive audit trail for all security events
 - **Input Validation**: Comprehensive Zod-based validation on all endpoints
-- **Secure Headers**: Security headers configured for XSS and clickjacking protection
-- **Rate Limiting**: API rate limiting on authentication endpoints
+- **SQL Injection Protection**: Parameterized queries through Drizzle ORM
+- **XSS Prevention**: Content sanitization and secure headers
+- **Rate Limiting**: API rate limiting on authentication endpoints using Cloudflare KV
+- **Password Security**: Secure hashing with salt for password storage
 
 ## 📄 License
 
