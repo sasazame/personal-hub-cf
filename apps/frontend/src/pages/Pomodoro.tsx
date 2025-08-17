@@ -31,7 +31,7 @@ export function Pomodoro() {
   // Tasks from active session
   const tasks = activeSession?.tasks || [];
 
-  const handleCreateSession = (initialTask?: string, sessionType: string = 'WORK') => {
+  const handleCreateSession = (initialTask?: string, sessionType: SessionType = SessionType.WORK) => {
     if (!config) return;
 
     const sessionData = prepareSessionData(config, initialTask, tasks, sessionType);
@@ -62,13 +62,11 @@ export function Pomodoro() {
 
         createSession.mutate(breakSessionData, {
           onSuccess: (newSession) => {
-            // Auto-start the break session
-            setTimeout(() => {
-              updateSession.mutate({
-                id: newSession.id,
-                action: SessionAction.START,
-              });
-            }, 500);
+            // Auto-start the break session immediately
+            updateSession.mutate({
+              id: newSession.id,
+              action: SessionAction.START,
+            });
           },
         });
       }, 1000);
@@ -84,13 +82,11 @@ export function Pomodoro() {
 
         createSession.mutate(workSessionData, {
           onSuccess: (newSession) => {
-            // Auto-start the work session
-            setTimeout(() => {
-              updateSession.mutate({
-                id: newSession.id,
-                action: SessionAction.START,
-              });
-            }, 500);
+            // Auto-start the work session immediately
+            updateSession.mutate({
+              id: newSession.id,
+              action: SessionAction.START,
+            });
           },
         });
       }, 1000);

@@ -20,11 +20,10 @@ app.use('*', authMiddleware);
 const createSessionSchema = z.object({
   workDuration: z.number().min(1),
   breakDuration: z.number().min(1),
-  sessionType: z.string().optional(),
+  sessionType: z.enum(['WORK', 'SHORT_BREAK', 'LONG_BREAK']).optional(),
   tasks: z.array(z.object({
     todoId: z.number().optional(),
     description: z.string().min(1),
-    orderIndex: z.number(),
   })).optional(),
 });
 
@@ -60,8 +59,20 @@ const createTaskSchema = z.object({
 app.get('/sessions', async (c) => {
   const db = c.get('db');
   const userId = c.get('userId');
-  const page = parseInt(c.req.query('page') || '0');
-  const size = parseInt(c.req.query('size') || '20');
+  
+  // Parse and validate pagination parameters
+  const rawPage = c.req.query('page');
+  const rawSize = c.req.query('size');
+  let page = Number.parseInt(rawPage ?? '0', 10);
+  let size = Number.parseInt(rawSize ?? '20', 10);
+  
+  // Normalize invalid values
+  if (!Number.isFinite(page) || page < 0) page = 0;
+  
+  const MAX_SIZE = 100;
+  if (!Number.isFinite(size) || size <= 0) size = 20;
+  if (size > MAX_SIZE) size = MAX_SIZE;
+  
   const offset = page * size;
   
   try {
@@ -72,7 +83,7 @@ app.get('/sessions', async (c) => {
       .get();
     
     const totalElements = countResult?.count || 0;
-    const totalPages = Math.ceil(totalElements / size);
+    const totalPages = size > 0 ? Math.ceil(totalElements / size) : 0;
     
     // Get sessions
     const sessions = await db.select()
@@ -90,7 +101,7 @@ app.get('/sessions', async (c) => {
       size,
       number: page,
       first: page === 0,
-      last: page >= totalPages - 1,
+      last: totalPages === 0 ? true : page >= totalPages - 1,
       empty: sessions.length === 0
     });
   } catch (error) {
@@ -221,12 +232,12 @@ app.post('/sessions', zValidator('json', createSessionSchema, springBootValidato
     
     // Create tasks if provided
     if (data.tasks && data.tasks.length > 0) {
-      const taskValues = data.tasks.map((task: { todoId?: number; description: string; orderIndex: number }) => ({
+      const taskValues = data.tasks.map((task: { todoId?: number; description: string }, idx: number) => ({
         id: nanoid(),
         sessionId,
         todoId: task.todoId,
         description: task.description,
-        orderIndex: task.orderIndex,
+        orderIndex: idx,
         completed: false,
         createdAt: now,
         updatedAt: now,

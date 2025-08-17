@@ -279,6 +279,170 @@ describe('Pomodoro Routes', () => {
         empty: true,
       });
     });
+
+    it('should normalize invalid page/size to safe defaults', async () => {
+      const mockedDb = asMockedDb(ctx.db);
+      let selectCallCount = 0;
+      mockedDb.select.mockImplementation(() => {
+        selectCallCount++;
+        if (selectCallCount === 1) {
+          // Auth middleware user lookup
+          return { 
+            from: vi.fn().mockReturnThis(), 
+            where: vi.fn().mockReturnThis(), 
+            get: vi.fn().mockResolvedValue({ 
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            }) 
+          };
+        } else if (selectCallCount === 2) {
+          // Count query
+          return { 
+            from: vi.fn().mockReturnThis(), 
+            where: vi.fn().mockReturnThis(), 
+            get: vi.fn().mockResolvedValue({ count: 10 }) 
+          };
+        } else {
+          // Sessions query with normalized parameters
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            orderBy: vi.fn().mockReturnThis(),
+            limit: vi.fn((limit) => {
+              // Should use default size of 20 when invalid
+              expect(limit).toBe(20);
+              return { 
+                offset: vi.fn((offset) => {
+                  // Should use page 0 when invalid
+                  expect(offset).toBe(0);
+                  return Promise.resolve([]);
+                })
+              };
+            }),
+          };
+        }
+      });
+
+      const res = await app.request('/pomodoro/sessions?page=foo&size=bar', {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${validToken}` },
+      }, ctx.env);
+      
+      expect(res.status).toBe(200);
+      const body = await res.json() as { size: number; number: number };
+      expect(body.size).toBe(20);
+      expect(body.number).toBe(0);
+    });
+
+    it('should cap large size to MAX_SIZE', async () => {
+      const mockedDb = asMockedDb(ctx.db);
+      let selectCallCount = 0;
+      mockedDb.select.mockImplementation(() => {
+        selectCallCount++;
+        if (selectCallCount === 1) {
+          // Auth middleware user lookup
+          return { 
+            from: vi.fn().mockReturnThis(), 
+            where: vi.fn().mockReturnThis(), 
+            get: vi.fn().mockResolvedValue({ 
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            }) 
+          };
+        } else if (selectCallCount === 2) {
+          // Count query
+          return { 
+            from: vi.fn().mockReturnThis(), 
+            where: vi.fn().mockReturnThis(), 
+            get: vi.fn().mockResolvedValue({ count: 500 }) 
+          };
+        } else {
+          // Sessions query with capped size
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            orderBy: vi.fn().mockReturnThis(),
+            limit: vi.fn((limit) => {
+              // Should cap to MAX_SIZE of 100
+              expect(limit).toBe(100);
+              return { 
+                offset: vi.fn().mockResolvedValue([]) 
+              };
+            }),
+          };
+        }
+      });
+
+      const res = await app.request('/pomodoro/sessions?size=10000', {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${validToken}` },
+      }, ctx.env);
+      
+      expect(res.status).toBe(200);
+      const body = await res.json() as { size: number };
+      expect(body.size).toBe(100);
+    });
+
+    it('should handle negative page and zero size gracefully', async () => {
+      const mockedDb = asMockedDb(ctx.db);
+      let selectCallCount = 0;
+      mockedDb.select.mockImplementation(() => {
+        selectCallCount++;
+        if (selectCallCount === 1) {
+          // Auth middleware user lookup
+          return { 
+            from: vi.fn().mockReturnThis(), 
+            where: vi.fn().mockReturnThis(), 
+            get: vi.fn().mockResolvedValue({ 
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            }) 
+          };
+        } else if (selectCallCount === 2) {
+          // Count query
+          return { 
+            from: vi.fn().mockReturnThis(), 
+            where: vi.fn().mockReturnThis(), 
+            get: vi.fn().mockResolvedValue({ count: 5 }) 
+          };
+        } else {
+          // Sessions query with normalized parameters
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            orderBy: vi.fn().mockReturnThis(),
+            limit: vi.fn((limit) => {
+              // Should use default size when size=0
+              expect(limit).toBe(20);
+              return { 
+                offset: vi.fn((offset) => {
+                  // Should use page 0 when negative
+                  expect(offset).toBe(0);
+                  return Promise.resolve([]);
+                })
+              };
+            }),
+          };
+        }
+      });
+
+      const res = await app.request('/pomodoro/sessions?page=-5&size=0', {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${validToken}` },
+      }, ctx.env);
+      
+      expect(res.status).toBe(200);
+      const body = await res.json() as { size: number; number: number; first: boolean };
+      expect(body.size).toBe(20);
+      expect(body.number).toBe(0);
+      expect(body.first).toBe(true);
+    });
   });
 
   describe('GET /pomodoro/sessions/active', () => {

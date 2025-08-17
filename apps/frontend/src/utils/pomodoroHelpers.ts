@@ -1,10 +1,10 @@
-import { PomodoroConfig, PomodoroTask, CreatePomodoroTaskRequest, CreatePomodoroSessionRequest } from '@/types/pomodoro';
+import { PomodoroConfig, PomodoroTask, CreatePomodoroTaskRequest, CreatePomodoroSessionRequest, SessionType } from '@/types/pomodoro';
 
 export function prepareSessionData(
   config: PomodoroConfig,
   initialTask?: string,
   currentTasks?: PomodoroTask[],
-  sessionType: string = 'WORK'
+  sessionType: SessionType = SessionType.WORK
 ): CreatePomodoroSessionRequest {
   const tasks: CreatePomodoroTaskRequest[] = [];
   
@@ -21,7 +21,9 @@ export function prepareSessionData(
   
   return {
     workDuration: config.workDuration,
-    breakDuration: config.shortBreakDuration,
+    breakDuration: sessionType === SessionType.LONG_BREAK 
+      ? config.longBreakDuration 
+      : config.shortBreakDuration,
     sessionType,
     tasks
   };
