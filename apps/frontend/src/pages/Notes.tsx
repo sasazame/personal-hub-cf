@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
 import { Plus, Search } from 'lucide-react';
 import { Button, Input, Modal } from '@/components/ui';
 import { AppLayout } from '@/components/layout';
@@ -18,6 +19,8 @@ import {
 
 export function Notes() {
   const { t } = useTranslation(['notes', 'common']);
+  const location = useLocation();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [notes, setNotes] = useState<Note[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,6 +72,20 @@ export function Notes() {
       setIsLoading(false);
     });
   }, [loadNotes]);
+
+  // Handle navigation state from command palette
+  useEffect(() => {
+    const state = location.state as { openAddModal?: boolean; focusSearch?: boolean } | null;
+    if (state?.openAddModal) {
+      setIsFormOpen(true);
+      // Clear the state to prevent reopening on refresh
+      window.history.replaceState({}, document.title);
+    }
+    if (state?.focusSearch && searchInputRef.current) {
+      searchInputRef.current.focus();
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const handleCreateNote = async (data: CreateNoteDto) => {
     setIsSubmitting(true);
@@ -206,6 +223,7 @@ export function Notes() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
+                ref={searchInputRef}
                 placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={handleSearchChange}

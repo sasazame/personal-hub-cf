@@ -5,6 +5,7 @@ import { Modal } from './ui/Modal';
 import { Command } from '../types/command-palette';
 import { useTranslation } from 'react-i18next';
 import { VirtualCommandList } from './VirtualCommandList';
+import { commandRegistry } from '../lib/command-registry';
 
 // Memoize command item to prevent re-renders
 const CommandItem = memo(({ 
@@ -131,6 +132,8 @@ export function CommandPalette() {
 
   const getCategoryLabel = useCallback((category: string) => {
     switch (category) {
+      case 'history':
+        return t('commandPalette.categories.history', 'History');
       case 'navigation':
         return t('commandPalette.categories.navigation', 'Navigation');
       case 'action':
@@ -146,8 +149,27 @@ export function CommandPalette() {
 
   const groupedCommands = useMemo(() => {
     const groups = new Map<string, Command[]>();
+    const historyGroup: Command[] = [];
     
-    state.filteredCommands.forEach((command) => {
+    // When there's no search query, first 5 commands are from history
+    if (!state.searchQuery && state.filteredCommands.length > 0) {
+      const historyCount = Math.min(5, state.filteredCommands.length);
+      for (let i = 0; i < historyCount; i++) {
+        const cmd = state.filteredCommands[i];
+        // Check if this is a history command by seeing if it would be in normal order
+        const allCommands = commandRegistry.getAvailableCommands();
+        const normalIndex = allCommands.findIndex(c => c.id === cmd.id);
+        if (normalIndex >= historyCount) {
+          historyGroup.push(cmd);
+        } else {
+          break;
+        }
+      }
+    }
+    
+    // Group remaining commands by category
+    const startIndex = historyGroup.length;
+    state.filteredCommands.slice(startIndex).forEach((command) => {
       const category = command.category;
       if (!groups.has(category)) {
         groups.set(category, []);
@@ -155,11 +177,17 @@ export function CommandPalette() {
       groups.get(category)!.push(command);
     });
 
-    return Array.from(groups.entries()).map(([category, commands]) => ({
+    const result = [];
+    if (historyGroup.length > 0) {
+      result.push({ category: 'history', commands: historyGroup });
+    }
+    result.push(...Array.from(groups.entries()).map(([category, commands]) => ({
       category,
       commands,
-    }));
-  }, [state.filteredCommands]);
+    })));
+    
+    return result;
+  }, [state.filteredCommands, state.searchQuery]);
   
   // Memoize handler for item hover
   const handleItemHover = useCallback((index: number) => {
@@ -183,7 +211,7 @@ export function CommandPalette() {
       onClose={closeCommandPalette}
       className="max-w-2xl mx-auto mt-20"
     >
-      <div className="flex flex-col max-h-[70vh]" role="combobox" aria-expanded="true" aria-haspopup="listbox" aria-owns="command-list">
+      <div className="flex flex-col h-[600px] max-h-[80vh]" role="combobox" aria-expanded="true" aria-haspopup="listbox" aria-owns="command-list">
         <div className="flex items-center border-b border-gray-200 dark:border-gray-700 px-4 py-3">
           <Search className="w-5 h-5 text-gray-400 mr-3" aria-hidden="true" />
           <input
@@ -213,7 +241,7 @@ export function CommandPalette() {
           {state.filteredCommands.length} {t('commandPalette.resultsFound', 'commands found')}
         </div>
 
-        <div ref={listRef} id="command-list" role="listbox" className="flex-1 overflow-y-auto py-2" aria-label="Command suggestions">
+        <div ref={listRef} id="command-list" role="listbox" className="flex-1 min-h-0 overflow-y-auto py-2" aria-label="Command suggestions">
           {state.filteredCommands.length === 0 ? (
             <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
               {state.searchQuery
@@ -268,7 +296,7 @@ export function CommandPalette() {
           )}
         </div>
 
-        <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 px-4 py-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
               <kbd className="px-1.5 py-0.5 font-semibold bg-gray-100 dark:bg-gray-800 rounded">↑</kbd>

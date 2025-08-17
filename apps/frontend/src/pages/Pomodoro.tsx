@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { AppLayout } from '@/components/layout';
 import {
   PomodoroTimer,
@@ -18,6 +20,7 @@ import { Card } from '@/components/ui/Card';
 import { Clock } from 'lucide-react';
 
 export function Pomodoro() {
+  const location = useLocation();
   const { data: activeSession, isLoading } = useActiveSession();
   const { data: config } = usePomodoroConfig();
   const createSession = useCreateSession();
@@ -75,6 +78,16 @@ export function Pomodoro() {
   const handleSessionUpdate = () => {
     // Session will be updated via the query invalidation in the hook
   };
+
+  // Handle navigation state from command palette
+  useEffect(() => {
+    const state = location.state as { autoStart?: boolean } | null;
+    if (state?.autoStart && !activeSession && config) {
+      handleCreateSession();
+      // Clear the state to prevent re-starting on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, activeSession, config]);
 
   if (isLoading) {
     return (

@@ -11,7 +11,6 @@ This file tracks pending tasks organized by feature.
 ---
 
 ## Common
-- [HIGH] Add command palette feature - Provide keyboard shortcuts to all features and cross-search functionality
 - [LOW] Add Field-Level Encryption - Encrypt sensitive user data at rest using Cloudflare's Web Crypto API (requires Cloudflare Workers runtime)
 
 ## Auth Feature

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { CommandPaletteState } from '../types/command-palette';
 import { commandRegistry } from '../lib/command-registry';
 import { debounce } from '../utils/debounce';
+import { useCommandHistory } from '../hooks/useCommandHistory';
 
 interface CommandPaletteContextValue {
   state: CommandPaletteState;
@@ -25,6 +26,7 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const { addToHistory, getRecentCommandIds } = useCommandHistory();
   const [recentCommands, setRecentCommands] = useState<string[]>(() => {
     // Use sessionStorage for temporary data to avoid security issues
     try {
@@ -58,21 +60,21 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
       return commandRegistry.searchCommands(debouncedQuery);
     }
     
-    // Only recalculate when actually needed
-    const recent = recentCommands
-      .slice(0, MAX_RECENT_COMMANDS)
+    // Get commands from history
+    const historyCommandIds = getRecentCommandIds();
+    const historyCommands = historyCommandIds
       .map(id => commandRegistry.getCommand(id))
       .filter((cmd): cmd is NonNullable<typeof cmd> => 
         cmd !== undefined && (!cmd.isAvailable || cmd.isAvailable())
       );
     
     const allAvailable = commandRegistry.getAvailableCommands();
-    const nonRecent = allAvailable.filter(
-      cmd => !recentCommands.includes(cmd.id)
+    const nonHistory = allAvailable.filter(
+      cmd => !historyCommandIds.includes(cmd.id)
     );
     
-    return [...recent, ...nonRecent];
-  }, [debouncedQuery, recentCommands]);
+    return [...historyCommands, ...nonHistory];
+  }, [debouncedQuery, getRecentCommandIds]);
 
   const state: CommandPaletteState = {
     isOpen,
@@ -141,6 +143,7 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
     if (command) {
       closeCommandPalette();
       addRecentCommand(command.id);
+      addToHistory(command.id);
       
       // Handle both sync and async command execution with error handling
       try {
@@ -160,7 +163,7 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
         // toast.error(`Failed to execute: ${command.title}`);
       }
     }
-  }, [filteredCommands, selectedIndex, closeCommandPalette, addRecentCommand]);
+  }, [filteredCommands, selectedIndex, closeCommandPalette, addRecentCommand, addToHistory]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

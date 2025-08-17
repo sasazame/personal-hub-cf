@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { AppLayout } from '@/components/layout';
 import { Button, Input, Modal } from '../components/ui';
 import { MomentList } from '../components/MomentList';
@@ -13,6 +14,8 @@ import { Plus, Search, Tag } from 'lucide-react';
 const PREVIEW_LENGTH = 100;
 
 export function Moments() {
+  const location = useLocation();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedMoment, setSelectedMoment] = useState<Moment | null>(null);
@@ -30,6 +33,20 @@ export function Moments() {
     loadMoments();
     loadTags();
   }, [searchQuery, selectedTag]);
+
+  // Handle navigation state from command palette
+  useEffect(() => {
+    const state = location.state as { openAddModal?: boolean; focusSearch?: boolean } | null;
+    if (state?.openAddModal) {
+      setIsFormOpen(true);
+      // Clear the state to prevent reopening on refresh
+      window.history.replaceState({}, document.title);
+    }
+    if (state?.focusSearch && searchInputRef.current) {
+      searchInputRef.current.focus();
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const loadMoments = async (pageNumber = 0) => {
     try {
@@ -179,6 +196,7 @@ export function Moments() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
+                ref={searchInputRef}
                 placeholder="Search moments..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
