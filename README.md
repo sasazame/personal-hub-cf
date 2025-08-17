@@ -13,11 +13,11 @@ A modern, edge-native personal productivity hub built on Cloudflare's platform, 
 - ✅ **Bug Fixes** - CSRF token issues, note tags, E2E test reliability
 
 **Core Infrastructure:**
-- ✅ Backend API with 100% Spring Boot compatibility
+- ✅ Backend API with full Spring Boot-compatible API (route and payload compatibility)
 - ✅ D1 database schema fully migrated (15+ tables)
 - ✅ All 13 API endpoint groups implemented
 - ✅ JWT Authentication with CSRF protection
-- ✅ Comprehensive test suite (93.44% coverage, 279 tests)
+- ✅ Comprehensive test suite (24 test files with high coverage)
 - ✅ CI/CD pipeline with GitHub Actions
 - ✅ Frontend migration from Next.js to Vite+React
 - ✅ E2E test suite with Playwright (32 test files)
@@ -49,8 +49,8 @@ pnpm install
 
 # Run all services in development
 pnpm dev
-# Frontend: http://localhost:5173
-# Backend: http://localhost:8787
+# Frontend: <http://localhost:5173>
+# Backend: <http://localhost:8787>
 
 # Run specific workspace
 pnpm --filter @personal-hub/backend dev
