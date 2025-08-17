@@ -140,7 +140,41 @@ describe('Pomodoro Routes', () => {
         },
       ];
 
-      setupDbMock({ sessions: mockSessions });
+      // Mock both the count query and the sessions query
+      const mockedDb = asMockedDb(ctx.db);
+      let selectCallCount = 0;
+      mockedDb.select.mockImplementation(() => {
+        selectCallCount++;
+        if (selectCallCount === 1) {
+          // Auth middleware user lookup
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            get: vi.fn().mockResolvedValue({
+              id: userId,
+              email: 'test@example.com',
+              username: 'testuser',
+              enabled: true,
+            }),
+          };
+        } else if (selectCallCount === 2) {
+          // Count query
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            get: vi.fn().mockResolvedValue({ count: 2 }),
+          };
+        } else {
+          // Sessions query
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            orderBy: vi.fn().mockReturnThis(),
+            limit: vi.fn().mockReturnThis(),
+            offset: vi.fn().mockResolvedValue(mockSessions),
+          };
+        }
+      });
 
       const res = await app.request('/pomodoro/sessions', {
         method: 'GET',
@@ -150,43 +184,73 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
-      const body = await res.json() as PomodoroSessionResponse[];
+      const body = await res.json() as {
+        content: typeof mockSessions;
+        totalElements: number;
+        totalPages: number;
+        size: number;
+        number: number;
+        first: boolean;
+        last: boolean;
+        empty: boolean;
+      };
       
-      expect(Array.isArray(body)).toBe(true);
-      expect(body).toEqual(mockSessions);
+      expect(body).toMatchObject({
+        content: mockSessions,
+        totalElements: 2,
+        totalPages: 1,
+        size: 20,
+        number: 0,
+        first: true,
+        last: true,
+        empty: false,
+      });
     });
 
     it('should handle pagination parameters', async () => {
       const mockedDb = asMockedDb(ctx.db);
-      let callCount = 0;
-      mockedDb.select.mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        get: vi.fn().mockImplementation(() => {
-          callCount++;
-          if (callCount === 1) {
-            // Auth middleware user lookup
-            return Promise.resolve({
+      let selectCallCount = 0;
+      mockedDb.select.mockImplementation(() => {
+        selectCallCount++;
+        if (selectCallCount === 1) {
+          // Auth middleware user lookup
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            get: vi.fn().mockResolvedValue({
               id: userId,
               email: 'test@example.com',
               username: 'testuser',
               enabled: true,
-            });
-          }
-        }),
-        orderBy: vi.fn().mockReturnThis(),
-        limit: vi.fn((limit) => {
-          expect(limit).toBe(10);
-          return {
-            offset: vi.fn((offset) => {
-              expect(offset).toBe(10);
-              return Promise.resolve([]);
             }),
           };
-        }),
-      }));
+        } else if (selectCallCount === 2) {
+          // Count query
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            get: vi.fn().mockResolvedValue({ count: 50 }),
+          };
+        } else {
+          // Sessions query with pagination
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            orderBy: vi.fn().mockReturnThis(),
+            limit: vi.fn((limit) => {
+              expect(limit).toBe(10);
+              return {
+                offset: vi.fn((offset) => {
+                  expect(offset).toBe(10);
+                  return Promise.resolve([]);
+                }),
+              };
+            }),
+          };
+        }
+      });
 
-      const res = await app.request('/pomodoro/sessions?limit=10&offset=10', {
+      const res = await app.request('/pomodoro/sessions?page=1&size=10', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${validToken}`,
@@ -194,6 +258,26 @@ describe('Pomodoro Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(200);
+      const body = await res.json() as {
+        content: unknown[];
+        totalElements: number;
+        totalPages: number;
+        size: number;
+        number: number;
+        first: boolean;
+        last: boolean;
+        empty: boolean;
+      };
+      expect(body).toMatchObject({
+        content: [],
+        totalElements: 50,
+        totalPages: 5,
+        size: 10,
+        number: 1,
+        first: false,
+        last: false,
+        empty: true,
+      });
     });
   });
 

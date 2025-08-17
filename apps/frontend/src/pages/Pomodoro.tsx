@@ -13,7 +13,7 @@ import {
   usePomodoroConfig,
   useUpdateSession,
 } from '@/hooks/usePomodoro';
-import { SessionAction, SessionType } from '@/types/pomodoro';
+import { PomodoroSession, SessionAction, SessionStatus, SessionType } from '@/types/pomodoro';
 import { prepareSessionData, getIncompleteTasks } from '@/utils/pomodoroHelpers';
 import { Button } from '@/components/ui';
 import { Card } from '@/components/ui/Card';
@@ -31,54 +31,77 @@ export function Pomodoro() {
   // Tasks from active session
   const tasks = activeSession?.tasks || [];
 
-  const handleCreateSession = (initialTask?: string) => {
+  const handleCreateSession = (initialTask?: string, sessionType: string = 'WORK') => {
     if (!config) return;
 
-    const sessionData = prepareSessionData(config, initialTask, tasks);
+    const sessionData = prepareSessionData(config, initialTask, tasks, sessionType);
 
     createSession.mutate(sessionData);
   };
 
-  const handleSessionComplete = () => {
-    // Check if we should auto-start break
-    if (!activeSession || !config) return;
+  const handleSessionComplete = (completedSession?: PomodoroSession) => {
+    // Check if we should auto-start break or work
+    const session = completedSession || activeSession;
+    if (!session || !config) return;
 
-    if (activeSession.sessionType === 'WORK' && config.autoStartBreaks) {
-      // Determine break type
-      const isLongBreak = (activeSession.completedCycles + 1) % config.cyclesBeforeLongBreak === 0;
+    if (session.sessionType === 'WORK' && config.autoStartBreaks) {
+      // Determine break type based on completed cycles
+      // The session has been marked as completed by PomodoroTimer, so cycles are already updated
+      const isLongBreak = session.completedCycles % config.cyclesBeforeLongBreak === 0;
       const breakDuration = isLongBreak ? config.longBreakDuration : config.shortBreakDuration;
+      const breakType = isLongBreak ? SessionType.LONG_BREAK : SessionType.SHORT_BREAK;
 
-      // Create break session after a short delay
+      // Create and auto-start break session after a short delay
       setTimeout(() => {
-        // Create session with incomplete tasks carried over
         const breakSessionData = {
           workDuration: config.workDuration,
           breakDuration: breakDuration,
+          sessionType: breakType,
           tasks: getIncompleteTasks(tasks),
         };
 
         createSession.mutate(breakSessionData, {
           onSuccess: (newSession) => {
-            // Switch to break type after creation
-            const breakType = isLongBreak ? SessionType.LONG_BREAK : SessionType.SHORT_BREAK;
-            updateSession.mutate({
-              id: newSession.id,
-              action: SessionAction.SWITCH_TYPE,
-              sessionType: breakType,
-            });
+            // Auto-start the break session
+            setTimeout(() => {
+              updateSession.mutate({
+                id: newSession.id,
+                action: SessionAction.START,
+              });
+            }, 500);
           },
         });
       }, 1000);
-    } else if (activeSession.sessionType !== 'WORK' && config.autoStartWork) {
+    } else if (session.sessionType !== 'WORK' && config.autoStartWork) {
       // Auto-start work session after break
       setTimeout(() => {
-        handleCreateSession();
+        const workSessionData = {
+          workDuration: config.workDuration,
+          breakDuration: config.shortBreakDuration,
+          sessionType: SessionType.WORK,
+          tasks: getIncompleteTasks(tasks),
+        };
+
+        createSession.mutate(workSessionData, {
+          onSuccess: (newSession) => {
+            // Auto-start the work session
+            setTimeout(() => {
+              updateSession.mutate({
+                id: newSession.id,
+                action: SessionAction.START,
+              });
+            }, 500);
+          },
+        });
       }, 1000);
     }
   };
 
-  const handleSessionUpdate = () => {
-    // Session will be updated via the query invalidation in the hook
+  const handleSessionUpdate = (updatedSession: PomodoroSession) => {
+    // If session was just completed, pass the updated session to complete handler
+    if (updatedSession.status === SessionStatus.COMPLETED) {
+      handleSessionComplete(updatedSession);
+    }
   };
 
   // Handle navigation state from command palette
@@ -127,7 +150,7 @@ export function Pomodoro() {
             {activeSession ? (
               <PomodoroTimer
                 session={activeSession}
-                onComplete={handleSessionComplete}
+                onComplete={() => {}}
                 onUpdate={handleSessionUpdate}
               />
             ) : (

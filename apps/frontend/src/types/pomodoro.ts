@@ -52,6 +52,7 @@ export interface PomodoroConfig {
 export interface CreatePomodoroSessionRequest {
   workDuration: number;
   breakDuration: number;
+  sessionType?: string;
   tasks?: CreatePomodoroTaskRequest[];
 }
 

@@ -60,18 +60,39 @@ const createTaskSchema = z.object({
 app.get('/sessions', async (c) => {
   const db = c.get('db');
   const userId = c.get('userId');
-  const limit = parseInt(c.req.query('limit') || '20');
-  const offset = parseInt(c.req.query('offset') || '0');
+  const page = parseInt(c.req.query('page') || '0');
+  const size = parseInt(c.req.query('size') || '20');
+  const offset = page * size;
   
   try {
+    // Get total count
+    const countResult = await db.select({ count: sql<number>`count(*)` })
+      .from(pomodoroSessions)
+      .where(eq(pomodoroSessions.userId, userId as string))
+      .get();
+    
+    const totalElements = countResult?.count || 0;
+    const totalPages = Math.ceil(totalElements / size);
+    
+    // Get sessions
     const sessions = await db.select()
       .from(pomodoroSessions)
       .where(eq(pomodoroSessions.userId, userId as string))
       .orderBy(desc(pomodoroSessions.createdAt))
-      .limit(limit)
+      .limit(size)
       .offset(offset);
     
-    return c.json(sessions);
+    // Return paginated response
+    return c.json({
+      content: sessions,
+      totalElements,
+      totalPages,
+      size,
+      number: page,
+      first: page === 0,
+      last: page >= totalPages - 1,
+      empty: sessions.length === 0
+    });
   } catch (error) {
     console.error('Get sessions error:', error);
     return c.json(

@@ -3,7 +3,8 @@ import { PomodoroConfig, PomodoroTask, CreatePomodoroTaskRequest, CreatePomodoro
 export function prepareSessionData(
   config: PomodoroConfig,
   initialTask?: string,
-  currentTasks?: PomodoroTask[]
+  currentTasks?: PomodoroTask[],
+  sessionType: string = 'WORK'
 ): CreatePomodoroSessionRequest {
   const tasks: CreatePomodoroTaskRequest[] = [];
   
@@ -21,6 +22,7 @@ export function prepareSessionData(
   return {
     workDuration: config.workDuration,
     breakDuration: config.shortBreakDuration,
+    sessionType,
     tasks
   };
 }
