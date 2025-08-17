@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFeatures } from '@/contexts/FeatureContext';
+import { useCommandPalette } from '@/contexts/CommandPaletteContext';
 import { 
   Home, 
   CheckSquare, 
@@ -12,7 +13,8 @@ import {
   Clock,
   Timer,
   Settings,
-  X
+  X,
+  Terminal
 } from 'lucide-react';
 
 interface NavItem {
@@ -30,6 +32,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const location = useLocation();
   const { t } = useTranslation('common');
   const { features: featurePreferences } = useFeatures();
+  const { openCommandPalette } = useCommandPalette();
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -136,6 +139,23 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />
+          </button>
+        </div>
+        
+        {/* Command Palette Button - Mobile Only */}
+        <div className="px-3 pb-3 md:hidden">
+          <button
+            onClick={() => {
+              openCommandPalette();
+              onClose?.();
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-primary/10 text-primary"
+          >
+            <Terminal className="h-5 w-5" />
+            <span>{t('commandPalette.title', 'Command Palette')}</span>
+            <kbd className="ml-auto px-2 py-0.5 text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded">
+              Ctrl+K
+            </kbd>
           </button>
         </div>
 

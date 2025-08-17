@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus, Search } from 'lucide-react';
 import { Button, Input, Modal } from '@/components/ui';
 import { AppLayout } from '@/components/layout';
@@ -18,6 +19,9 @@ import {
 
 export function Notes() {
   const { t } = useTranslation(['notes', 'common']);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [notes, setNotes] = useState<Note[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,6 +73,26 @@ export function Notes() {
       setIsLoading(false);
     });
   }, [loadNotes]);
+
+  // Handle navigation state from command palette
+  useEffect(() => {
+    const state = location.state as { openAddModal?: boolean; focusSearch?: boolean } | null;
+    let handled = false;
+    if (state?.openAddModal) {
+      setIsFormOpen(true);
+      handled = true;
+    }
+    if (state?.focusSearch && searchInputRef.current) {
+      searchInputRef.current.focus();
+      handled = true;
+    }
+    if (handled) {
+      navigate(
+        { pathname: location.pathname, search: location.search, hash: location.hash },
+        { replace: true, state: {} }
+      );
+    }
+  }, [location.state, navigate]);
 
   const handleCreateNote = async (data: CreateNoteDto) => {
     setIsSubmitting(true);
@@ -125,12 +149,10 @@ export function Notes() {
       setNoteToDelete(null);
       setViewingNote(null);
       
-      // Optimistically update notes list
-      setNotes(prevNotes => prevNotes.filter(n => n.id !== noteToDelete.id));
-      
-      // Check if we need to remove any tags from the list
-      const remainingNotes = notes.filter(n => n.id !== noteToDelete.id);
-      const remainingTags = new Set(remainingNotes.flatMap(n => n.tags));
+      // Optimistically update notes list and derive remaining tags from the same snapshot
+      const updatedNotes = notes.filter(n => n.id !== noteToDelete.id);
+      setNotes(updatedNotes);
+      const remainingTags = new Set(updatedNotes.flatMap(n => n.tags));
       const deletedTags = noteToDelete.tags.filter(tag => !remainingTags.has(tag));
       
       // Reload notes to ensure consistency
@@ -206,6 +228,7 @@ export function Notes() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
+                ref={searchInputRef}
                 placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={handleSearchChange}

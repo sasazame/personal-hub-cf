@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Menu, User, LogOut, Settings, ChevronDown, Sun, Moon, Languages } from 'lucide-react';
+import { useCommandPalette } from '@/contexts/CommandPaletteContext';
+import { Menu, User, LogOut, Settings, ChevronDown, Sun, Moon, Languages, Terminal } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -12,6 +13,7 @@ interface HeaderProps {
 export function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { openCommandPalette } = useCommandPalette();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { t, i18n } = useTranslation('common');
   
@@ -56,6 +58,20 @@ export function Header({ onMenuClick }: HeaderProps) {
                 <option value="ja">日本語</option>
               </select>
             </div>
+            
+            {/* Command Palette Button */}
+            <button
+              onClick={openCommandPalette}
+              className="p-2 rounded-md text-foreground hover:bg-muted transition-colors group relative"
+              aria-label="Open command palette (Ctrl+K)"
+              title="Command Palette (Ctrl+K)"
+            >
+              <Terminal className="h-5 w-5" />
+              {/* Tooltip on hover */}
+              <span className="absolute hidden group-hover:block bottom-full right-0 mb-2 px-2 py-1 text-xs bg-gray-900 dark:bg-gray-700 text-white rounded whitespace-nowrap">
+                Ctrl+K
+              </span>
+            </button>
             
             {/* Theme Toggle */}
             <button

@@ -1,18 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout';
-import { Button, Input, Modal } from '../components/ui';
-import { MomentList } from '../components/MomentList';
-import { MomentForm } from '../components/MomentForm';
-import { MomentViewer } from '../components/MomentViewer';
-import { MomentQuickForm } from '../components/MomentQuickForm';
-import { Moment, CreateMomentDto, UpdateMomentDto, MomentPage } from '../types/moment';
-import { momentApi } from '../lib/moment-api';
-import { toast } from '../components/ui/toast';
+import { Button, Input, Modal } from '@/components/ui';
+import { MomentList } from '@/components/MomentList';
+import { MomentForm } from '@/components/MomentForm';
+import { MomentViewer } from '@/components/MomentViewer';
+import { MomentQuickForm } from '@/components/MomentQuickForm';
+import { Moment, CreateMomentDto, UpdateMomentDto, MomentPage } from '@/types/moment';
+import { momentApi } from '@/lib/moment-api';
+import { toast } from '@/components/ui/toast';
 import { Plus, Search, Tag } from 'lucide-react';
 
 const PREVIEW_LENGTH = 100;
 
 export function Moments() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedMoment, setSelectedMoment] = useState<Moment | null>(null);
@@ -30,6 +34,26 @@ export function Moments() {
     loadMoments();
     loadTags();
   }, [searchQuery, selectedTag]);
+
+  // Handle navigation state from command palette
+  useEffect(() => {
+    const state = location.state as { openAddModal?: boolean; focusSearch?: boolean } | null;
+    let handled = false;
+    if (state?.openAddModal) {
+      setIsFormOpen(true);
+      handled = true;
+    }
+    if (state?.focusSearch && searchInputRef.current) {
+      searchInputRef.current.focus();
+      handled = true;
+    }
+    if (handled) {
+      navigate(
+        { pathname: location.pathname, search: location.search, hash: location.hash },
+        { replace: true, state: {} }
+      );
+    }
+  }, [location.state, navigate]);
 
   const loadMoments = async (pageNumber = 0) => {
     try {
@@ -179,6 +203,7 @@ export function Moments() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
+                ref={searchInputRef}
                 placeholder="Search moments..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

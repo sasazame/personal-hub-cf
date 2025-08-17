@@ -104,9 +104,19 @@ class CommandRegistry {
       return this.availableCommandsCache;
     }
     
-    const available = this.getAllCommands().filter(
-      (cmd) => !cmd.isAvailable || cmd.isAvailable()
-    );
+    const available = this.getAllCommands()
+      .filter((cmd) => !cmd.isAvailable || cmd.isAvailable())
+      .sort((a, b) => {
+        // Sort by category first
+        const categoryOrder = ['navigation', 'action', 'search', 'settings'];
+        const aIndex = categoryOrder.indexOf(a.category);
+        const bIndex = categoryOrder.indexOf(b.category);
+        if (aIndex !== bIndex) {
+          return aIndex - bIndex;
+        }
+        // Then sort alphabetically by title within category
+        return a.title.localeCompare(b.title);
+      });
     
     this.availableCommandsCache = available;
     this.availableCacheTimestamp = Date.now();
@@ -135,21 +145,31 @@ class CommandRegistry {
     }
 
     const availableCommands = this.getAvailableCommands();
-    const scored: Array<{ command: Command; score: number }> = [];
+    const exactMatches: Command[] = [];
+    const startsWithMatches: Command[] = [];
+    const fuzzyMatches: Array<{ command: Command; score: number }> = [];
     
     // Use pre-computed search index
     for (const command of availableCommands) {
       const index = this.searchIndex.get(command.id);
       if (!index) continue;
       
+      // Check for exact match
+      if (index.titleLower === normalizedQuery) {
+        exactMatches.push(command);
+        continue;
+      }
+      
+      // Check for starts-with match
+      if (index.titleLower.startsWith(normalizedQuery)) {
+        startsWithMatches.push(command);
+        continue;
+      }
+      
+      // Calculate fuzzy match score
       let score = 0;
       
-      // Exact match gets highest score
-      if (index.titleLower === normalizedQuery) {
-        score = 100;
-      } else if (index.titleLower.startsWith(normalizedQuery)) {
-        score = 80;
-      } else if (index.titleLower.includes(normalizedQuery)) {
+      if (index.titleLower.includes(normalizedQuery)) {
         score = 60;
       } else if (index.descriptionLower.includes(normalizedQuery)) {
         score = 40;
@@ -172,14 +192,25 @@ class CommandRegistry {
       }
 
       if (score > 0) {
-        scored.push({ command, score });
+        fuzzyMatches.push({ command, score });
       }
     }
 
-    // Sort and extract commands
-    const results = scored
-      .sort((a, b) => b.score - a.score)
-      .map(({ command }) => command);
+    // Sort each group
+    exactMatches.sort((a, b) => a.title.localeCompare(b.title));
+    startsWithMatches.sort((a, b) => a.title.localeCompare(b.title));
+    fuzzyMatches.sort((a, b) => {
+      const scoreDiff = b.score - a.score;
+      if (scoreDiff !== 0) return scoreDiff;
+      return a.command.title.localeCompare(b.command.title);
+    });
+
+    // Combine results: exact matches → starts with → fuzzy matches
+    const results = [
+      ...exactMatches,
+      ...startsWithMatches,
+      ...fuzzyMatches.map(({ command }) => command)
+    ];
 
     // Cache the results
     this.searchCache.set(normalizedQuery, {
