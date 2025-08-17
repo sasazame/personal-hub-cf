@@ -5,7 +5,7 @@ import { Modal } from './ui/Modal';
 import { Command } from '../types/command-palette';
 import { useTranslation } from 'react-i18next';
 import { VirtualCommandList } from './VirtualCommandList';
-import { commandRegistry } from '../lib/command-registry';
+import { useCommandHistory } from '../hooks/useCommandHistory';
 
 // Memoize command item to prevent re-renders
 const CommandItem = memo(({ 
@@ -83,6 +83,7 @@ export function CommandPalette() {
     selectPrevious,
     executeSelectedCommand,
   } = useCommandPalette();
+  const { history } = useCommandHistory();
 
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -150,24 +151,16 @@ export function CommandPalette() {
   const groupedCommands = useMemo(() => {
     const groups = new Map<string, Command[]>();
     const historyGroup: Command[] = [];
-    
-    // When there's no search query, first 5 commands are from history
+
+    // No search: provider orders filteredCommands as [history..., nonHistory...]
     if (!state.searchQuery && state.filteredCommands.length > 0) {
-      const historyCount = Math.min(5, state.filteredCommands.length);
-      for (let i = 0; i < historyCount; i++) {
-        const cmd = state.filteredCommands[i];
-        // Check if this is a history command by seeing if it would be in normal order
-        const allCommands = commandRegistry.getAvailableCommands();
-        const normalIndex = allCommands.findIndex(c => c.id === cmd.id);
-        if (normalIndex >= historyCount) {
-          historyGroup.push(cmd);
-        } else {
-          break;
-        }
+      const historyCount = Math.min(history.length, state.filteredCommands.length);
+      if (historyCount > 0) {
+        historyGroup.push(...state.filteredCommands.slice(0, historyCount));
       }
     }
-    
-    // Group remaining commands by category
+
+    // Group remaining (non-history) commands by category
     const startIndex = historyGroup.length;
     state.filteredCommands.slice(startIndex).forEach((command) => {
       const category = command.category;
@@ -181,13 +174,15 @@ export function CommandPalette() {
     if (historyGroup.length > 0) {
       result.push({ category: 'history', commands: historyGroup });
     }
-    result.push(...Array.from(groups.entries()).map(([category, commands]) => ({
-      category,
-      commands,
-    })));
-    
+    result.push(
+      ...Array.from(groups.entries()).map(([category, commands]) => ({
+        category,
+        commands,
+      }))
+    );
+
     return result;
-  }, [state.filteredCommands, state.searchQuery]);
+  }, [state.filteredCommands, state.searchQuery, history]);
   
   // Memoize handler for item hover
   const handleItemHover = useCallback((index: number) => {

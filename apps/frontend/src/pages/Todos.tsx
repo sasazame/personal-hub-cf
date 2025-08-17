@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { todoApi } from '@/lib/todo-api'
 import { Todo, CreateTodoDto, UpdateTodoDto, TodoStatus } from '@/types/todo'
@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next'
 export function Todos() {
   const queryClient = useQueryClient()
   const location = useLocation()
-  const searchInputRef = useRef<HTMLInputElement>(null)
+  const navigate = useNavigate()
   const { t } = useTranslation(['todos', 'common'])
   const [isAddingTodo, setIsAddingTodo] = useState(false)
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null)
@@ -170,17 +170,16 @@ export function Todos() {
 
   // Handle navigation state from command palette
   useEffect(() => {
-    const state = location.state as { openAddModal?: boolean; focusSearch?: boolean } | null;
+    const state = location.state as { openAddModal?: boolean } | null;
     if (state?.openAddModal) {
       setIsAddingTodo(true);
       // Clear the state to prevent reopening on refresh
-      window.history.replaceState({}, document.title);
+      navigate(
+        { pathname: location.pathname, search: location.search, hash: location.hash },
+        { replace: true, state: {} }
+      );
     }
-    if (state?.focusSearch && searchInputRef.current) {
-      searchInputRef.current.focus();
-      window.history.replaceState({}, document.title);
-    }
-  }, [location.state]);
+  }, [location.state, navigate]);
 
   // Handle Escape key for delete modal
   useEffect(() => {

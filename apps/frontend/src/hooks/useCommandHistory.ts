@@ -50,7 +50,7 @@ export function useCommandHistory() {
         updated = [
           { commandId, timestamp: Date.now(), usageCount: 1 },
           ...prev
-        ].slice(0, MAX_HISTORY_ITEMS);
+        ];
       }
       
       updated.sort((a, b) => {

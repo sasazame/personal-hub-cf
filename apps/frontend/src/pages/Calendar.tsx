@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppLayout } from '@/components/layout';
 import { Button, Modal } from '@/components/ui';
@@ -12,6 +12,7 @@ import { ChevronLeft, ChevronRight, Plus, Settings } from 'lucide-react';
 
 export function Calendar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { t } = useTranslation(['calendar', 'common']);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isEventFormOpen, setIsEventFormOpen] = useState(false);
@@ -34,9 +35,12 @@ export function Calendar() {
     if (state?.openAddModal) {
       setIsEventFormOpen(true);
       // Clear the state to prevent reopening on refresh
-      window.history.replaceState({}, document.title);
+      navigate(
+        { pathname: location.pathname, search: location.search, hash: location.hash },
+        { replace: true, state: {} }
+      );
     }
-  }, [location.state]);
+  }, [location.state, navigate]);
 
   const loadEvents = async () => {
     try {

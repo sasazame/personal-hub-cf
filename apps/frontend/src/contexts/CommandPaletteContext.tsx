@@ -26,7 +26,7 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const { addToHistory, getRecentCommandIds } = useCommandHistory();
+  const { history, addToHistory } = useCommandHistory();
   const [recentCommands, setRecentCommands] = useState<string[]>(() => {
     // Use sessionStorage for temporary data to avoid security issues
     try {
@@ -60,21 +60,22 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
       return commandRegistry.searchCommands(debouncedQuery);
     }
     
-    // Get commands from history
-    const historyCommandIds = getRecentCommandIds();
+    // Get commands from persisted history
+    const historyCommandIds = history.map((e) => e.commandId);
+    const historyIdSet = new Set(historyCommandIds);
+
     const historyCommands = historyCommandIds
-      .map(id => commandRegistry.getCommand(id))
-      .filter((cmd): cmd is NonNullable<typeof cmd> => 
-        cmd !== undefined && (!cmd.isAvailable || cmd.isAvailable())
+      .map((id) => commandRegistry.getCommand(id))
+      .filter(
+        (cmd): cmd is NonNullable<typeof cmd> =>
+          cmd !== undefined && (!cmd.isAvailable || cmd.isAvailable())
       );
-    
+
     const allAvailable = commandRegistry.getAvailableCommands();
-    const nonHistory = allAvailable.filter(
-      cmd => !historyCommandIds.includes(cmd.id)
-    );
-    
+    const nonHistory = allAvailable.filter((cmd) => !historyIdSet.has(cmd.id));
+
     return [...historyCommands, ...nonHistory];
-  }, [debouncedQuery, getRecentCommandIds]);
+  }, [debouncedQuery, history]);
 
   const state: CommandPaletteState = {
     isOpen,

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout';
 import { Button, Modal } from '@/components/ui';
 import { goalApi } from '@/lib/goal-api';
@@ -27,6 +27,7 @@ import { GoalForm } from '@/components/GoalForm';
 
 export function Goals() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [goals, setGoals] = useState<GoalWithStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,9 +52,12 @@ export function Goals() {
     if (state?.openAddModal) {
       setIsFormOpen(true);
       // Clear the state to prevent reopening on refresh
-      window.history.replaceState({}, document.title);
+      navigate(
+        { pathname: location.pathname, search: location.search, hash: location.hash },
+        { replace: true, state: {} }
+      );
     }
-  }, [location.state]);
+  }, [location.state, navigate]);
 
   const loadGoals = async () => {
     try {
