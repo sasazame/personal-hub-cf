@@ -13,11 +13,11 @@ A modern, edge-native personal productivity hub built on Cloudflare's platform, 
 - ✅ **Bug Fixes** - CSRF token issues, note tags, E2E test reliability
 
 **Core Infrastructure:**
-- ✅ Backend API with full Spring Boot-compatible API (route and payload compatibility)
+- ✅ Backend API with Spring Boot-compatible routes and payloads
 - ✅ D1 database schema fully migrated (15+ tables)
 - ✅ All 13 API endpoint groups implemented
 - ✅ JWT Authentication with CSRF protection
-- ✅ Comprehensive test suite (24 test files with high coverage)
+- ✅ Comprehensive test suite (24+ test files with high coverage)
 - ✅ CI/CD pipeline with GitHub Actions
 - ✅ Frontend migration from Next.js to Vite+React
 - ✅ E2E test suite with Playwright (32 test files)
@@ -126,7 +126,7 @@ personal-hub-cf/
 - **Validation**: Zod schemas for all endpoints
 - **Rate Limiting**: Cloudflare KV for distributed rate limiting
 - **Testing**: Vitest with Miniflare for edge environment
-- **Coverage**: 93.44% statement coverage (279 tests)
+- **Coverage**: High statement coverage (90%+ with 270+ tests as of Aug 2025)
 
 ### Frontend
 - **Framework**: React 18 with Vite for fast HMR
