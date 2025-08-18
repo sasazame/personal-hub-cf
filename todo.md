@@ -26,7 +26,6 @@ This file tracks pending tasks organized by feature.
 ## Goals Feature
 
 ## Moments Feature
-- [MEDIUM] Add keyboard shortcuts for moment tag selection - Enable Shift+F1-F12 shortcuts for quick tag selection
 
 ## Pomodoro Feature
 
