@@ -58,8 +58,9 @@ pnpm --filter @personal-hub/frontend dev
 
 # Run tests
 pnpm test          # Unit tests
-pnpm test:e2e      # E2E tests with UI
-pnpm test:e2e:ci   # E2E tests headless
+pnpm test:e2e      # E2E tests headless
+pnpm test:e2e:ui   # E2E tests with UI
+pnpm test:ci       # E2E tests in CI mode
 
 # Code quality checks
 pnpm typecheck     # TypeScript validation

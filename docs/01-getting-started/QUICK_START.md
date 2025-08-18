@@ -80,11 +80,14 @@ pnpm test
 # Run unit tests with coverage
 pnpm test:coverage
 
+# Run E2E tests headless (default)
+pnpm test:e2e
+
 # Run E2E tests with UI
 pnpm test:e2e:ui
 
-# Run E2E tests headless
-pnpm test:e2e
+# Run E2E tests in CI mode
+pnpm test:ci
 
 # Watch mode for development
 pnpm test:watch
@@ -113,7 +116,7 @@ pnpm typecheck && pnpm lint && pnpm test
 
 ## Project Structure
 
-```
+```text
 personal-hub-cf/
 ├── apps/
 │   ├── backend/          # Cloudflare Workers API
@@ -132,7 +135,7 @@ personal-hub-cf/
 │       └── vite.config.ts
 ├── e2e/                  # Playwright E2E tests
 └── docs/                 # Documentation
-```text
+```
 
 ## Next Steps
 
