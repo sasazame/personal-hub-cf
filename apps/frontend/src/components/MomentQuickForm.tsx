@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { Button } from './ui'
 import { CreateMomentDto, DEFAULT_MOMENT_TAGS } from '../types/moment'
 import { Send, Tag, Hash } from 'lucide-react'
 import { getTagColorClasses } from '@/utils/momentUtils'
+import { useMomentTagKeyboardShortcuts } from '@/hooks/useMomentTagKeyboardShortcuts'
 
 interface MomentQuickFormProps {
   onSubmit: (data: CreateMomentDto) => void
@@ -15,13 +16,26 @@ export function MomentQuickForm({ onSubmit, isSubmitting }: MomentQuickFormProps
   const [customTag, setCustomTag] = useState('')
   const [showCustomTagInput, setShowCustomTagInput] = useState(false)
 
-  const toggleTag = (tag: string) => {
+  const toggleTag = useCallback((tag: string) => {
     setTags(prev => 
       prev.includes(tag) 
         ? prev.filter(t => t !== tag)
         : [...prev, tag]
     )
-  }
+  }, [])
+
+  const tagShortcuts = useMomentTagKeyboardShortcuts({
+    onToggleTag: toggleTag,
+    isEnabled: true,
+  })
+
+  // Precompute inverse mapping for performance
+  const keyForTag = useMemo(() => {
+    return Object.entries(tagShortcuts).reduce<Record<string, string>>((acc, [key, tag]) => {
+      acc[tag] = key;
+      return acc;
+    }, {});
+  }, [tagShortcuts])
 
   const handleAddCustomTag = () => {
     if (!customTag) return
@@ -77,12 +91,14 @@ export function MomentQuickForm({ onSubmit, isSubmitting }: MomentQuickFormProps
             {DEFAULT_MOMENT_TAGS.map((tag) => {
               const isSelected = tags.includes(tag)
               const tagColorClass = getTagColorClasses(tag)
+              const shortcutKey = keyForTag[tag]
               return (
                 <button
                   key={tag}
                   type="button"
                   onClick={() => toggleTag(tag)}
                   aria-pressed={isSelected}
+                  title={shortcutKey ? `Press Shift+${shortcutKey} to toggle` : undefined}
                   className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-all ${
                     isSelected 
                       ? `${tagColorClass} ring-2 ring-offset-2 ring-offset-background` 
@@ -91,6 +107,11 @@ export function MomentQuickForm({ onSubmit, isSubmitting }: MomentQuickFormProps
                 >
                   <Tag className="w-3 h-3" />
                   {tag}
+                  {shortcutKey && (
+                    <kbd className="ml-1 text-[10px] opacity-60 font-mono">
+                      ⇧{shortcutKey}
+                    </kbd>
+                  )}
                 </button>
               )
             })}

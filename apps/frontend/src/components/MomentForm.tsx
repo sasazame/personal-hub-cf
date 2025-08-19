@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Moment, CreateMomentDto, UpdateMomentDto, DEFAULT_MOMENT_TAGS } from '@/types/moment';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -7,6 +7,7 @@ import { X, Plus, Tag } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { validateTagsLength, getSerializedTagsLength, MAX_TAGS_LENGTH } from '@/lib/tag-utils';
 import { getTagColorClasses } from '@/utils/momentUtils';
+import { useMomentTagKeyboardShortcuts } from '@/hooks/useMomentTagKeyboardShortcuts';
 
 interface MomentFormProps {
   isOpen: boolean;
@@ -22,6 +23,30 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
   const [currentTag, setCurrentTag] = useState('');
   const [showCustomTagInput, setShowCustomTagInput] = useState(false);
   const [, setErrors] = useState<{ content?: string }>({});
+
+  const toggleTag = useCallback((tag: string) => {
+    setTags(prev => {
+      const next = prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag];
+      if (!validateTagsLength(next)) {
+        // Optionally show an error message here
+        return prev; // no-op if exceeding limit
+      }
+      return next;
+    });
+  }, []);
+
+  const tagShortcuts = useMomentTagKeyboardShortcuts({
+    onToggleTag: toggleTag,
+    isEnabled: isOpen,
+  });
+
+  // Precompute inverse mapping for performance
+  const keyForTag = useMemo(() => {
+    return Object.entries(tagShortcuts).reduce<Record<string, string>>((acc, [key, tag]) => {
+      acc[tag] = key;
+      return acc;
+    }, {});
+  }, [tagShortcuts]);
 
   useEffect(() => {
     if (moment) {
@@ -62,19 +87,6 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
     };
 
     onSubmit(data);
-  };
-
-  const toggleTag = (tag: string) => {
-    if (tags.includes(tag)) {
-      setTags(tags.filter(t => t !== tag));
-    } else {
-      const newTags = [...tags, tag];
-      if (!validateTagsLength(newTags)) {
-        // Optionally show an error message here
-        return;
-      }
-      setTags(newTags);
-    }
   };
 
   const addCustomTag = () => {
@@ -133,23 +145,32 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
           </label>
           
           <div className="flex flex-wrap gap-2 mb-3">
-            {DEFAULT_MOMENT_TAGS.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => toggleTag(tag)}
-                aria-pressed={tags.includes(tag)}
-                className={cn(
-                  'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm transition-colors',
-                  tags.includes(tag)
-                    ? `${getTagColorClasses(tag)} ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-800`
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                )}
-              >
-                <Tag className="w-3 h-3" />
-                {tag}
-              </button>
-            ))}
+            {DEFAULT_MOMENT_TAGS.map((tag) => {
+              const shortcutKey = keyForTag[tag];
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => toggleTag(tag)}
+                  aria-pressed={tags.includes(tag)}
+                  title={shortcutKey ? `Press Shift+${shortcutKey} to toggle` : undefined}
+                  className={cn(
+                    'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm transition-colors relative group',
+                    tags.includes(tag)
+                      ? `${getTagColorClasses(tag)} ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-800`
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  )}
+                >
+                  <Tag className="w-3 h-3" />
+                  {tag}
+                  {shortcutKey && (
+                    <kbd className="ml-1 text-xs opacity-60 font-mono">
+                      ⇧{shortcutKey}
+                    </kbd>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {tags.filter(tag => !(DEFAULT_MOMENT_TAGS as readonly string[]).includes(tag)).length > 0 && (
