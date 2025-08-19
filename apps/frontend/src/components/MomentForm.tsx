@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Moment, CreateMomentDto, UpdateMomentDto, DEFAULT_MOMENT_TAGS } from '@/types/moment';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -24,23 +24,29 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
   const [showCustomTagInput, setShowCustomTagInput] = useState(false);
   const [, setErrors] = useState<{ content?: string }>({});
 
-  const toggleTag = (tag: string) => {
-    if (tags.includes(tag)) {
-      setTags(tags.filter(t => t !== tag));
-    } else {
-      const newTags = [...tags, tag];
-      if (!validateTagsLength(newTags)) {
+  const toggleTag = useCallback((tag: string) => {
+    setTags(prev => {
+      const next = prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag];
+      if (!validateTagsLength(next)) {
         // Optionally show an error message here
-        return;
+        return prev; // no-op if exceeding limit
       }
-      setTags(newTags);
-    }
-  };
+      return next;
+    });
+  }, []);
 
   const tagShortcuts = useMomentTagKeyboardShortcuts({
     onToggleTag: toggleTag,
     isEnabled: isOpen,
   });
+
+  // Precompute inverse mapping for performance
+  const keyForTag = useMemo(() => {
+    return Object.entries(tagShortcuts).reduce<Record<string, string>>((acc, [key, tag]) => {
+      acc[tag] = key;
+      return acc;
+    }, {});
+  }, [tagShortcuts]);
 
   useEffect(() => {
     if (moment) {
@@ -140,7 +146,7 @@ export function MomentForm({ isOpen, onClose, onSubmit, moment, isSubmitting }: 
           
           <div className="flex flex-wrap gap-2 mb-3">
             {DEFAULT_MOMENT_TAGS.map((tag) => {
-              const shortcutKey = Object.keys(tagShortcuts).find(key => tagShortcuts[key] === tag);
+              const shortcutKey = keyForTag[tag];
               return (
                 <button
                   key={tag}

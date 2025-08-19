@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { Button } from './ui'
 import { CreateMomentDto, DEFAULT_MOMENT_TAGS } from '../types/moment'
 import { Send, Tag, Hash } from 'lucide-react'
@@ -16,18 +16,26 @@ export function MomentQuickForm({ onSubmit, isSubmitting }: MomentQuickFormProps
   const [customTag, setCustomTag] = useState('')
   const [showCustomTagInput, setShowCustomTagInput] = useState(false)
 
-  const toggleTag = (tag: string) => {
+  const toggleTag = useCallback((tag: string) => {
     setTags(prev => 
       prev.includes(tag) 
         ? prev.filter(t => t !== tag)
         : [...prev, tag]
     )
-  }
+  }, [])
 
   const tagShortcuts = useMomentTagKeyboardShortcuts({
     onToggleTag: toggleTag,
     isEnabled: true,
   })
+
+  // Precompute inverse mapping for performance
+  const keyForTag = useMemo(() => {
+    return Object.entries(tagShortcuts).reduce<Record<string, string>>((acc, [key, tag]) => {
+      acc[tag] = key;
+      return acc;
+    }, {});
+  }, [tagShortcuts])
 
   const handleAddCustomTag = () => {
     if (!customTag) return
@@ -83,7 +91,7 @@ export function MomentQuickForm({ onSubmit, isSubmitting }: MomentQuickFormProps
             {DEFAULT_MOMENT_TAGS.map((tag) => {
               const isSelected = tags.includes(tag)
               const tagColorClass = getTagColorClasses(tag)
-              const shortcutKey = Object.keys(tagShortcuts).find(key => tagShortcuts[key] === tag)
+              const shortcutKey = keyForTag[tag]
               return (
                 <button
                   key={tag}
