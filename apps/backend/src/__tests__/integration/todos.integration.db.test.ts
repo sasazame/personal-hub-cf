@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
 import { Hono } from 'hono';
 import todosRoutes from '../../routes/todos';
+import { ACCESS_TOKEN_EXPIRY } from '../../config/constants';
 import { setupTestDatabase, cleanupTestDatabase, closeTestDatabase } from './setup-test-db';
 import { createTestUserData, createTestTodoData } from './fixtures';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
@@ -33,7 +34,7 @@ describe('Todos Routes Integration with Real Database', () => {
       { 
         sub: testUser.id, 
         type: 'access',
-        exp: Math.floor(Date.now() / 1000) + (15 * 60) // 15 minutes
+        exp: Math.floor(Date.now() / 1000) + ACCESS_TOKEN_EXPIRY
       },
       env.JWT_SECRET
     );

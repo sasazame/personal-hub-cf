@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
 import { Hono } from 'hono';
 import { setupTestDatabase, cleanupTestDatabase, closeTestDatabase } from '../integration/setup-test-db';
+import { ACCESS_TOKEN_EXPIRY } from '../../config/constants';
 import { createTestUserData } from '../integration/fixtures';
 import * as jwt from '@tsndr/cloudflare-worker-jwt';
 import type { Bindings, Variables } from '../../types';
@@ -34,7 +35,7 @@ describe('SQL Injection Security Tests', () => {
       { 
         sub: testUser.id, 
         type: 'access',
-        exp: Math.floor(Date.now() / 1000) + (15 * 60)
+        exp: Math.floor(Date.now() / 1000) + ACCESS_TOKEN_EXPIRY
       },
       env.JWT_SECRET
     );

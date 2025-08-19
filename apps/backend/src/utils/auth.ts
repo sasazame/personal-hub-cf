@@ -1,4 +1,5 @@
 import jwt from '@tsndr/cloudflare-worker-jwt';
+import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY } from '../config/constants';
 
 // Password hashing using Web Crypto API
 export async function hashPassword(password: string): Promise<string> {
@@ -81,7 +82,7 @@ export async function generateTokens(userId: string, secret: string) {
     { 
       sub: userId, 
       type: 'access',
-      exp: Math.floor(Date.now() / 1000) + (15 * 60) // 15 minutes
+      exp: Math.floor(Date.now() / 1000) + ACCESS_TOKEN_EXPIRY
     },
     secret
   );
@@ -90,7 +91,7 @@ export async function generateTokens(userId: string, secret: string) {
     { 
       sub: userId, 
       type: 'refresh',
-      exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60), // 7 days
+      exp: Math.floor(Date.now() / 1000) + REFRESH_TOKEN_EXPIRY,
       jti: crypto.randomUUID() // Add unique identifier to prevent duplicate tokens
     },
     secret

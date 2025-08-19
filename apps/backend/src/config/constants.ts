@@ -7,8 +7,9 @@ export const DEFAULT_PAGE_SIZE = 20;
 export const MAX_PAGE_SIZE = 100;
 
 // Auth
-export const ACCESS_TOKEN_EXPIRY = 15 * 60; // 15 minutes
+export const ACCESS_TOKEN_EXPIRY = 60 * 60; // 1 hour
 export const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60; // 7 days
+export const SESSION_COOKIE_EXPIRY = 24 * 60 * 60; // 24 hours
 
 // Password requirements
 export const PASSWORD_MIN_LENGTH = 8;

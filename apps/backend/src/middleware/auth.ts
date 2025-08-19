@@ -7,13 +7,14 @@ import type { Bindings, Variables } from '../types';
 import { verifyToken } from '../utils/auth';
 import { createErrorResponse, ErrorCodes, StatusCodes } from '../utils/spring-boot-compat';
 import { createSecurityEventLogger } from '../utils/security-events';
+import { SESSION_COOKIE_EXPIRY } from '../config/constants';
 
 // Cookie names (matching auth.ts)
 const ACCESS_TOKEN_COOKIE = 'access-token';
 const SESSION_COOKIE = 'session-id';
 
-// Session timeout in milliseconds (30 minutes)
-const SESSION_TIMEOUT = 30 * 60 * 1000;
+// Session timeout in milliseconds
+const SESSION_TIMEOUT = SESSION_COOKIE_EXPIRY * 1000;
 
 interface SessionData {
   lastActivity: number;
@@ -67,7 +68,7 @@ export async function authMiddleware(
         secure: c.env?.ENVIRONMENT === 'production',
         sameSite: c.env?.ENVIRONMENT === 'production' ? 'None' : 'Lax',
         path: '/',
-        maxAge: 30 * 60,
+        maxAge: SESSION_COOKIE_EXPIRY,
       });
     } catch {
       // Invalid session cookie, continue without session check
@@ -127,7 +128,7 @@ export async function authMiddleware(
             secure: c.env?.ENVIRONMENT === 'production',
             sameSite: c.env?.ENVIRONMENT === 'production' ? 'None' : 'Lax',
             path: '/',
-            maxAge: 30 * 60,
+            maxAge: SESSION_COOKIE_EXPIRY,
           });
         }
       } catch {

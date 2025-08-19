@@ -21,6 +21,7 @@ import { generateAndSetCSRFToken } from '../middleware/csrf';
 import { authMiddleware } from '../middleware/auth';
 import { setCookie, getCookie, deleteCookie } from 'hono/cookie';
 import { createSecurityEventLogger } from '../utils/security-events';
+import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY, SESSION_COOKIE_EXPIRY } from '../config/constants';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -34,22 +35,22 @@ const SESSION_COOKIE = 'session-id';
 function setAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variables }>, accessToken: string, refreshToken: string) {
   const isProduction = c.env?.ENVIRONMENT === 'production';
   
-  // Set access token cookie (15 minutes)
+  // Set access token cookie
   setCookie(c, ACCESS_TOKEN_COOKIE, accessToken, {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? 'None' : 'Lax', // Use 'None' for cross-domain in production
     path: '/',
-    maxAge: 15 * 60, // 15 minutes
+    maxAge: ACCESS_TOKEN_EXPIRY,
   });
   
-  // Set refresh token cookie (7 days)
+  // Set refresh token cookie
   setCookie(c, REFRESH_TOKEN_COOKIE, refreshToken, {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? 'None' : 'Lax', // Use 'None' for cross-domain in production
     path: '/',
-    maxAge: 7 * 24 * 60 * 60, // 7 days
+    maxAge: REFRESH_TOKEN_EXPIRY,
   });
   
   // Set session cookie with last activity timestamp
@@ -62,7 +63,7 @@ function setAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variables }>
     secure: isProduction,
     sameSite: isProduction ? 'None' : 'Lax', // Use 'None' for cross-domain in production
     path: '/',
-    maxAge: 30 * 60, // 30 minutes
+    maxAge: SESSION_COOKIE_EXPIRY,
   });
 }
 
