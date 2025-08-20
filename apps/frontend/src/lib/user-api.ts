@@ -1,5 +1,8 @@
 import { apiClient } from './api-client';
 
+// Base path for all user API endpoints
+const USERS_BASE = '/api/v1/users';
+
 export interface UserProfile {
   id: string;
   username: string;
@@ -47,12 +50,12 @@ export interface UpdatePasswordDto {
 
 export const userApi = {
   getProfile: async (): Promise<UserProfile> => {
-    const response = await apiClient.get('/users/profile');
+    const response = await apiClient.get(`${USERS_BASE}/profile`);
     return response.data;
   },
 
   updateProfile: async (data: UpdateProfileDto): Promise<UserProfile> => {
-    const response = await apiClient.put('/users/profile', data);
+    const response = await apiClient.put(`${USERS_BASE}/profile`, data);
     return response.data;
   },
 
@@ -60,39 +63,36 @@ export const userApi = {
     const formData = new FormData();
     formData.append('avatar', file);
     
-    const response = await apiClient.post('/users/avatar', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    // Let axios set the Content-Type header with proper boundary for FormData
+    const response = await apiClient.post(`${USERS_BASE}/avatar`, formData);
     return response.data;
   },
 
   updatePassword: async (data: UpdatePasswordDto): Promise<void> => {
-    await apiClient.put('/users/password', data);
+    await apiClient.put(`${USERS_BASE}/password`, data);
   },
 
   getSettings: async (): Promise<UserSettings> => {
-    const response = await apiClient.get('/users/settings');
+    const response = await apiClient.get(`${USERS_BASE}/settings`);
     return response.data;
   },
 
   updateSettings: async (settings: Partial<UserSettings>): Promise<UserSettings> => {
-    const response = await apiClient.put('/users/settings', settings);
+    const response = await apiClient.put(`${USERS_BASE}/settings`, settings);
     return response.data;
   },
 
   deleteAccount: async (password: string): Promise<void> => {
-    await apiClient.delete('/users/account', { data: { password } });
+    await apiClient.delete(`${USERS_BASE}/account`, { data: { password } });
   },
 
   getFeaturePreferences: async (): Promise<FeaturePreferences> => {
-    const response = await apiClient.get('/users/feature-preferences');
+    const response = await apiClient.get(`${USERS_BASE}/feature-preferences`);
     return response.data;
   },
 
   updateFeaturePreferences: async (preferences: Partial<FeaturePreferences>): Promise<FeaturePreferences> => {
-    const response = await apiClient.put('/users/feature-preferences', preferences);
+    const response = await apiClient.put(`${USERS_BASE}/feature-preferences`, preferences);
     return response.data;
   },
 };
