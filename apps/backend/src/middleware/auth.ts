@@ -8,6 +8,12 @@ import { verifyToken } from '../utils/auth';
 import { createErrorResponse, ErrorCodes, StatusCodes } from '../utils/spring-boot-compat';
 import { createSecurityEventLogger } from '../utils/security-events';
 import { SESSION_COOKIE_EXPIRY } from '../config/constants';
+import { 
+  parseSignedSessionCookie, 
+  createSignedSessionCookie, 
+  getSessionCookieOptions,
+  type SessionData 
+} from '../utils/session-cookie';
 
 // Cookie names (matching auth.ts)
 const ACCESS_TOKEN_COOKIE = 'access-token';
@@ -15,11 +21,6 @@ const SESSION_COOKIE = 'session-id';
 
 // Session timeout in milliseconds
 const SESSION_TIMEOUT = SESSION_COOKIE_EXPIRY * 1000;
-
-interface SessionData {
-  lastActivity: number;
-  userId: string | null;
-}
 
 export async function authMiddleware(
   c: Context<{ Bindings: Bindings; Variables: Variables }>,
@@ -32,8 +33,8 @@ export async function authMiddleware(
   // Check session timeout first
   const sessionCookie = getCookie(c, SESSION_COOKIE);
   if (sessionCookie) {
-    try {
-      const session: SessionData = JSON.parse(sessionCookie);
+    const session = await parseSignedSessionCookie(sessionCookie, c.env.JWT_SECRET);
+    if (session) {
       if (Date.now() - session.lastActivity > SESSION_TIMEOUT) {
         // Session expired, clear all cookies
         const isProduction = c.env?.ENVIRONMENT === 'production';
@@ -63,16 +64,11 @@ export async function authMiddleware(
       
       // Update session activity
       const updatedSession: SessionData = { ...session, lastActivity: Date.now() };
-      setCookie(c, SESSION_COOKIE, JSON.stringify(updatedSession), {
-        httpOnly: true,
-        secure: c.env?.ENVIRONMENT === 'production',
-        sameSite: c.env?.ENVIRONMENT === 'production' ? 'None' : 'Lax',
-        path: '/',
-        maxAge: SESSION_COOKIE_EXPIRY,
-      });
-    } catch {
-      // Invalid session cookie, continue without session check
+      const signedCookie = await createSignedSessionCookie(updatedSession, c.env.JWT_SECRET);
+      const cookieOptions = getSessionCookieOptions(c.env?.ENVIRONMENT === 'production');
+      setCookie(c, SESSION_COOKIE, signedCookie, cookieOptions);
     }
+    // If session is null (invalid signature), continue without session check
   }
   
   // Try to get token from cookie first, then fall back to header for backwards compatibility
@@ -119,20 +115,12 @@ export async function authMiddleware(
     
     // Update session with userId if not already set
     if (sessionCookie) {
-      try {
-        const session: SessionData = JSON.parse(sessionCookie);
-        if (!session.userId || session.userId !== user.id) {
-          session.userId = user.id;
-          setCookie(c, SESSION_COOKIE, JSON.stringify(session), {
-            httpOnly: true,
-            secure: c.env?.ENVIRONMENT === 'production',
-            sameSite: c.env?.ENVIRONMENT === 'production' ? 'None' : 'Lax',
-            path: '/',
-            maxAge: SESSION_COOKIE_EXPIRY,
-          });
-        }
-      } catch {
-        // Ignore session update errors
+      const session = await parseSignedSessionCookie(sessionCookie, c.env.JWT_SECRET);
+      if (session && (!session.userId || session.userId !== user.id)) {
+        session.userId = user.id;
+        const signedCookie = await createSignedSessionCookie(session, c.env.JWT_SECRET);
+        const cookieOptions = getSessionCookieOptions(c.env?.ENVIRONMENT === 'production');
+        setCookie(c, SESSION_COOKIE, signedCookie, cookieOptions);
       }
     }
     

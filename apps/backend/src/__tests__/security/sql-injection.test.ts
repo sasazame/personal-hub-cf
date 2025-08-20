@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
 import { Hono } from 'hono';
 import { setupTestDatabase, cleanupTestDatabase, closeTestDatabase } from '../integration/setup-test-db';
-import { ACCESS_TOKEN_EXPIRY } from '../../config/constants';
 import { createTestUserData } from '../integration/fixtures';
-import * as jwt from '@tsndr/cloudflare-worker-jwt';
+import { signTestAccessToken } from '../helpers/jwt';
 import type { Bindings, Variables } from '../../types';
 import * as schema from '../../db/schema';
 import todosRoutes from '../../routes/todos';
@@ -31,14 +30,7 @@ describe('SQL Injection Security Tests', () => {
     testUser = users[0];
     
     // Generate access token
-    accessToken = await jwt.sign(
-      { 
-        sub: testUser.id, 
-        type: 'access',
-        exp: Math.floor(Date.now() / 1000) + ACCESS_TOKEN_EXPIRY
-      },
-      env.JWT_SECRET
-    );
+    accessToken = await signTestAccessToken(testUser.id, env.JWT_SECRET);
 
     app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
     

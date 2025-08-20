@@ -21,7 +21,8 @@ import { generateAndSetCSRFToken } from '../middleware/csrf';
 import { authMiddleware } from '../middleware/auth';
 import { setCookie, getCookie, deleteCookie } from 'hono/cookie';
 import { createSecurityEventLogger } from '../utils/security-events';
-import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY, SESSION_COOKIE_EXPIRY } from '../config/constants';
+import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY, SESSION_COOKIE_EXPIRY, PASSWORD_RESET_TOKEN_EXPIRY } from '../config/constants';
+import { createSignedSessionCookie, getSessionCookieOptions } from '../utils/session-cookie';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -32,7 +33,7 @@ const SESSION_COOKIE = 'session-id';
 
 
 // Helper function to set auth cookies
-function setAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variables }>, accessToken: string, refreshToken: string) {
+async function setAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variables }>, accessToken: string, refreshToken: string) {
   const isProduction = c.env?.ENVIRONMENT === 'production';
   
   // Set access token cookie
@@ -53,18 +54,14 @@ function setAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variables }>
     maxAge: REFRESH_TOKEN_EXPIRY,
   });
   
-  // Set session cookie with last activity timestamp
+  // Set signed session cookie with last activity timestamp
   const sessionData = {
     lastActivity: Date.now(),
     userId: null // Will be set after decoding token
   };
-  setCookie(c, SESSION_COOKIE, JSON.stringify(sessionData), {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? 'None' : 'Lax', // Use 'None' for cross-domain in production
-    path: '/',
-    maxAge: SESSION_COOKIE_EXPIRY,
-  });
+  const signedSessionCookie = await createSignedSessionCookie(sessionData, c.env.JWT_SECRET);
+  const sessionCookieOptions = getSessionCookieOptions(isProduction);
+  setCookie(c, SESSION_COOKIE, signedSessionCookie, sessionCookieOptions);
 }
 
 // Helper function to clear auth cookies
@@ -223,7 +220,7 @@ app.post('/register', authRateLimiter, zValidator('json', registerSchema, spring
     const csrfToken = generateAndSetCSRFToken(c);
     
     // Set auth cookies
-    setAuthCookies(c, tokens.accessToken, tokens.refreshToken);
+    await setAuthCookies(c, tokens.accessToken, tokens.refreshToken);
     
     // Return user data without tokens (they're in cookies now)
     return c.json({
@@ -324,7 +321,7 @@ app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootVa
     const csrfToken = generateAndSetCSRFToken(c);
     
     // Set auth cookies
-    setAuthCookies(c, tokens.accessToken, tokens.refreshToken);
+    await setAuthCookies(c, tokens.accessToken, tokens.refreshToken);
     
     // Return user data without tokens (they're in cookies now)
     return c.json({
@@ -436,7 +433,7 @@ app.post('/refresh', async (c) => {
     const csrfToken = generateAndSetCSRFToken(c);
     
     // Set new auth cookies
-    setAuthCookies(c, tokens.accessToken, tokens.refreshToken);
+    await setAuthCookies(c, tokens.accessToken, tokens.refreshToken);
     
     // Return user data without tokens
     return c.json({
@@ -517,7 +514,7 @@ app.post('/forgot-password', authRateLimiter, zValidator('json', forgotPasswordS
         id: nanoid(),
         token: resetToken,
         userId: user.id,
-        expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour
+        expiresAt: new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRY * 1000).toISOString(),
         createdAt: new Date().toISOString(),
       });
       

@@ -2,7 +2,7 @@ import type { Context, Next } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import type { Bindings, Variables } from '../types';
 import { createErrorResponse, ErrorCodes, StatusCodes } from '../utils/spring-boot-compat';
-import { AUTH_RATE_LIMIT_WINDOW, RATE_LIMIT_WINDOW } from '../config/constants';
+import { AUTH_RATE_LIMIT_WINDOW, RATE_LIMIT_WINDOW, STRICT_RATE_LIMIT_WINDOW } from '../config/constants';
 import { createSecurityEventLogger } from '../utils/security-events';
 
 interface RateLimitOptions {
@@ -148,7 +148,7 @@ export const generalRateLimiter = createRateLimiter({
 });
 
 export const strictRateLimiter = createRateLimiter({
-  windowMs: 60 * 60 * 1000, // 1 hour
+  windowMs: STRICT_RATE_LIMIT_WINDOW,
   max: 10, // 10 requests per hour
   message: 'Rate limit exceeded. Please wait before making another request.',
 });
