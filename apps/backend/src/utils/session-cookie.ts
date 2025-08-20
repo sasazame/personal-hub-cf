@@ -92,7 +92,7 @@ export async function parseSignedSessionCookie(
     }
     
     return JSON.parse(payload) as SessionData;
-  } catch (error) {
+  } catch {
     // Invalid format or JSON
     return null;
   }
@@ -105,7 +105,7 @@ export const SESSION_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: true, // Always use secure in production
   sameSite: 'lax' as const,
-  maxAge: SESSION_COOKIE_EXPIRY,
+  maxAge: SESSION_COOKIE_EXPIRY, // maxAge expects seconds
   path: '/'
 };
 

@@ -21,7 +21,7 @@ import { generateAndSetCSRFToken } from '../middleware/csrf';
 import { authMiddleware } from '../middleware/auth';
 import { setCookie, getCookie, deleteCookie } from 'hono/cookie';
 import { createSecurityEventLogger } from '../utils/security-events';
-import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY, SESSION_COOKIE_EXPIRY, PASSWORD_RESET_TOKEN_EXPIRY } from '../config/constants';
+import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY, PASSWORD_RESET_TOKEN_EXPIRY } from '../config/constants';
 import { createSignedSessionCookie, getSessionCookieOptions } from '../utils/session-cookie';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
@@ -42,7 +42,7 @@ async function setAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variab
     secure: isProduction,
     sameSite: isProduction ? 'None' : 'Lax', // Use 'None' for cross-domain in production
     path: '/',
-    maxAge: ACCESS_TOKEN_EXPIRY,
+    maxAge: ACCESS_TOKEN_EXPIRY, // maxAge expects seconds
   });
   
   // Set refresh token cookie
@@ -51,7 +51,7 @@ async function setAuthCookies(c: Context<{ Bindings: Bindings; Variables: Variab
     secure: isProduction,
     sameSite: isProduction ? 'None' : 'Lax', // Use 'None' for cross-domain in production
     path: '/',
-    maxAge: REFRESH_TOKEN_EXPIRY,
+    maxAge: REFRESH_TOKEN_EXPIRY, // maxAge expects seconds
   });
   
   // Set signed session cookie with last activity timestamp
