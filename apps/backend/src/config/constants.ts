@@ -22,6 +22,7 @@ export const USERNAME_MAX_LENGTH = 20;
 // Rate limiting
 export const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 export const RATE_LIMIT_MAX_REQUESTS = 100;
+export const AUTH_RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes (in milliseconds)
 
 // File size limits
 export const MAX_REQUEST_SIZE = 10 * 1024 * 1024; // 10MB

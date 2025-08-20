@@ -209,7 +209,7 @@ app.post('/register', authRateLimiter, zValidator('json', registerSchema, spring
       tokenHash: await createHash(tokens.refreshToken),
       userId: userId,
       clientId: 'web',
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY * 1000).toISOString(),
       createdAt: now,
       revoked: false
     };
@@ -312,7 +312,7 @@ app.post('/login', authRateLimiter, zValidator('json', loginSchema, springBootVa
       tokenHash: await createHash(tokens.refreshToken),
       userId: user.id,
       clientId: 'web',
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY * 1000).toISOString(),
       createdAt: new Date().toISOString(),
       revoked: false
     });
@@ -424,7 +424,7 @@ app.post('/refresh', async (c) => {
       tokenHash: await createHash(tokens.refreshToken),
       userId: user.id,
       clientId: 'web',
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY * 1000).toISOString(),
       createdAt: new Date().toISOString(),
       revoked: false
     });

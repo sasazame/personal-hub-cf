@@ -12,7 +12,8 @@ interface CachedSession {
 }
 
 const sessionCache = new Map<string, CachedSession>();
-const SESSION_TTL = 30 * 60 * 1000; // 30 minutes
+// Using 24 hours session duration to match backend SESSION_COOKIE_EXPIRY constant
+const SESSION_TTL = 24 * 60 * 60 * 1000; // 24 hours (matching backend SESSION_COOKIE_EXPIRY)
 
 function isSessionValid(session: CachedSession): boolean {
   return Date.now() - session.timestamp < SESSION_TTL;

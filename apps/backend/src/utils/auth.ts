@@ -78,11 +78,14 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 
 // JWT functions
 export async function generateTokens(userId: string, secret: string) {
+  const now = Math.floor(Date.now() / 1000);
+  
   const accessToken = await jwt.sign(
     { 
       sub: userId, 
       type: 'access',
-      exp: Math.floor(Date.now() / 1000) + ACCESS_TOKEN_EXPIRY
+      iat: now,
+      exp: now + ACCESS_TOKEN_EXPIRY
     },
     secret
   );
@@ -91,7 +94,8 @@ export async function generateTokens(userId: string, secret: string) {
     { 
       sub: userId, 
       type: 'refresh',
-      exp: Math.floor(Date.now() / 1000) + REFRESH_TOKEN_EXPIRY,
+      iat: now,
+      exp: now + REFRESH_TOKEN_EXPIRY,
       jti: crypto.randomUUID() // Add unique identifier to prevent duplicate tokens
     },
     secret
