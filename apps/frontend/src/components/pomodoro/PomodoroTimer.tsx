@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { PomodoroSession, SessionStatus, SessionType, SessionAction } from '@/types/pomodoro';
 import { pomodoroApi } from '@/lib/pomodoro-api';
+import { usePomodoroConfig } from '@/hooks/usePomodoro';
 import { Button } from '@/components/ui';
 import { Play, Pause, RotateCcw, Coffee, Brain } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -9,24 +10,28 @@ interface PomodoroTimerProps {
   session: PomodoroSession;
   onComplete?: () => void;
   onUpdate?: (session: PomodoroSession) => void;
+  onStartNewSession?: () => void;
 }
 
-export function PomodoroTimer({ session, onComplete, onUpdate }: PomodoroTimerProps) {
+export function PomodoroTimer({ session, onComplete, onUpdate, onStartNewSession }: PomodoroTimerProps) {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { data: config } = usePomodoroConfig();
 
   useEffect(() => {
-    // Initialize audio - silently fail if sound file doesn't exist
-    try {
-      audioRef.current = new Audio('/sounds/alarm.mp3');
-      audioRef.current.volume = 0.5;
-      // Preload the audio to check if it exists
-      audioRef.current.load();
-    } catch {
-      console.warn('Audio file not found, alarm will be silent');
-      audioRef.current = null;
+    // Initialize audio if sound is enabled
+    if (config?.soundEnabled) {
+      try {
+        audioRef.current = new Audio('/sounds/alarm.mp3');
+        audioRef.current.volume = (config.alarmVolume ?? 50) / 100;
+        // Preload the audio to check if it exists
+        audioRef.current.load();
+      } catch {
+        console.warn('Audio file not found, alarm will be silent');
+        audioRef.current = null;
+      }
     }
     
     return () => {
@@ -34,7 +39,7 @@ export function PomodoroTimer({ session, onComplete, onUpdate }: PomodoroTimerPr
         clearInterval(intervalRef.current);
       }
     };
-  }, []);
+  }, [config]);
 
   useEffect(() => {
     if (session) {
@@ -103,6 +108,12 @@ export function PomodoroTimer({ session, onComplete, onUpdate }: PomodoroTimerPr
   };
 
   const handleStart = async () => {
+    // If this is a temporary/pending session, create a new real session
+    if (session.status === SessionStatus.PENDING || session.id.startsWith('temp-')) {
+      onStartNewSession?.();
+      return;
+    }
+    
     try {
       const updatedSession = await pomodoroApi.updateSession(session.id, {
         action: SessionAction.START
@@ -232,18 +243,21 @@ export function PomodoroTimer({ session, onComplete, onUpdate }: PomodoroTimerPr
               size="lg"
               variant="primary"
               className="gap-2"
+              data-testid="start-button"
             >
               <Play className="w-5 h-5" />
               開始
             </Button>
-            <Button
-              onClick={handleComplete}
-              size="lg"
-              variant="secondary"
-              className="gap-2"
-            >
-              スキップ
-            </Button>
+            {session.status !== SessionStatus.PENDING && (
+              <Button
+                onClick={handleComplete}
+                size="lg"
+                variant="secondary"
+                className="gap-2"
+              >
+                スキップ
+              </Button>
+            )}
           </>
         ) : (
           <>

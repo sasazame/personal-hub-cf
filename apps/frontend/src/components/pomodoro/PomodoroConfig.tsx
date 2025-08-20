@@ -212,6 +212,19 @@ export function PomodoroConfig() {
               />
               <span className="text-sm">サウンド通知を有効化</span>
             </label>
+
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={formData.carryOverIncompleteTasks ?? true}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  carryOverIncompleteTasks: e.target.checked
+                })}
+                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm">未完了タスクを次のセッションに引き継ぐ</span>
+            </label>
           </div>
 
           {formData.soundEnabled && (
@@ -223,19 +236,19 @@ export function PomodoroConfig() {
                 type="range"
                 min="0"
                 max="100"
-                value={Math.round((formData.soundVolume ?? 0.5) * 100)}
+                value={formData.alarmVolume ?? 50}
                 onChange={(e) => {
                   const raw = Number(e.target.value);
                   const clamped = Number.isFinite(raw) ? Math.min(100, Math.max(0, raw)) : 50;
                   setFormData({
                     ...formData,
-                    soundVolume: clamped / 100,
+                    alarmVolume: clamped,
                   });
                 }}
                 className="w-full"
               />
               <div className="text-xs text-muted-foreground text-center">
-                {Math.round((formData.soundVolume ?? 0.5) * 100)}%
+                {formData.alarmVolume ?? 50}%
               </div>
             </div>
           )}

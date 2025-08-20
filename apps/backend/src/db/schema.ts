@@ -146,8 +146,10 @@ export const pomodoroConfigs = sqliteTable('pomodoro_configs', {
   cyclesBeforeLongBreak: integer('cycles_before_long_break').default(4).notNull(),
   alarmSound: text('alarm_sound').default('default').notNull(),
   alarmVolume: integer('alarm_volume').default(50).notNull(),
+  soundEnabled: integer('sound_enabled', { mode: 'boolean' }).default(true).notNull(),
   autoStartBreaks: integer('auto_start_breaks', { mode: 'boolean' }).default(true).notNull(),
   autoStartWork: integer('auto_start_work', { mode: 'boolean' }).default(false).notNull(),
+  carryOverIncompleteTasks: integer('carry_over_incomplete_tasks', { mode: 'boolean' }).default(true).notNull(),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
