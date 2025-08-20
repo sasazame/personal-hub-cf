@@ -47,12 +47,12 @@ export interface UpdatePasswordDto {
 
 export const userApi = {
   getProfile: async (): Promise<UserProfile> => {
-    const response = await apiClient.get('/users/profile');
+    const response = await apiClient.get('/api/v1/users/profile');
     return response.data;
   },
 
   updateProfile: async (data: UpdateProfileDto): Promise<UserProfile> => {
-    const response = await apiClient.put('/users/profile', data);
+    const response = await apiClient.put('/api/v1/users/profile', data);
     return response.data;
   },
 
@@ -60,7 +60,7 @@ export const userApi = {
     const formData = new FormData();
     formData.append('avatar', file);
     
-    const response = await apiClient.post('/users/avatar', formData, {
+    const response = await apiClient.post('/api/v1/users/avatar', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -69,30 +69,30 @@ export const userApi = {
   },
 
   updatePassword: async (data: UpdatePasswordDto): Promise<void> => {
-    await apiClient.put('/users/password', data);
+    await apiClient.put('/api/v1/users/password', data);
   },
 
   getSettings: async (): Promise<UserSettings> => {
-    const response = await apiClient.get('/users/settings');
+    const response = await apiClient.get('/api/v1/users/settings');
     return response.data;
   },
 
   updateSettings: async (settings: Partial<UserSettings>): Promise<UserSettings> => {
-    const response = await apiClient.put('/users/settings', settings);
+    const response = await apiClient.put('/api/v1/users/settings', settings);
     return response.data;
   },
 
   deleteAccount: async (password: string): Promise<void> => {
-    await apiClient.delete('/users/account', { data: { password } });
+    await apiClient.delete('/api/v1/users/account', { data: { password } });
   },
 
   getFeaturePreferences: async (): Promise<FeaturePreferences> => {
-    const response = await apiClient.get('/users/feature-preferences');
+    const response = await apiClient.get('/api/v1/users/feature-preferences');
     return response.data;
   },
 
   updateFeaturePreferences: async (preferences: Partial<FeaturePreferences>): Promise<FeaturePreferences> => {
-    const response = await apiClient.put('/users/feature-preferences', preferences);
+    const response = await apiClient.put('/api/v1/users/feature-preferences', preferences);
     return response.data;
   },
 };
