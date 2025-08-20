@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import todosRoutes from '../../routes/todos';
 import { setupTestDatabase, cleanupTestDatabase, closeTestDatabase } from './setup-test-db';
 import { createTestUserData, createTestTodoData } from './fixtures';
-import * as jwt from '@tsndr/cloudflare-worker-jwt';
+import { signTestAccessToken } from '../helpers/jwt';
 import type { Bindings, Variables } from '../../types';
 import type { Database } from '../../db';
 import * as schema from '../../db/schema';
@@ -29,14 +29,7 @@ describe('Todos Routes Integration with Real Database', () => {
     testUser = users[0];
     
     // Generate access token
-    accessToken = await jwt.sign(
-      { 
-        sub: testUser.id, 
-        type: 'access',
-        exp: Math.floor(Date.now() / 1000) + (15 * 60) // 15 minutes
-      },
-      env.JWT_SECRET
-    );
+    accessToken = await signTestAccessToken(testUser.id, env.JWT_SECRET);
 
     app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
     

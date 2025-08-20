@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { hashPassword, verifyPassword, generateTokens, verifyToken } from '../../utils/auth';
+import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY } from '../../config/constants';
 
 describe('Auth Utils', () => {
   describe('Password Hashing', () => {
@@ -108,11 +109,11 @@ describe('Auth Utils', () => {
         exp: expect.any(Number),
       });
       
-      // Check expiration time (should be ~15 minutes)
+      // Check expiration time
       const now = Math.floor(Date.now() / 1000);
       const expiry = payload.exp! - now;
       expect(expiry).toBeGreaterThan(0);
-      expect(expiry).toBeLessThanOrEqual(15 * 60);
+      expect(expiry).toBeLessThanOrEqual(ACCESS_TOKEN_EXPIRY);
     });
 
     it('should include proper claims in refresh token', async () => {
@@ -126,11 +127,11 @@ describe('Auth Utils', () => {
         exp: expect.any(Number),
       });
       
-      // Check expiration time (should be ~7 days)
+      // Check expiration time
       const now = Math.floor(Date.now() / 1000);
       const expiry = payload.exp! - now;
       expect(expiry).toBeGreaterThan(0);
-      expect(expiry).toBeLessThanOrEqual(7 * 24 * 60 * 60);
+      expect(expiry).toBeLessThanOrEqual(REFRESH_TOKEN_EXPIRY);
     });
 
     it('should have different expiration for access and refresh tokens', async () => {

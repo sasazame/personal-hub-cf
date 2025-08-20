@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Hono } from 'hono';
 import authRoutes from '../../routes/auth';
 import type { Bindings, Variables } from '../../types';
+import { REFRESH_TOKEN_EXPIRY } from '../../config/constants';
 
 // Mock database
 const mockDb = {
@@ -164,7 +165,7 @@ describe('Auth Routes - CSRF Token', () => {
         id: 'token-123',
         tokenHash: 'hashed-token',
         userId: 'user-123',
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY * 1000).toISOString(),
         revoked: false,
       };
       
