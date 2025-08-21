@@ -39,6 +39,8 @@ export interface PomodoroTask {
 }
 
 export interface PomodoroConfig {
+  readonly id?: string;
+  readonly userId?: string;
   workDuration: number;
   shortBreakDuration: number;
   longBreakDuration: number;
@@ -49,6 +51,8 @@ export interface PomodoroConfig {
   alarmVolume: number;
   alarmSound: string;
   carryOverIncompleteTasks: boolean;
+  readonly createdAt?: string;
+  readonly updatedAt?: string;
 }
 
 export interface CreatePomodoroSessionRequest {

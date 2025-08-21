@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { pomodoroApi } from '@/lib/pomodoro-api';
-import { PomodoroConfig as PomodoroConfigType } from '@/types/pomodoro';
+import { PomodoroConfig as PomodoroConfigType, UpdatePomodoroConfigRequest } from '@/types/pomodoro';
 import { Settings, X, Save } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { cn } from '@/lib/cn';
@@ -20,7 +20,7 @@ export function PomodoroConfig() {
   const [formData, setFormData] = useState<Partial<PomodoroConfigType>>({});
 
   const updateMutation = useMutation({
-    mutationFn: (data: Partial<PomodoroConfigType>) => pomodoroApi.updateConfig(data),
+    mutationFn: (data: UpdatePomodoroConfigRequest) => pomodoroApi.updateConfig(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pomodoro-config'] });
       toast.success('設定が保存されました');
@@ -44,7 +44,21 @@ export function PomodoroConfig() {
   };
 
   const handleSave = () => {
-    updateMutation.mutate(formData);
+    // Build a typed payload that matches UpdatePomodoroConfigRequest
+    const payload: UpdatePomodoroConfigRequest = {
+      workDuration: formData.workDuration,
+      shortBreakDuration: formData.shortBreakDuration,
+      longBreakDuration: formData.longBreakDuration,
+      cyclesBeforeLongBreak: formData.cyclesBeforeLongBreak,
+      alarmSound: formData.alarmSound,
+      alarmVolume: formData.alarmVolume,
+      autoStartBreaks: formData.autoStartBreaks,
+      autoStartWork: formData.autoStartWork,
+      soundEnabled: formData.soundEnabled,
+      carryOverIncompleteTasks: formData.carryOverIncompleteTasks
+    };
+    
+    updateMutation.mutate(payload);
   };
 
   if (!isOpen) {
