@@ -14,6 +14,7 @@ export interface PomodoroSession {
 }
 
 export enum SessionStatus {
+  PENDING = 'PENDING',
   ACTIVE = 'ACTIVE',
   PAUSED = 'PAUSED',
   COMPLETED = 'COMPLETED',
@@ -45,8 +46,9 @@ export interface PomodoroConfig {
   autoStartBreaks: boolean;
   autoStartWork: boolean;
   soundEnabled: boolean;
-  soundVolume: number;
+  alarmVolume: number;
   alarmSound: string;
+  carryOverIncompleteTasks: boolean;
 }
 
 export interface CreatePomodoroSessionRequest {
@@ -88,6 +90,8 @@ export interface UpdatePomodoroConfigRequest {
   alarmVolume?: number;
   autoStartBreaks?: boolean;
   autoStartWork?: boolean;
+  soundEnabled?: boolean;
+  carryOverIncompleteTasks?: boolean;
 }
 
 export interface PaginatedResponse<T> {

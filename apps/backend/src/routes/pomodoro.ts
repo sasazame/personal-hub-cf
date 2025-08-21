@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import { pomodoroSessions, pomodoroTasks, pomodoroConfigs } from '../db/schema';
 import type { Bindings, Variables } from '../types';
 import { authMiddleware } from '../middleware/auth';
@@ -42,8 +42,10 @@ const configSchema = z.object({
   cyclesBeforeLongBreak: z.number().min(1).optional(),
   alarmSound: z.string().optional(),
   alarmVolume: z.number().min(0).max(100).optional(),
+  soundEnabled: z.boolean().optional(),
   autoStartBreaks: z.boolean().optional(),
   autoStartWork: z.boolean().optional(),
+  carryOverIncompleteTasks: z.boolean().optional(),
 });
 
 const updateTaskSchema = z.object({
@@ -93,9 +95,28 @@ app.get('/sessions', async (c) => {
       .limit(size)
       .offset(offset);
     
+    // Get tasks for all sessions in a single query to avoid N+1
+    const sessionIds = sessions.map((s) => s.id);
+    type TaskType = typeof pomodoroTasks.$inferSelect;
+    let tasksBySession: Record<string, TaskType[]> = {};
+    if (sessionIds.length > 0) {
+      const allTasks = await db.select()
+        .from(pomodoroTasks)
+        .where(inArray(pomodoroTasks.sessionId, sessionIds))
+        .orderBy(pomodoroTasks.orderIndex);
+      tasksBySession = allTasks.reduce((acc, t) => {
+        (acc[t.sessionId] ||= []).push(t);
+        return acc;
+      }, {} as Record<string, TaskType[]>);
+    }
+    const sessionsWithTasks = sessions.map((session) => ({
+      ...session,
+      tasks: tasksBySession[session.id] ?? [],
+    }));
+    
     // Return paginated response
     return c.json({
-      content: sessions,
+      content: sessionsWithTasks,
       totalElements,
       totalPages,
       size,
@@ -221,7 +242,7 @@ app.post('/sessions', zValidator('json', createSessionSchema, springBootValidato
       startTime: null,
       workDuration: data.workDuration,
       breakDuration: data.breakDuration,
-      status: 'ACTIVE' as const,
+      status: 'PAUSED' as const,
       sessionType: data.sessionType || 'WORK',
       completedCycles: 0,
       createdAt: now,
@@ -468,6 +489,55 @@ app.put('/sessions/:sessionId/tasks/:taskId', zValidator('json', updateTaskSchem
   }
 });
 
+// DELETE /pomodoro/sessions/:sessionId/tasks/:taskId
+app.delete('/sessions/:sessionId/tasks/:taskId', async (c) => {
+  const db = c.get('db');
+  const userId = c.get('userId');
+  const sessionId = c.req.param('sessionId');
+  const taskId = c.req.param('taskId');
+  
+  try {
+    // Verify session belongs to user
+    const session = await db.select()
+      .from(pomodoroSessions)
+      .where(and(
+        eq(pomodoroSessions.id, sessionId),
+        eq(pomodoroSessions.userId, userId as string)
+      ))
+      .get();
+    
+    if (!session) {
+      return c.json(
+        createLocalizedError('NOT_FOUND', c, { detail: 'Session not found' }),
+        404 as ContentfulStatusCode
+      );
+    }
+    
+    // Delete the task
+    const result = await db.delete(pomodoroTasks)
+      .where(and(
+        eq(pomodoroTasks.id, taskId),
+        eq(pomodoroTasks.sessionId, sessionId)
+      ))
+      .returning();
+    
+    if (!result.length) {
+      return c.json(
+        createLocalizedError('NOT_FOUND', c, { detail: 'Task not found' }),
+        404 as ContentfulStatusCode
+      );
+    }
+    
+    return c.json({ message: 'Task deleted successfully' });
+  } catch (error) {
+    console.error('Delete task error:', error);
+    return c.json(
+      createLocalizedError('INTERNAL_ERROR', c),
+      500 as ContentfulStatusCode
+    );
+  }
+});
+
 // GET /pomodoro/config
 app.get('/config', async (c) => {
   const db = c.get('db');
@@ -488,8 +558,10 @@ app.get('/config', async (c) => {
         cyclesBeforeLongBreak: 4,
         alarmSound: 'default',
         alarmVolume: 50,
+        soundEnabled: true,
         autoStartBreaks: true,
         autoStartWork: false,
+        carryOverIncompleteTasks: true,
       });
     }
     
@@ -539,8 +611,10 @@ app.put('/config', zValidator('json', configSchema, springBootValidator), async 
         cyclesBeforeLongBreak: data.cyclesBeforeLongBreak ?? 4,
         alarmSound: data.alarmSound ?? 'default',
         alarmVolume: data.alarmVolume ?? 50,
+        soundEnabled: data.soundEnabled ?? true,
         autoStartBreaks: data.autoStartBreaks ?? true,
         autoStartWork: data.autoStartWork ?? false,
+        carryOverIncompleteTasks: data.carryOverIncompleteTasks ?? true,
         createdAt: now,
         updatedAt: now,
       };

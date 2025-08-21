@@ -164,7 +164,7 @@ describe('Pomodoro Routes', () => {
             where: vi.fn().mockReturnThis(),
             get: vi.fn().mockResolvedValue({ count: 2 }),
           };
-        } else {
+        } else if (selectCallCount === 3) {
           // Sessions query
           return {
             from: vi.fn().mockReturnThis(),
@@ -172,6 +172,13 @@ describe('Pomodoro Routes', () => {
             orderBy: vi.fn().mockReturnThis(),
             limit: vi.fn().mockReturnThis(),
             offset: vi.fn().mockResolvedValue(mockSessions),
+          };
+        } else {
+          // Tasks query for sessions
+          return {
+            from: vi.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
+            orderBy: vi.fn().mockResolvedValue([]), // Return empty array for tasks
           };
         }
       });
@@ -196,7 +203,7 @@ describe('Pomodoro Routes', () => {
       };
       
       expect(body).toMatchObject({
-        content: mockSessions,
+        content: mockSessions.map(session => ({ ...session, tasks: [] })),
         totalElements: 2,
         totalPages: 1,
         size: 20,
@@ -660,7 +667,7 @@ describe('Pomodoro Routes', () => {
       expect(body.id).toBeDefined();
       expect(body.workDuration).toBe(25);
       expect(body.breakDuration).toBe(5);
-      expect(body.status).toBe('ACTIVE');
+      expect(body.status).toBe('PAUSED');
       
       // Verify tasks were created with the correct data
       expect(body.tasks).toBeDefined();

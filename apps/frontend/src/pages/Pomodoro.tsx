@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout';
 import {
@@ -14,8 +14,7 @@ import {
   useUpdateSession,
 } from '@/hooks/usePomodoro';
 import { PomodoroSession, SessionAction, SessionStatus, SessionType } from '@/types/pomodoro';
-import { prepareSessionData, getIncompleteTasks } from '@/utils/pomodoroHelpers';
-import { Button } from '@/components/ui';
+import { prepareSessionData } from '@/utils/pomodoroHelpers';
 import { Card } from '@/components/ui/Card';
 import { Clock } from 'lucide-react';
 
@@ -28,15 +27,45 @@ export function Pomodoro() {
   const createSession = useCreateSession();
   const updateSession = useUpdateSession();
 
+  // Create a temporary session object for display when no active session exists
+  const tempSession = useMemo<PomodoroSession | null>(() => {
+    if (!config || activeSession) return null;
+    return {
+      id: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+      userId: '',
+      workDuration: config.workDuration,
+      breakDuration: config.shortBreakDuration,
+      sessionType: SessionType.WORK,
+      status: SessionStatus.PENDING,
+      completedCycles: 0,
+      tasks: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  }, [config, activeSession]);
+
+  // Use active session or temporary session for display
+  const displaySession = activeSession || tempSession;
+
   // Tasks from active session
   const tasks = activeSession?.tasks || [];
 
-  const handleCreateSession = (initialTask?: string, sessionType: SessionType = SessionType.WORK) => {
+  const handleCreateSession = (initialTask?: string, sessionType: SessionType = SessionType.WORK, autoStart: boolean = false) => {
     if (!config) return;
 
     const sessionData = prepareSessionData(config, initialTask, tasks, sessionType);
 
-    createSession.mutate(sessionData);
+    createSession.mutate(sessionData, {
+      onSuccess: (newSession) => {
+        if (autoStart) {
+          // Auto-start the session immediately
+          updateSession.mutate({
+            id: newSession.id,
+            action: SessionAction.START,
+          });
+        }
+      }
+    });
   };
 
   const handleSessionComplete = (completedSession?: PomodoroSession) => {
@@ -48,17 +77,16 @@ export function Pomodoro() {
       // Determine break type based on completed cycles
       // The session has been marked as completed by PomodoroTimer, so cycles are already updated
       const isLongBreak = session.completedCycles % config.cyclesBeforeLongBreak === 0;
-      const breakDuration = isLongBreak ? config.longBreakDuration : config.shortBreakDuration;
       const breakType = isLongBreak ? SessionType.LONG_BREAK : SessionType.SHORT_BREAK;
 
       // Create and auto-start break session after a short delay
       setTimeout(() => {
-        const breakSessionData = {
-          workDuration: config.workDuration,
-          breakDuration: breakDuration,
-          sessionType: breakType,
-          tasks: getIncompleteTasks(tasks),
-        };
+        const breakSessionData = prepareSessionData(
+          config,
+          undefined,        // no initial task
+          session.tasks,
+          breakType
+        );
 
         createSession.mutate(breakSessionData, {
           onSuccess: (newSession) => {
@@ -73,12 +101,12 @@ export function Pomodoro() {
     } else if (session.sessionType !== 'WORK' && config.autoStartWork) {
       // Auto-start work session after break
       setTimeout(() => {
-        const workSessionData = {
-          workDuration: config.workDuration,
-          breakDuration: config.shortBreakDuration,
-          sessionType: SessionType.WORK,
-          tasks: getIncompleteTasks(tasks),
-        };
+        const workSessionData = prepareSessionData(
+          config,
+          undefined,         // no initial task
+          session.tasks,
+          SessionType.WORK
+        );
 
         createSession.mutate(workSessionData, {
           onSuccess: (newSession) => {
@@ -105,7 +133,7 @@ export function Pomodoro() {
     const state = location.state as { autoStart?: boolean } | null;
     if (state?.autoStart && !activeSession && config && !autoStartHandled.current) {
       autoStartHandled.current = true;
-      handleCreateSession();
+      handleCreateSession(undefined, SessionType.WORK, true);
       // Clear the state to prevent re-starting on refresh
       navigate(
         { pathname: location.pathname, search: location.search, hash: location.hash },
@@ -143,26 +171,17 @@ export function Pomodoro() {
           {/* Timer section */}
           <Card className="relative p-6">
             <PomodoroConfig />
-            {activeSession ? (
+            {displaySession ? (
               <PomodoroTimer
-                session={activeSession}
+                session={displaySession}
                 onComplete={() => {}}
                 onUpdate={handleSessionUpdate}
+                onStartNewSession={() => handleCreateSession(undefined, SessionType.WORK, true)}
               />
             ) : (
               <div className="text-center py-12">
                 <Clock className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                <h2 className="text-xl font-semibold mb-2">アクティブなセッションがありません</h2>
-                <p className="text-muted-foreground mb-6">
-                  新しいセッションを開始して集中を始めましょう
-                </p>
-                <Button
-                  onClick={() => handleCreateSession()}
-                  size="lg"
-                  disabled={createSession.isPending}
-                >
-                  {createSession.isPending ? '作成中...' : 'セッションを開始'}
-                </Button>
+                <h2 className="text-xl font-semibold mb-2">読み込み中...</h2>
               </div>
             )}
           </Card>

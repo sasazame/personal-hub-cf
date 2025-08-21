@@ -13,8 +13,8 @@ export function prepareSessionData(
     tasks.push({ description: initialTask });
   }
   
-  // Add incomplete tasks from current session
-  if (currentTasks) {
+  // Add incomplete tasks from current session if carryOverIncompleteTasks is enabled
+  if (currentTasks && (config.carryOverIncompleteTasks ?? true)) {
     const incompleteTasks = getIncompleteTasks(currentTasks);
     tasks.push(...incompleteTasks);
   }
