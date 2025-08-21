@@ -40,6 +40,19 @@ jobs:
       - name: Run tests
         run: pnpm --filter @personal-hub/backend test
 
+      - name: Run database migrations
+        id: migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: apps/backend
+          command: d1 migrations apply personal-hub-prod --env=production --remote
+      
+      - name: Verify migrations applied
+        run: |
+          echo "Migrations applied successfully"
+          # Note: Wrangler will fail if migrations cannot be applied
+          
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
@@ -57,6 +70,15 @@ jobs:
             echo "Health check failed!"
             exit 1
           fi
+          
+          # Verify feature-preferences endpoint is accessible
+          echo "Testing feature-preferences endpoint..."
+          TEST_ENDPOINT=$(curl -s -o /dev/null -w "%{http_code}" https://personal-hub-backend-prod.zametech.workers.dev/api/v1/users/feature-preferences)
+          if [[ $TEST_ENDPOINT != "401" ]]; then
+            echo "Feature preferences endpoint test failed (expected 401 for unauthenticated request, got $TEST_ENDPOINT)"
+            exit 1
+          fi
+          
           echo "Deployment verified successfully!"
 
   deploy-frontend:
