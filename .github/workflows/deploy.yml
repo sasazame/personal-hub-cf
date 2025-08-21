@@ -67,7 +67,7 @@ jobs:
         run: |
           set -euo pipefail
           base="https://personal-hub-backend-prod.zametech.workers.dev"
-          
+
           # Retry health check up to ~30s
           for i in {1..6}; do
             code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 10 "$base/health" || echo "000")
@@ -81,12 +81,12 @@ jobs:
               sleep 5
             fi
           done
-          
+
           if [[ "$code" != "200" || "$body" != *"\"status\":\"ok\""* ]]; then
             echo "Health check failed after retries"
             exit 1
           fi
-          
+
           # Verify feature-preferences endpoint is reachable and locked down for anon
           echo "Testing feature-preferences endpoint..."
           code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 10 "$base/api/v1/users/feature-preferences")
@@ -94,7 +94,7 @@ jobs:
             echo "Feature preferences endpoint test failed (expected 401 for unauthenticated request, got $code)"
             exit 1
           fi
-          
+
           echo "Deployment verified successfully!"
 
   deploy-frontend:
