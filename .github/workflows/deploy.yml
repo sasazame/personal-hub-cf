@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   deploy-backend:
     name: Deploy Backend to Cloudflare Workers
@@ -42,17 +46,16 @@ jobs:
 
       - name: Run database migrations
         id: migrations
+        timeout-minutes: 10
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: apps/backend
-          command: d1 migrations apply personal-hub-prod --env=production --remote
-      
+          command: d1 migrations apply personal-hub-prod --env production --remote
       - name: Verify migrations applied
         run: |
           echo "Migrations applied successfully"
           # Note: Wrangler will fail if migrations cannot be applied
-          
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
@@ -60,22 +63,35 @@ jobs:
           workingDirectory: apps/backend
           command: deploy --env production
           environment: production
-          
       - name: Verify deployment
         run: |
-          sleep 10
-          HEALTH_CHECK=$(curl -s https://personal-hub-backend-prod.zametech.workers.dev/health)
-          echo "Health check response: $HEALTH_CHECK"
-          if [[ $HEALTH_CHECK != *"\"status\":\"ok\""* ]]; then
-            echo "Health check failed!"
+          set -euo pipefail
+          base="https://personal-hub-backend-prod.zametech.workers.dev"
+          
+          # Retry health check up to ~30s
+          for i in {1..6}; do
+            code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 10 "$base/health" || echo "000")
+            body=$(curl -sS --max-time 10 "$base/health" 2>/dev/null || echo "{}")
+            echo "Attempt $i: /health code=$code"
+            if [[ "$code" == "200" && "$body" == *"\"status\":\"ok\""* ]]; then
+              echo "Health check response: $body"
+              break
+            fi
+            if [[ $i -lt 6 ]]; then
+              sleep 5
+            fi
+          done
+          
+          if [[ "$code" != "200" || "$body" != *"\"status\":\"ok\""* ]]; then
+            echo "Health check failed after retries"
             exit 1
           fi
           
-          # Verify feature-preferences endpoint is accessible
+          # Verify feature-preferences endpoint is reachable and locked down for anon
           echo "Testing feature-preferences endpoint..."
-          TEST_ENDPOINT=$(curl -s -o /dev/null -w "%{http_code}" https://personal-hub-backend-prod.zametech.workers.dev/api/v1/users/feature-preferences)
-          if [[ $TEST_ENDPOINT != "401" ]]; then
-            echo "Feature preferences endpoint test failed (expected 401 for unauthenticated request, got $TEST_ENDPOINT)"
+          code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 10 "$base/api/v1/users/feature-preferences")
+          if [[ "$code" != "401" ]]; then
+            echo "Feature preferences endpoint test failed (expected 401 for unauthenticated request, got $code)"
             exit 1
           fi
           
