@@ -51,7 +51,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: apps/backend
-          command: d1 migrations apply personal-hub-prod --env production --remote
+          command: d1 migrations apply DB --env production --remote
       - name: Verify migrations applied
         run: |
           echo "Migrations applied successfully"
