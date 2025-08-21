@@ -58,11 +58,11 @@ jobs:
           # Note: Wrangler will fail if migrations cannot be applied
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
+        timeout-minutes: 10
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: apps/backend
           command: deploy --env production
-          environment: production
       - name: Verify deployment
         run: |
           set -euo pipefail
