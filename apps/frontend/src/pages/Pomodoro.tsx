@@ -84,7 +84,7 @@ export function Pomodoro() {
         const breakSessionData = prepareSessionData(
           config,
           undefined,        // no initial task
-          tasks,
+          session.tasks,
           breakType
         );
 
@@ -104,7 +104,7 @@ export function Pomodoro() {
         const workSessionData = prepareSessionData(
           config,
           undefined,         // no initial task
-          tasks,
+          session.tasks,
           SessionType.WORK
         );
 
