@@ -23,6 +23,12 @@ export function PomodoroTimer({ session, onComplete, onUpdate, onStartNewSession
   useEffect(() => {
     // Initialize audio if sound is enabled
     if (config?.soundEnabled) {
+      // Stop previous audio instance if any
+      try {
+        audioRef.current?.pause?.();
+      } catch {
+        // Ignore errors when pausing previous audio
+      }
       try {
         audioRef.current = new Audio('/sounds/alarm.mp3');
         audioRef.current.volume = (config.alarmVolume ?? 50) / 100;
@@ -32,6 +38,14 @@ export function PomodoroTimer({ session, onComplete, onUpdate, onStartNewSession
         console.warn('Audio file not found, alarm will be silent');
         audioRef.current = null;
       }
+    } else {
+      // Sound disabled
+      try {
+        audioRef.current?.pause?.();
+      } catch {
+        // Ignore errors when pausing audio
+      }
+      audioRef.current = null;
     }
     
     return () => {
@@ -143,7 +157,9 @@ export function PomodoroTimer({ session, onComplete, onUpdate, onStartNewSession
         action: SessionAction.CANCEL
       });
       setIsRunning(false);
-      setTimeLeft(session.workDuration * 60);
+      const resetDuration =
+        session.sessionType === SessionType.WORK ? session.workDuration : session.breakDuration;
+      setTimeLeft(resetDuration * 60);
       onUpdate?.(updatedSession);
     } catch (error) {
       console.error('Failed to reset session:', error);

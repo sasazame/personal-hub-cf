@@ -48,7 +48,7 @@ export interface PomodoroConfig {
   soundEnabled: boolean;
   alarmVolume: number;
   alarmSound: string;
-  carryOverIncompleteTasks?: boolean;
+  carryOverIncompleteTasks: boolean;
 }
 
 export interface CreatePomodoroSessionRequest {

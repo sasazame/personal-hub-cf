@@ -13,7 +13,7 @@ export function useActiveSession() {
     refetchInterval: (query) => {
       // Only poll if there's an active session that's running
       const session = query.state.data;
-      if (session && session.status === 'ACTIVE') {
+      if (session && session.status === 'ACTIVE' && session.startTime) {
         return 1000; // Poll every second for active sessions
       }
       return false; // Don't poll for paused, completed, or no session

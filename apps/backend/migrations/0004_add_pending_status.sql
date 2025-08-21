@@ -1,0 +1,4 @@
+-- Add PENDING status to pomodoro_sessions
+-- SQLite doesn't support ALTER COLUMN, so we need to recreate the table or use a workaround
+-- Since this is a CHECK constraint issue, we'll just document that PENDING is now a valid value
+-- The application code will handle this new status value

@@ -118,7 +118,7 @@ export const pomodoroSessions = sqliteTable('pomodoro_sessions', {
   workDuration: integer('work_duration').notNull(),
   breakDuration: integer('break_duration').notNull(),
   completedCycles: integer('completed_cycles').default(0).notNull(),
-  status: text('status', { enum: ['ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED'] }).notNull(),
+  status: text('status', { enum: ['PENDING', 'ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED'] }).notNull(),
   sessionType: text('session_type'),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
