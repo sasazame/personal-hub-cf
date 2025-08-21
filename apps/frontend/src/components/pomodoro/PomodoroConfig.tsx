@@ -44,7 +44,32 @@ export function PomodoroConfig() {
   };
 
   const handleSave = () => {
-    updateMutation.mutate(formData);
+    // Only send fields that are part of UpdatePomodoroConfigRequest
+    const { 
+      workDuration, 
+      shortBreakDuration, 
+      longBreakDuration, 
+      cyclesBeforeLongBreak,
+      alarmSound,
+      alarmVolume,
+      autoStartBreaks,
+      autoStartWork,
+      soundEnabled,
+      carryOverIncompleteTasks
+    } = formData;
+    
+    updateMutation.mutate({
+      workDuration,
+      shortBreakDuration,
+      longBreakDuration,
+      cyclesBeforeLongBreak,
+      alarmSound,
+      alarmVolume,
+      autoStartBreaks,
+      autoStartWork,
+      soundEnabled,
+      carryOverIncompleteTasks
+    });
   };
 
   if (!isOpen) {
