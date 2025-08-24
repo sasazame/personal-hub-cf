@@ -1,11 +1,10 @@
 import { Moment, CreateMomentDto, UpdateMomentDto, MomentPage } from '@/types/moment';
+import { apiClient } from './api-client';
+import { AxiosError } from 'axios';
 
-const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8787';
-
-export function getAuthHeaders() {
-  return {
-    'Content-Type': 'application/json',
-  };
+interface ApiErrorResponse {
+  error?: string;
+  message?: string;
 }
 
 // Transform backend moment to frontend format
@@ -17,16 +16,11 @@ function transformMoment(backendMoment: Omit<Moment, 'tags'> & { tags?: string |
 }
 
 export async function fetchMoments(page = 0, size = 20): Promise<MomentPage> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments?page=${page + 1}&limit=${size}`, {
-    headers: getAuthHeaders(),
-    credentials: 'include'
+  const response = await apiClient.get('/api/v1/moments', {
+    params: { page: page + 1, limit: size }
   });
   
-  if (!response.ok) {
-    throw new Error(`Failed to fetch moments: ${response.statusText}`);
-  }
-  
-  const data = await response.json();
+  const data = response.data;
   
   // Transform backend response to match frontend expectations
   return {
@@ -44,83 +38,51 @@ export async function fetchMoments(page = 0, size = 20): Promise<MomentPage> {
 }
 
 export async function fetchAllMoments(): Promise<Moment[]> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments?limit=1000`, {
-    headers: getAuthHeaders(),
-    credentials: 'include'
+  const response = await apiClient.get('/api/v1/moments', {
+    params: { limit: 1000 }
   });
   
-  if (!response.ok) {
-    throw new Error(`Failed to fetch all moments: ${response.statusText}`);
-  }
-  
-  const data = await response.json();
+  const data = response.data;
   return (data.items || []).map(transformMoment);
 }
 
 export async function fetchMomentById(id: number): Promise<Moment> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments/${id}`, {
-    headers: getAuthHeaders(),
-    credentials: 'include'
-  });
+  const response = await apiClient.get(`/api/v1/moments/${id}`);
   
-  if (!response.ok) {
-    throw new Error(`Failed to fetch moment: ${response.statusText}`);
-  }
-  
-  const moment = await response.json();
+  const moment = response.data;
   return transformMoment(moment);
 }
 
 export async function searchMoments(query: string, tag?: string): Promise<Moment[]> {
-  const params = new URLSearchParams({ search: query });
-  if (tag) params.append('tags', tag);
+  const params: Record<string, string> = { search: query };
+  if (tag) params.tags = tag;
   
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments?${params}`, {
-    headers: getAuthHeaders(),
-    credentials: 'include'
-  });
+  const response = await apiClient.get('/api/v1/moments', { params });
   
-  if (!response.ok) {
-    throw new Error(`Failed to search moments: ${response.statusText}`);
-  }
-  
-  const data = await response.json();
+  const data = response.data;
   return (data.items || []).map(transformMoment);
 }
 
 export async function fetchMomentsByTag(tag: string): Promise<Moment[]> {
-  const params = new URLSearchParams({ tags: tag });
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments?${params}`, {
-    headers: getAuthHeaders(),
-    credentials: 'include'
+  const response = await apiClient.get('/api/v1/moments', {
+    params: { tags: tag }
   });
   
-  if (!response.ok) {
-    throw new Error(`Failed to fetch moments by tag: ${response.statusText}`);
-  }
-  
-  const data = await response.json();
+  const data = response.data;
   return (data.items || []).map(transformMoment);
 }
 
 export async function fetchMomentsByDateRange(startDate: string, endDate: string, page = 0, size = 20): Promise<MomentPage> {
-  const params = new URLSearchParams({
-    fromDate: startDate,
-    toDate: endDate,
-    page: (page + 1).toString(),
-    limit: size.toString()
+  const response = await apiClient.get('/api/v1/moments', {
+    params: {
+      fromDate: startDate,
+      toDate: endDate,
+      page: page + 1,
+      limit: size
+    }
   });
   
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments?${params}`, {
-    headers: getAuthHeaders(),
-    credentials: 'include'
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to fetch moments by date range: ${response.statusText}`);
-  }
-  
-  const data = await response.json();
+  const data = response.data;
   
   // Transform backend response to match frontend expectations
   return {
@@ -138,59 +100,33 @@ export async function fetchMomentsByDateRange(startDate: string, endDate: string
 }
 
 export async function fetchRecentMoments(limit = 10): Promise<Moment[]> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments?limit=${limit}`, {
-    headers: getAuthHeaders(),
-    credentials: 'include'
+  const response = await apiClient.get('/api/v1/moments', {
+    params: { limit }
   });
   
-  if (!response.ok) {
-    throw new Error(`Failed to fetch recent moments: ${response.statusText}`);
-  }
-  
-  const data = await response.json();
+  const data = response.data;
   return (data.items || []).map(transformMoment);
 }
 
 export async function fetchTodaysMoments(): Promise<Moment[]> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments/today`, {
-    headers: getAuthHeaders(),
-    credentials: 'include'
-  });
+  const response = await apiClient.get('/api/v1/moments/today');
   
-  if (!response.ok) {
-    throw new Error(`Failed to fetch today's moments: ${response.statusText}`);
-  }
-  
-  const moments = await response.json();
+  const moments = response.data;
   return moments.map(transformMoment);
 }
 
 export async function fetchMomentTags(): Promise<string[]> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments/tags`, {
-    headers: getAuthHeaders(),
-    credentials: 'include'
-  });
+  const response = await apiClient.get('/api/v1/moments/tags');
   
-  if (!response.ok) {
-    throw new Error(`Failed to fetch moment tags: ${response.statusText}`);
-  }
-  
-  const tagData = await response.json();
+  const tagData = response.data;
   // Extract just the tag names from the array of {tag, count} objects
   return tagData.map((item: { tag: string; count: number }) => item.tag);
 }
 
 export async function fetchDefaultMomentTags(): Promise<string[]> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments/tags/default`, {
-    headers: getAuthHeaders(),
-    credentials: 'include'
-  });
+  const response = await apiClient.get('/api/v1/moments/tags/default');
   
-  if (!response.ok) {
-    throw new Error(`Failed to fetch default moment tags: ${response.statusText}`);
-  }
-  
-  const tagData = await response.json();
+  const tagData = response.data;
   // Extract just the tag names from the array of {tag, count} objects
   return tagData.map((item: { tag: string; count: number }) => item.tag);
 }
@@ -202,22 +138,17 @@ export async function createMoment(data: CreateMomentDto): Promise<Moment> {
     tags: data.tags ? data.tags.join(',') : undefined
   };
   
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify(payload),
-    credentials: 'include'
-  });
-  
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Failed to create moment' }));
-    throw new Error(error.error || `Failed to create moment: ${response.statusText}`);
+  try {
+    const response = await apiClient.post('/api/v1/moments', payload);
+    const result = response.data;
+    // Backend returns an array with the created moment
+    const moment = Array.isArray(result) ? result[0] : result;
+    return transformMoment(moment);
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to create moment';
+    throw new Error(errorMessage);
   }
-  
-  const result = await response.json();
-  // Backend returns an array with the created moment
-  const moment = Array.isArray(result) ? result[0] : result;
-  return transformMoment(moment);
 }
 
 export async function updateMoment(id: number, data: UpdateMomentDto): Promise<Moment> {
@@ -227,34 +158,26 @@ export async function updateMoment(id: number, data: UpdateMomentDto): Promise<M
     tags: data.tags ? data.tags.join(',') : undefined
   };
   
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments/${id}`, {
-    method: 'PUT',
-    headers: getAuthHeaders(),
-    body: JSON.stringify(payload),
-    credentials: 'include'
-  });
-  
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Failed to update moment' }));
-    throw new Error(error.error || `Failed to update moment: ${response.statusText}`);
+  try {
+    const response = await apiClient.put(`/api/v1/moments/${id}`, payload);
+    const result = response.data;
+    // Backend returns an array with the updated moment
+    const moment = Array.isArray(result) ? result[0] : result;
+    return transformMoment(moment);
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to update moment';
+    throw new Error(errorMessage);
   }
-  
-  const result = await response.json();
-  // Backend returns an array with the updated moment
-  const moment = Array.isArray(result) ? result[0] : result;
-  return transformMoment(moment);
 }
 
 export async function deleteMoment(id: number): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/moments/${id}`, {
-    method: 'DELETE',
-    headers: getAuthHeaders(),
-    credentials: 'include'
-  });
-  
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Failed to delete moment' }));
-    throw new Error(error.error || `Failed to delete moment: ${response.statusText}`);
+  try {
+    await apiClient.delete(`/api/v1/moments/${id}`);
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to delete moment';
+    throw new Error(errorMessage);
   }
 }
 
