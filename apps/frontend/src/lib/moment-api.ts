@@ -8,20 +8,32 @@ interface ApiErrorResponse {
 }
 
 // Transform backend moment to frontend format
-function transformMoment(backendMoment: Omit<Moment, 'tags'> & { tags?: string | null }): Moment {
+function transformMoment(backendMoment: Omit<Moment, 'tags'> & { tags?: string | string[] | null }): Moment {
+  // Handle both string and string[] formats defensively
+  const tags = Array.isArray(backendMoment.tags)
+    ? backendMoment.tags
+    : typeof backendMoment.tags === 'string'
+    ? backendMoment.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t)
+    : [];
+  
   return {
     ...backendMoment,
-    tags: backendMoment.tags ? backendMoment.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t) : []
+    tags
   };
 }
 
 /**
- * Fetch paginated moments
+ * Fetch paginated moments with optional filters
  * @param page - Page number (0-indexed)
  * @param size - Number of items per page
+ * @param opts - Optional filters (search, tags)
  * @returns Promise with paginated moments
  */
-export async function fetchMoments(page = 0, size = 20): Promise<MomentPage> {
+export async function fetchMoments(
+  page = 0, 
+  size = 20,
+  opts: { search?: string; tags?: string[] } = {}
+): Promise<MomentPage> {
   // Validate input parameters
   if (page < 0) {
     throw new Error('Page number must be non-negative');
@@ -31,19 +43,26 @@ export async function fetchMoments(page = 0, size = 20): Promise<MomentPage> {
   }
   
   try {
-    const response = await apiClient.get('/api/v1/moments', {
-      params: { page: page + 1, limit: size }
-    });
+    const params: Record<string, any> = { page: page + 1, limit: size };
+    if (opts.search) params.search = opts.search;
+    if (opts.tags?.length) params.tags = opts.tags.join(',');
     
-    const data = response.data;
+    const response = await apiClient.get('/api/v1/moments', { params });
+    
+    const data = response.data ?? {};
+    const items = Array.isArray(data.items) ? data.items : [];
+    const totalElements = Number.isFinite(data.total) ? data.total : items.length;
+    const totalPages = Number.isFinite(data.totalPages) && data.totalPages > 0
+      ? data.totalPages
+      : Math.ceil(totalElements / size);
     
     // Transform backend response to match frontend expectations
     return {
-      content: (data.items || []).map(transformMoment),
-      totalElements: data.total || 0,
-      totalPages: data.totalPages || 0,
+      content: items.map(transformMoment),
+      totalElements,
+      totalPages,
       first: page === 0,
-      last: (page + 1) >= data.totalPages,
+      last: totalPages === 0 ? true : (page + 1) >= totalPages,
       pageable: {
         pageNumber: page,
         pageSize: size,
@@ -170,15 +189,20 @@ export async function fetchMomentsByDateRange(startDate: string, endDate: string
       }
     });
     
-    const data = response.data;
+    const data = response.data ?? {};
+    const items = Array.isArray(data.items) ? data.items : [];
+    const totalElements = Number.isFinite(data.total) ? data.total : items.length;
+    const totalPages = Number.isFinite(data.totalPages) && data.totalPages > 0
+      ? data.totalPages
+      : Math.ceil(totalElements / size);
     
     // Transform backend response to match frontend expectations
     return {
-      content: (data.items || []).map(transformMoment),
-      totalElements: data.total || 0,
-      totalPages: data.totalPages || 0,
+      content: items.map(transformMoment),
+      totalElements,
+      totalPages,
       first: page === 0,
-      last: (page + 1) >= data.totalPages,
+      last: totalPages === 0 ? true : (page + 1) >= totalPages,
       pageable: {
         pageNumber: page,
         pageSize: size,
@@ -225,7 +249,8 @@ export async function fetchTodaysMoments(): Promise<Moment[]> {
   try {
     const response = await apiClient.get('/api/v1/moments/today');
     
-    const moments = response.data;
+    const raw = response.data;
+    const moments = Array.isArray(raw) ? raw : (raw?.items ?? []);
     return moments.map(transformMoment);
   } catch (error) {
     const axiosError = error as AxiosError<ApiErrorResponse>;
@@ -292,6 +317,9 @@ export async function createMoment(data: CreateMomentDto): Promise<Moment> {
     const result = response.data;
     // Backend returns an array with the created moment
     const moment = Array.isArray(result) ? result[0] : result;
+    if (!moment) {
+      throw new Error('Unexpected API response: missing created moment');
+    }
     return transformMoment(moment);
   } catch (error) {
     const axiosError = error as AxiosError<ApiErrorResponse>;
@@ -326,6 +354,9 @@ export async function updateMoment(id: number, data: UpdateMomentDto): Promise<M
     const result = response.data;
     // Backend returns an array with the updated moment
     const moment = Array.isArray(result) ? result[0] : result;
+    if (!moment) {
+      throw new Error('Unexpected API response: missing updated moment');
+    }
     return transformMoment(moment);
   } catch (error) {
     const axiosError = error as AxiosError<ApiErrorResponse>;
@@ -358,39 +389,8 @@ export const momentApi = {
   getMoments: async (params?: { page?: number; size?: number; search?: string; tags?: string[] }) => {
     const { page = 0, size = 20, search, tags } = params || {};
     
-    if (search) {
-      const moments = await searchMoments(search, tags?.[0]);
-      return {
-        content: moments.slice(page * size, (page + 1) * size),
-        totalElements: moments.length,
-        totalPages: Math.ceil(moments.length / size),
-        first: page === 0,
-        last: (page + 1) * size >= moments.length,
-        pageable: {
-          pageNumber: page,
-          pageSize: size,
-          sort: { sorted: false, direction: 'desc', properties: [] }
-        }
-      };
-    }
-    
-    if (tags && tags.length > 0) {
-      const moments = await fetchMomentsByTag(tags[0]);
-      return {
-        content: moments.slice(page * size, (page + 1) * size),
-        totalElements: moments.length,
-        totalPages: Math.ceil(moments.length / size),
-        first: page === 0,
-        last: (page + 1) * size >= moments.length,
-        pageable: {
-          pageNumber: page,
-          pageSize: size,
-          sort: { sorted: false, direction: 'desc', properties: [] }
-        }
-      };
-    }
-    
-    return fetchMoments(page, size);
+    // Use server-side pagination for all cases
+    return fetchMoments(page, size, { search, tags });
   },
   getTags: fetchMomentTags,
   createMoment,
