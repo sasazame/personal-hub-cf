@@ -15,123 +15,272 @@ function transformMoment(backendMoment: Omit<Moment, 'tags'> & { tags?: string |
   };
 }
 
+/**
+ * Fetch paginated moments
+ * @param page - Page number (0-indexed)
+ * @param size - Number of items per page
+ * @returns Promise with paginated moments
+ */
 export async function fetchMoments(page = 0, size = 20): Promise<MomentPage> {
-  const response = await apiClient.get('/api/v1/moments', {
-    params: { page: page + 1, limit: size }
-  });
+  // Validate input parameters
+  if (page < 0) {
+    throw new Error('Page number must be non-negative');
+  }
+  if (size < 1 || size > 100) {
+    throw new Error('Page size must be between 1 and 100');
+  }
   
-  const data = response.data;
-  
-  // Transform backend response to match frontend expectations
-  return {
-    content: (data.items || []).map(transformMoment),
-    totalElements: data.total || 0,
-    totalPages: data.totalPages || 0,
-    first: page === 0,
-    last: (page + 1) >= data.totalPages,
-    pageable: {
-      pageNumber: page,
-      pageSize: size,
-      sort: { sorted: false, direction: 'desc', properties: [] }
-    }
-  };
+  try {
+    const response = await apiClient.get('/api/v1/moments', {
+      params: { page: page + 1, limit: size }
+    });
+    
+    const data = response.data;
+    
+    // Transform backend response to match frontend expectations
+    return {
+      content: (data.items || []).map(transformMoment),
+      totalElements: data.total || 0,
+      totalPages: data.totalPages || 0,
+      first: page === 0,
+      last: (page + 1) >= data.totalPages,
+      pageable: {
+        pageNumber: page,
+        pageSize: size,
+        sort: { sorted: false, direction: 'desc', properties: [] }
+      }
+    };
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to fetch moments';
+    throw new Error(errorMessage);
+  }
 }
 
+/**
+ * Fetch all moments (up to 1000)
+ * @returns Promise with array of all moments
+ */
 export async function fetchAllMoments(): Promise<Moment[]> {
-  const response = await apiClient.get('/api/v1/moments', {
-    params: { limit: 1000 }
-  });
-  
-  const data = response.data;
-  return (data.items || []).map(transformMoment);
+  try {
+    const response = await apiClient.get('/api/v1/moments', {
+      params: { limit: 1000 }
+    });
+    
+    const data = response.data;
+    return (data.items || []).map(transformMoment);
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to fetch all moments';
+    throw new Error(errorMessage);
+  }
 }
 
+/**
+ * Fetch a single moment by ID
+ * @param id - Moment ID
+ * @returns Promise with the moment
+ */
 export async function fetchMomentById(id: number): Promise<Moment> {
-  const response = await apiClient.get(`/api/v1/moments/${id}`);
+  // Validate input parameter
+  if (!Number.isInteger(id) || id < 1) {
+    throw new Error('Moment ID must be a positive integer');
+  }
   
-  const moment = response.data;
-  return transformMoment(moment);
+  try {
+    const response = await apiClient.get(`/api/v1/moments/${id}`);
+    
+    const moment = response.data;
+    return transformMoment(moment);
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to fetch moment';
+    throw new Error(errorMessage);
+  }
 }
 
+/**
+ * Search moments by query and optional tag
+ * @param query - Search query string
+ * @param tag - Optional tag filter
+ * @returns Promise with array of matching moments
+ */
 export async function searchMoments(query: string, tag?: string): Promise<Moment[]> {
-  const params: Record<string, string> = { search: query };
-  if (tag) params.tags = tag;
+  // Validate input parameters
+  if (!query || query.trim().length === 0) {
+    throw new Error('Search query cannot be empty');
+  }
   
-  const response = await apiClient.get('/api/v1/moments', { params });
-  
-  const data = response.data;
-  return (data.items || []).map(transformMoment);
+  try {
+    const params: Record<string, string> = { search: query };
+    if (tag) params.tags = tag;
+    
+    const response = await apiClient.get('/api/v1/moments', { params });
+    
+    const data = response.data;
+    return (data.items || []).map(transformMoment);
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to search moments';
+    throw new Error(errorMessage);
+  }
 }
 
+/**
+ * Fetch moments by tag
+ * @param tag - Tag to filter by
+ * @returns Promise with array of moments with the specified tag
+ */
 export async function fetchMomentsByTag(tag: string): Promise<Moment[]> {
-  const response = await apiClient.get('/api/v1/moments', {
-    params: { tags: tag }
-  });
+  // Validate input parameter
+  if (!tag || tag.trim().length === 0) {
+    throw new Error('Tag cannot be empty');
+  }
   
-  const data = response.data;
-  return (data.items || []).map(transformMoment);
+  try {
+    const response = await apiClient.get('/api/v1/moments', {
+      params: { tags: tag }
+    });
+    
+    const data = response.data;
+    return (data.items || []).map(transformMoment);
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to fetch moments by tag';
+    throw new Error(errorMessage);
+  }
 }
 
+/**
+ * Fetch moments within a date range
+ * @param startDate - Start date (ISO format)
+ * @param endDate - End date (ISO format)
+ * @param page - Page number (0-indexed)
+ * @param size - Number of items per page
+ * @returns Promise with paginated moments
+ */
 export async function fetchMomentsByDateRange(startDate: string, endDate: string, page = 0, size = 20): Promise<MomentPage> {
-  const response = await apiClient.get('/api/v1/moments', {
-    params: {
-      fromDate: startDate,
-      toDate: endDate,
-      page: page + 1,
-      limit: size
-    }
-  });
-  
-  const data = response.data;
-  
-  // Transform backend response to match frontend expectations
-  return {
-    content: (data.items || []).map(transformMoment),
-    totalElements: data.total || 0,
-    totalPages: data.totalPages || 0,
-    first: page === 0,
-    last: (page + 1) >= data.totalPages,
-    pageable: {
-      pageNumber: page,
-      pageSize: size,
-      sort: { sorted: false, direction: 'desc', properties: [] }
-    }
-  };
+  try {
+    const response = await apiClient.get('/api/v1/moments', {
+      params: {
+        fromDate: startDate,
+        toDate: endDate,
+        page: page + 1,
+        limit: size
+      }
+    });
+    
+    const data = response.data;
+    
+    // Transform backend response to match frontend expectations
+    return {
+      content: (data.items || []).map(transformMoment),
+      totalElements: data.total || 0,
+      totalPages: data.totalPages || 0,
+      first: page === 0,
+      last: (page + 1) >= data.totalPages,
+      pageable: {
+        pageNumber: page,
+        pageSize: size,
+        sort: { sorted: false, direction: 'desc', properties: [] }
+      }
+    };
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to fetch moments by date range';
+    throw new Error(errorMessage);
+  }
 }
 
+/**
+ * Fetch recent moments
+ * @param limit - Maximum number of moments to fetch
+ * @returns Promise with array of recent moments
+ */
 export async function fetchRecentMoments(limit = 10): Promise<Moment[]> {
-  const response = await apiClient.get('/api/v1/moments', {
-    params: { limit }
-  });
+  // Validate input parameter
+  if (limit < 1 || limit > 100) {
+    throw new Error('Limit must be between 1 and 100');
+  }
   
-  const data = response.data;
-  return (data.items || []).map(transformMoment);
+  try {
+    const response = await apiClient.get('/api/v1/moments', {
+      params: { limit }
+    });
+    
+    const data = response.data;
+    return (data.items || []).map(transformMoment);
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to fetch recent moments';
+    throw new Error(errorMessage);
+  }
 }
 
+/**
+ * Fetch today's moments
+ * @returns Promise with array of today's moments
+ */
 export async function fetchTodaysMoments(): Promise<Moment[]> {
-  const response = await apiClient.get('/api/v1/moments/today');
-  
-  const moments = response.data;
-  return moments.map(transformMoment);
+  try {
+    const response = await apiClient.get('/api/v1/moments/today');
+    
+    const moments = response.data;
+    return moments.map(transformMoment);
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to fetch today\'s moments';
+    throw new Error(errorMessage);
+  }
 }
 
+/**
+ * Fetch all available moment tags
+ * @returns Promise with array of tag names
+ */
 export async function fetchMomentTags(): Promise<string[]> {
-  const response = await apiClient.get('/api/v1/moments/tags');
-  
-  const tagData = response.data;
-  // Extract just the tag names from the array of {tag, count} objects
-  return tagData.map((item: { tag: string; count: number }) => item.tag);
+  try {
+    const response = await apiClient.get('/api/v1/moments/tags');
+    
+    const tagData = response.data;
+    // Extract just the tag names from the array of {tag, count} objects
+    return tagData.map((item: { tag: string; count: number }) => item.tag);
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to fetch moment tags';
+    throw new Error(errorMessage);
+  }
 }
 
+/**
+ * Fetch default moment tags
+ * @returns Promise with array of default tag names
+ */
 export async function fetchDefaultMomentTags(): Promise<string[]> {
-  const response = await apiClient.get('/api/v1/moments/tags/default');
-  
-  const tagData = response.data;
-  // Extract just the tag names from the array of {tag, count} objects
-  return tagData.map((item: { tag: string; count: number }) => item.tag);
+  try {
+    const response = await apiClient.get('/api/v1/moments/tags/default');
+    
+    const tagData = response.data;
+    // Extract just the tag names from the array of {tag, count} objects
+    return tagData.map((item: { tag: string; count: number }) => item.tag);
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to fetch default moment tags';
+    throw new Error(errorMessage);
+  }
 }
 
+/**
+ * Create a new moment
+ * @param data - Moment creation data
+ * @returns Promise with the created moment
+ */
 export async function createMoment(data: CreateMomentDto): Promise<Moment> {
+  // Validate input data
+  if (!data.content || data.content.trim().length === 0) {
+    throw new Error('Moment content cannot be empty');
+  }
+  
   // Convert tags array to comma-separated string for backend
   const payload = {
     content: data.content,
@@ -151,7 +300,21 @@ export async function createMoment(data: CreateMomentDto): Promise<Moment> {
   }
 }
 
+/**
+ * Update an existing moment
+ * @param id - Moment ID
+ * @param data - Moment update data
+ * @returns Promise with the updated moment
+ */
 export async function updateMoment(id: number, data: UpdateMomentDto): Promise<Moment> {
+  // Validate input parameters
+  if (!Number.isInteger(id) || id < 1) {
+    throw new Error('Moment ID must be a positive integer');
+  }
+  if (data.content !== undefined && data.content.trim().length === 0) {
+    throw new Error('Moment content cannot be empty');
+  }
+  
   // Convert tags array to comma-separated string for backend
   const payload = {
     content: data.content,
@@ -171,7 +334,17 @@ export async function updateMoment(id: number, data: UpdateMomentDto): Promise<M
   }
 }
 
+/**
+ * Delete a moment
+ * @param id - Moment ID
+ * @returns Promise that resolves when deletion is complete
+ */
 export async function deleteMoment(id: number): Promise<void> {
+  // Validate input parameter
+  if (!Number.isInteger(id) || id < 1) {
+    throw new Error('Moment ID must be a positive integer');
+  }
+  
   try {
     await apiClient.delete(`/api/v1/moments/${id}`);
   } catch (error) {
