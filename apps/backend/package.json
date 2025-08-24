@@ -13,9 +13,9 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:all": "npm test && npm run test:integration",
     "clean": "rm -rf dist .wrangler node_modules",
-    "db:migrate:local": "wrangler d1 migrations apply personal-hub-local --local",
-    "db:migrate:dev": "wrangler d1 migrations apply personal-hub --env development --remote",
-    "db:migrate:prod": "wrangler d1 migrations apply personal-hub-prod --env production --remote"
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:dev": "wrangler d1 migrations apply DB --env development --remote",
+    "db:migrate:prod": "wrangler d1 migrations apply DB --env production --remote"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.2",
