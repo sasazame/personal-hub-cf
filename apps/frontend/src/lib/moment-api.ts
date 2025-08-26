@@ -43,7 +43,7 @@ export async function fetchMoments(
   }
   
   try {
-    const params: Record<string, any> = { page: page + 1, limit: size };
+    const params: Record<string, string | number> = { page: page + 1, limit: size };
     if (opts.search) params.search = opts.search;
     if (opts.tags?.length) params.tags = opts.tags.join(',');
     
