@@ -51,10 +51,15 @@ export async function fetchMoments(
     
     const data = response.data ?? {};
     const items = Array.isArray(data.items) ? data.items : [];
-    const totalElements = Number.isFinite(data.total) ? data.total : items.length;
-    const totalPages = Number.isFinite(data.totalPages) && data.totalPages > 0
-      ? data.totalPages
-      : Math.ceil(totalElements / size);
+    const numericTotal = Number.isFinite(Number(data.total)) ? Number(data.total) : undefined;
+    const numericTotalPages =
+      Number.isFinite(Number(data.totalPages)) && Number(data.totalPages) > 0
+        ? Number(data.totalPages)
+        : undefined;
+    const totalElements = numericTotal ?? items.length;
+    const totalPages = numericTotalPages ?? Math.ceil(totalElements / size);
+    const isDerivedTotals = numericTotal === undefined && numericTotalPages === undefined;
+    const isLast = totalPages === 0 ? true : (isDerivedTotals ? items.length < size : (page + 1) >= totalPages);
     
     // Transform backend response to match frontend expectations
     return {
@@ -62,7 +67,7 @@ export async function fetchMoments(
       totalElements,
       totalPages,
       first: page === 0,
-      last: totalPages === 0 ? true : (page + 1) >= totalPages,
+      last: isLast,
       pageable: {
         pageNumber: page,
         pageSize: size,
@@ -86,8 +91,9 @@ export async function fetchAllMoments(): Promise<Moment[]> {
       params: { limit: 1000 }
     });
     
-    const data = response.data;
-    return (data.items || []).map(transformMoment);
+    const data = response.data ?? {};
+    const items = Array.isArray(data.items) ? data.items : [];
+    return items.map(transformMoment);
   } catch (error) {
     const axiosError = error as AxiosError<ApiErrorResponse>;
     const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to fetch all moments';
@@ -131,13 +137,9 @@ export async function searchMoments(query: string, tag?: string): Promise<Moment
   }
   
   try {
-    const params: Record<string, string> = { search: query };
-    if (tag) params.tags = tag;
-    
-    const response = await apiClient.get('/api/v1/moments', { params });
-    
-    const data = response.data;
-    return (data.items || []).map(transformMoment);
+    // delegate to the normalized pagination path; first page, default size
+    const page = await fetchMoments(0, 20, { search: query, tags: tag ? [tag] : undefined });
+    return page.content;
   } catch (error) {
     const axiosError = error as AxiosError<ApiErrorResponse>;
     const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to search moments';
@@ -157,12 +159,8 @@ export async function fetchMomentsByTag(tag: string): Promise<Moment[]> {
   }
   
   try {
-    const response = await apiClient.get('/api/v1/moments', {
-      params: { tags: tag }
-    });
-    
-    const data = response.data;
-    return (data.items || []).map(transformMoment);
+    const page = await fetchMoments(0, 20, { tags: [tag] });
+    return page.content;
   } catch (error) {
     const axiosError = error as AxiosError<ApiErrorResponse>;
     const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to fetch moments by tag';
@@ -191,10 +189,15 @@ export async function fetchMomentsByDateRange(startDate: string, endDate: string
     
     const data = response.data ?? {};
     const items = Array.isArray(data.items) ? data.items : [];
-    const totalElements = Number.isFinite(data.total) ? data.total : items.length;
-    const totalPages = Number.isFinite(data.totalPages) && data.totalPages > 0
-      ? data.totalPages
-      : Math.ceil(totalElements / size);
+    const numericTotal = Number.isFinite(Number(data.total)) ? Number(data.total) : undefined;
+    const numericTotalPages =
+      Number.isFinite(Number(data.totalPages)) && Number(data.totalPages) > 0
+        ? Number(data.totalPages)
+        : undefined;
+    const totalElements = numericTotal ?? items.length;
+    const totalPages = numericTotalPages ?? Math.ceil(totalElements / size);
+    const isDerivedTotals = numericTotal === undefined && numericTotalPages === undefined;
+    const isLast = totalPages === 0 ? true : (isDerivedTotals ? items.length < size : (page + 1) >= totalPages);
     
     // Transform backend response to match frontend expectations
     return {
@@ -202,7 +205,7 @@ export async function fetchMomentsByDateRange(startDate: string, endDate: string
       totalElements,
       totalPages,
       first: page === 0,
-      last: totalPages === 0 ? true : (page + 1) >= totalPages,
+      last: isLast,
       pageable: {
         pageNumber: page,
         pageSize: size,
@@ -232,8 +235,9 @@ export async function fetchRecentMoments(limit = 10): Promise<Moment[]> {
       params: { limit }
     });
     
-    const data = response.data;
-    return (data.items || []).map(transformMoment);
+    const data = response.data ?? {};
+    const items = Array.isArray(data.items) ? data.items : [];
+    return items.map(transformMoment);
   } catch (error) {
     const axiosError = error as AxiosError<ApiErrorResponse>;
     const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to fetch recent moments';
@@ -267,9 +271,14 @@ export async function fetchMomentTags(): Promise<string[]> {
   try {
     const response = await apiClient.get('/api/v1/moments/tags');
     
-    const tagData = response.data;
-    // Extract just the tag names from the array of {tag, count} objects
-    return tagData.map((item: { tag: string; count: number }) => item.tag);
+    const raw = response.data;
+    const items = Array.isArray(raw) ? raw : (raw?.items ?? []);
+    // Accept either "string" or "{ tag, count }" item shapes
+    return items
+      .map((item: { tag: string; count?: number } | string) =>
+        typeof item === 'string' ? item : item?.tag
+      )
+      .filter((t: unknown): t is string => typeof t === 'string' && t.trim().length > 0);
   } catch (error) {
     const axiosError = error as AxiosError<ApiErrorResponse>;
     const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to fetch moment tags';
@@ -285,9 +294,14 @@ export async function fetchDefaultMomentTags(): Promise<string[]> {
   try {
     const response = await apiClient.get('/api/v1/moments/tags/default');
     
-    const tagData = response.data;
-    // Extract just the tag names from the array of {tag, count} objects
-    return tagData.map((item: { tag: string; count: number }) => item.tag);
+    const raw = response.data;
+    const items = Array.isArray(raw) ? raw : (raw?.items ?? []);
+    // Accept either "string" or "{ tag, count }" item shapes
+    return items
+      .map((item: { tag: string; count?: number } | string) =>
+        typeof item === 'string' ? item : item?.tag
+      )
+      .filter((t: unknown): t is string => typeof t === 'string' && t.trim().length > 0);
   } catch (error) {
     const axiosError = error as AxiosError<ApiErrorResponse>;
     const errorMessage = axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to fetch default moment tags';
@@ -307,9 +321,10 @@ export async function createMoment(data: CreateMomentDto): Promise<Moment> {
   }
   
   // Convert tags array to comma-separated string for backend
+  const normalizedTags = (data.tags ?? []).map((t: string) => t?.trim()).filter(Boolean);
   const payload = {
     content: data.content,
-    tags: data.tags ? data.tags.join(',') : undefined
+    tags: normalizedTags.length ? normalizedTags.join(',') : undefined
   };
   
   try {
@@ -344,9 +359,10 @@ export async function updateMoment(id: number, data: UpdateMomentDto): Promise<M
   }
   
   // Convert tags array to comma-separated string for backend
+  const normalizedTags = (data.tags ?? []).map((t: string) => t?.trim()).filter(Boolean);
   const payload = {
     content: data.content,
-    tags: data.tags ? data.tags.join(',') : undefined
+    tags: normalizedTags.length ? normalizedTags.join(',') : undefined
   };
   
   try {
