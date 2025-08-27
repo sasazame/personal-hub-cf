@@ -22,8 +22,14 @@ CREATE TABLE pomodoro_sessions (
 );
 
 -- Step 3: Copy data from old table
-INSERT INTO pomodoro_sessions
-SELECT id, user_id, start_time, end_time, work_duration, break_duration, completed_cycles, status, session_type, created_at, updated_at
+INSERT INTO pomodoro_sessions (
+  id, user_id, start_time, end_time, work_duration, break_duration,
+  completed_cycles, status, session_type, created_at, updated_at
+)
+SELECT
+  id, user_id, start_time, end_time, work_duration, break_duration,
+  completed_cycles, status, session_type, created_at,
+  COALESCE(updated_at, created_at)
 FROM pomodoro_sessions_old;
 
 -- Step 4: Drop old table
