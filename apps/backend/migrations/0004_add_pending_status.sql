@@ -11,4 +11,6 @@
 -- Future consideration: Use application-level validation for status values
 -- instead of database-level CHECK constraints to avoid migration complexity.
 
-SELECT 1;
+-- NO-OP migration for D1 safety: preserves migration numbering after prod history reset
+-- Tracking issue: https://github.com/sasazame/personal-hub-cf/issues/72
+SELECT 1 /* intentional no-op migration */;
