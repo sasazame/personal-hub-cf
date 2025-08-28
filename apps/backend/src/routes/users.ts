@@ -295,46 +295,40 @@ app.put('/email', zValidator('json', updateEmailSchema, springBootValidator), as
   }
 });
 
-// User settings type
+// User settings type - only includes fields that are persisted in database
+// Note: Other settings (theme, timezone, notifications, etc.) should be handled
+// via the feature preferences endpoint if needed
 export interface UserSettings {
-  theme: 'light' | 'dark' | 'system';
   language: 'ja' | 'en';
-  timezone: string;
-  emailNotifications: boolean;
-  pushNotifications: boolean;
-  pomodoroSound: boolean;
-  pomodoroVolume: number;
-  dateFormat: string;
-  timeFormat: '12h' | '24h';
   weekStartsOn: 0 | 1 | 6;
 }
 
 // Default user settings
 const DEFAULT_USER_SETTINGS: UserSettings = {
-  theme: 'system',
   language: 'ja',
-  timezone: 'Asia/Tokyo',
-  emailNotifications: true,
-  pushNotifications: true,
-  pomodoroSound: true,
-  pomodoroVolume: 50,
-  dateFormat: 'YYYY-MM-DD',
-  timeFormat: '24h',
-  weekStartsOn: 1,
+  weekStartsOn: 1, // Monday
 };
 
+// Only accept fields that are actually persisted in the database
 const updateUserSettingsSchema = z.object({
-  theme: z.enum(['light', 'dark', 'system']).optional(),
   language: z.enum(['ja', 'en']).optional(),
-  timezone: z.string().optional(),
-  emailNotifications: z.boolean().optional(),
-  pushNotifications: z.boolean().optional(),
-  pomodoroSound: z.boolean().optional(),
-  pomodoroVolume: z.number().min(0).max(100).optional(),
-  dateFormat: z.string().optional(),
-  timeFormat: z.enum(['12h', '24h']).optional(),
   weekStartsOn: z.union([z.literal(0), z.literal(1), z.literal(6)]).optional(),
 }).strict();
+
+// Helper function to map database fields to settings format
+function mapDbToUserSettings(dbUser: { locale: string | null; weekStartDay: number | null }): UserSettings {
+  // Handle locale values like 'en', 'en-US', 'ja', 'ja-JP' properly
+  const locale = (dbUser.locale ?? DEFAULT_USER_SETTINGS.language).toLowerCase();
+  const language: 'ja' | 'en' = locale.startsWith('en') ? 'en' : 'ja';
+  
+  // Validate weekStartDay is one of the allowed values (0, 1, 6)
+  const rawWeekStartDay = dbUser.weekStartDay ?? DEFAULT_USER_SETTINGS.weekStartsOn;
+  const weekStartsOn: 0 | 1 | 6 = (rawWeekStartDay === 0 || rawWeekStartDay === 1 || rawWeekStartDay === 6) 
+    ? rawWeekStartDay 
+    : 1; // Default to Monday if invalid value
+  
+  return { language, weekStartsOn };
+}
 
 // GET /users/settings
 app.get('/settings', async (c) => {
@@ -357,22 +351,8 @@ app.get('/settings', async (c) => {
       );
     }
     
-    // Map database fields to settings format
-    // Handle locale values like 'en', 'en-US', 'ja', 'ja-JP' properly
-    const locale = (user.locale ?? DEFAULT_USER_SETTINGS.language).toLowerCase();
-    const language: 'ja' | 'en' = locale.startsWith('en') ? 'en' : 'ja';
-    
-    // Validate weekStartDay is one of the allowed values (0, 1, 6)
-    const rawWeekStartDay = user.weekStartDay ?? 1;
-    const weekStartsOn: 0 | 1 | 6 = (rawWeekStartDay === 0 || rawWeekStartDay === 1 || rawWeekStartDay === 6) 
-      ? rawWeekStartDay 
-      : 1; // Default to Monday if invalid value
-    
-    const settings: UserSettings = {
-      ...DEFAULT_USER_SETTINGS,
-      language,
-      weekStartsOn,
-    };
+    // Map database fields to settings format using helper function
+    const settings = mapDbToUserSettings(user);
     
     return c.json(settings);
   } catch (error) {
@@ -408,18 +388,16 @@ app.put('/settings', zValidator('json', updateUserSettingsSchema, springBootVali
       dbUpdates.weekStartDay = data.weekStartsOn;
     }
     
-    await db.update(users)
+    // Use returning() to get updated values in one query and detect if update was successful
+    const updatedRows = await db.update(users)
       .set(dbUpdates)
-      .where(eq(users.id, userId as string));
+      .where(eq(users.id, userId as string))
+      .returning({
+        locale: users.locale,
+        weekStartDay: users.weekStartDay,
+      });
     
-    // Return the updated settings
-    const updatedUser = await db.select({
-      locale: users.locale,
-      weekStartDay: users.weekStartDay,
-    })
-    .from(users)
-    .where(eq(users.id, userId as string))
-    .get();
+    const updatedUser = updatedRows[0];
     
     if (!updatedUser) {
       return c.json(
@@ -428,23 +406,8 @@ app.put('/settings', zValidator('json', updateUserSettingsSchema, springBootVali
       );
     }
     
-    // Handle locale values like 'en', 'en-US', 'ja', 'ja-JP' properly
-    const locale = (updatedUser.locale ?? DEFAULT_USER_SETTINGS.language).toLowerCase();
-    const language: 'ja' | 'en' = locale.startsWith('en') ? 'en' : 'ja';
-    
-    // Validate weekStartDay is one of the allowed values (0, 1, 6)
-    const rawWeekStartDay = updatedUser.weekStartDay ?? 1;
-    const weekStartsOn: 0 | 1 | 6 = (rawWeekStartDay === 0 || rawWeekStartDay === 1 || rawWeekStartDay === 6) 
-      ? rawWeekStartDay 
-      : 1; // Default to Monday if invalid value
-    
-    // Only return the fields that are actually persisted in the database
-    // Do not spread ...data as those fields are not saved
-    const settings: UserSettings = {
-      ...DEFAULT_USER_SETTINGS,
-      language: data.language ?? language,
-      weekStartsOn: data.weekStartsOn ?? weekStartsOn,
-    };
+    // Map database fields to settings format using helper function
+    const settings = mapDbToUserSettings(updatedUser);
     
     return c.json(settings);
   } catch (error) {
