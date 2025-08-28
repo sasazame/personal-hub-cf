@@ -37,10 +37,13 @@ const updateEmailSchema = z.object({
   password: z.string(),
 });
 
+// Align preferences schema with settings constraints to prevent data conflicts
 const updatePreferencesSchema = z.object({
-  weekStartDay: z.number().min(0).max(6).optional(),
-  locale: z.string().optional(),
-});
+  // Constrain weekStartDay to only valid values that match /settings endpoint
+  weekStartDay: z.union([z.literal(0), z.literal(1), z.literal(6)]).optional(),
+  // Constrain locale to only supported languages
+  locale: z.enum(['ja', 'en']).optional(),
+}).strict();
 
 // Default feature preferences - single source of truth
 export const DEFAULT_FEATURE_PREFERENCES = Object.freeze({
