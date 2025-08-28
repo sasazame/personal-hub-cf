@@ -334,7 +334,7 @@ const updateUserSettingsSchema = z.object({
   dateFormat: z.string().optional(),
   timeFormat: z.enum(['12h', '24h']).optional(),
   weekStartsOn: z.union([z.literal(0), z.literal(1), z.literal(6)]).optional(),
-});
+}).strict();
 
 // GET /users/settings
 app.get('/settings', async (c) => {
@@ -358,10 +358,20 @@ app.get('/settings', async (c) => {
     }
     
     // Map database fields to settings format
+    // Handle locale values like 'en', 'en-US', 'ja', 'ja-JP' properly
+    const locale = (user.locale ?? DEFAULT_USER_SETTINGS.language).toLowerCase();
+    const language: 'ja' | 'en' = locale.startsWith('en') ? 'en' : 'ja';
+    
+    // Validate weekStartDay is one of the allowed values (0, 1, 6)
+    const rawWeekStartDay = user.weekStartDay ?? 1;
+    const weekStartsOn: 0 | 1 | 6 = (rawWeekStartDay === 0 || rawWeekStartDay === 1 || rawWeekStartDay === 6) 
+      ? rawWeekStartDay 
+      : 1; // Default to Monday if invalid value
+    
     const settings: UserSettings = {
       ...DEFAULT_USER_SETTINGS,
-      language: (user.locale === 'en' ? 'en' : 'ja') as 'ja' | 'en',
-      weekStartsOn: (user.weekStartDay ?? 1) as 0 | 1 | 6,
+      language,
+      weekStartsOn,
     };
     
     return c.json(settings);
@@ -411,11 +421,29 @@ app.put('/settings', zValidator('json', updateUserSettingsSchema, springBootVali
     .where(eq(users.id, userId as string))
     .get();
     
+    if (!updatedUser) {
+      return c.json(
+        createLocalizedError('NOT_FOUND', c, { detail: 'User not found' }),
+        404 as ContentfulStatusCode
+      );
+    }
+    
+    // Handle locale values like 'en', 'en-US', 'ja', 'ja-JP' properly
+    const locale = (updatedUser.locale ?? DEFAULT_USER_SETTINGS.language).toLowerCase();
+    const language: 'ja' | 'en' = locale.startsWith('en') ? 'en' : 'ja';
+    
+    // Validate weekStartDay is one of the allowed values (0, 1, 6)
+    const rawWeekStartDay = updatedUser.weekStartDay ?? 1;
+    const weekStartsOn: 0 | 1 | 6 = (rawWeekStartDay === 0 || rawWeekStartDay === 1 || rawWeekStartDay === 6) 
+      ? rawWeekStartDay 
+      : 1; // Default to Monday if invalid value
+    
+    // Only return the fields that are actually persisted in the database
+    // Do not spread ...data as those fields are not saved
     const settings: UserSettings = {
       ...DEFAULT_USER_SETTINGS,
-      ...data,
-      language: (updatedUser?.locale === 'en' ? 'en' : 'ja') as 'ja' | 'en',
-      weekStartsOn: (updatedUser?.weekStartDay ?? 1) as 0 | 1 | 6,
+      language: data.language ?? language,
+      weekStartsOn: data.weekStartsOn ?? weekStartsOn,
     };
     
     return c.json(settings);
