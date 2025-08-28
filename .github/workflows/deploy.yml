@@ -53,30 +53,53 @@ jobs:
           cd apps/backend
           
           # Show wrangler version for debugging
-          echo "Wrangler version:"
+          echo "=== Wrangler version ==="
           npx wrangler --version
           
-          # Check migration status with proper error handling
-          echo "Checking migration status..."
-          if ! npx wrangler d1 migrations list DB --env production --remote 2>list.err; then
-            echo "Failed to list migrations. Error output:"
-            cat list.err
-            # Check if it's an auth/binding error (non-zero exit usually indicates this)
-            if grep -Eqi "authentication|unauthorized|binding|not found" list.err; then
-              echo "Authentication or binding error detected. Please check:"
-              echo "  - CLOUDFLARE_API_TOKEN is valid"
-              echo "  - Database binding 'DB' exists in wrangler.toml"
-              echo "  - Environment 'production' is configured"
+          # Check migration status with full output capture
+          echo "=== Checking migration status ==="
+          set +e  # Don't exit immediately on error
+          npx wrangler d1 migrations list DB --env production --remote 2>&1 | tee migration-list.log
+          LIST_EXIT_CODE=$?
+          set -e  # Re-enable exit on error
+          
+          if [ $LIST_EXIT_CODE -ne 0 ]; then
+            echo "=== Migration list failed with exit code: $LIST_EXIT_CODE ==="
+            echo "Full output was:"
+            cat migration-list.log
+            
+            # Check for specific error patterns
+            if grep -Eqi "authentication|unauthorized|403|401" migration-list.log; then
+              echo "ERROR: Authentication error detected. Please check CLOUDFLARE_API_TOKEN"
               exit 1
+            elif grep -Eqi "binding.*not found|no binding|DB.*not found" migration-list.log; then
+              echo "ERROR: Database binding 'DB' not found. Check wrangler.toml"
+              exit 1
+            elif grep -Eqi "environment.*production|no environment" migration-list.log; then
+              echo "ERROR: Environment 'production' not configured. Check wrangler.toml"
+              exit 1
+            else
+              echo "WARNING: Could not list migrations, but error is not critical. Continuing..."
             fi
-            # For other errors, we might want to continue
-            echo "Warning: Could not list migrations, but continuing..."
+          else
+            echo "Migration list succeeded"
           fi
           
-          # Apply migrations
-          echo "Applying migrations..."
-          npx wrangler d1 migrations apply DB --env production --remote
-          echo "Migrations applied successfully"
+          # Apply migrations with full output
+          echo "=== Applying migrations ==="
+          set +e
+          npx wrangler d1 migrations apply DB --env production --remote 2>&1 | tee migration-apply.log
+          APPLY_EXIT_CODE=$?
+          set -e
+          
+          if [ $APPLY_EXIT_CODE -ne 0 ]; then
+            echo "=== Migration apply failed with exit code: $APPLY_EXIT_CODE ==="
+            echo "Full output was:"
+            cat migration-apply.log
+            exit 1
+          fi
+          
+          echo "=== Migrations applied successfully ==="
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         timeout-minutes: 10
