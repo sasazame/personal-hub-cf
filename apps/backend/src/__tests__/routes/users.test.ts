@@ -179,7 +179,7 @@ describe('Users Routes', () => {
         profilePictureUrl: 'https://example.com/avatar.jpg',
         givenName: 'Test',
         familyName: 'User',
-        locale: 'en-US',
+        locale: 'en',
         weekStartDay: 1,
         enabled: true,
         createdAt: '2025-01-01T00:00:00Z',
@@ -533,7 +533,7 @@ describe('Users Routes', () => {
     it('should update user preferences', async () => {
       const updateData = {
         weekStartDay: 0,
-        locale: 'ja-JP',
+        locale: 'ja',
       };
 
       const mockedDb = asMockedDb(ctx.db);
@@ -558,6 +558,7 @@ describe('Users Routes', () => {
     });
 
     it('should validate weekStartDay range', async () => {
+      // Test invalid value (7 is out of range)
       const res = await app.request('/users/preferences', {
         method: 'PUT',
         headers: {
@@ -568,6 +569,18 @@ describe('Users Routes', () => {
       }, ctx.env);
 
       expect(res.status).toBe(400);
+
+      // Test invalid value (2 is not in allowed values: 0, 1, 6)
+      const res2 = await app.request('/users/preferences', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${validToken}`,
+        },
+        body: JSON.stringify({ weekStartDay: 2 }),
+      }, ctx.env);
+
+      expect(res2.status).toBe(400);
     });
   });
 

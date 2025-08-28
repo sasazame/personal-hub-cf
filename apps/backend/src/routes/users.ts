@@ -37,10 +37,13 @@ const updateEmailSchema = z.object({
   password: z.string(),
 });
 
+// Align preferences schema with settings constraints to prevent data conflicts
 const updatePreferencesSchema = z.object({
-  weekStartDay: z.number().min(0).max(6).optional(),
-  locale: z.string().optional(),
-});
+  // Constrain weekStartDay to only valid values that match /settings endpoint
+  weekStartDay: z.union([z.literal(0), z.literal(1), z.literal(6)]).optional(),
+  // Constrain locale to only supported languages
+  locale: z.enum(['ja', 'en']).optional(),
+}).strict();
 
 // Default feature preferences - single source of truth
 export const DEFAULT_FEATURE_PREFERENCES = Object.freeze({
@@ -288,6 +291,130 @@ app.put('/email', zValidator('json', updateEmailSchema, springBootValidator), as
     });
   } catch (error) {
     console.error('Update email error:', error);
+    return c.json(
+      createLocalizedError('INTERNAL_ERROR', c),
+      500 as ContentfulStatusCode
+    );
+  }
+});
+
+// User settings type - only includes fields that are persisted in database
+// Note: Other settings (theme, timezone, notifications, etc.) should be handled
+// via the feature preferences endpoint if needed
+export interface UserSettings {
+  language: 'ja' | 'en';
+  weekStartsOn: 0 | 1 | 6;
+}
+
+// Default user settings
+const DEFAULT_USER_SETTINGS: UserSettings = {
+  language: 'ja',
+  weekStartsOn: 1, // Monday
+};
+
+// Only accept fields that are actually persisted in the database
+const updateUserSettingsSchema = z.object({
+  language: z.enum(['ja', 'en']).optional(),
+  weekStartsOn: z.union([z.literal(0), z.literal(1), z.literal(6)]).optional(),
+}).strict();
+
+// Helper function to map database fields to settings format
+function mapDbToUserSettings(dbUser: { locale: string | null; weekStartDay: number | null }): UserSettings {
+  // Handle locale values like 'en', 'en-US', 'ja', 'ja-JP' properly
+  const locale = (dbUser.locale ?? DEFAULT_USER_SETTINGS.language).toLowerCase();
+  const language: 'ja' | 'en' = locale.startsWith('en') ? 'en' : 'ja';
+  
+  // Validate weekStartDay is one of the allowed values (0, 1, 6)
+  const rawWeekStartDay = dbUser.weekStartDay ?? DEFAULT_USER_SETTINGS.weekStartsOn;
+  const weekStartsOn: 0 | 1 | 6 = (rawWeekStartDay === 0 || rawWeekStartDay === 1 || rawWeekStartDay === 6) 
+    ? rawWeekStartDay 
+    : 1; // Default to Monday if invalid value
+  
+  return { language, weekStartsOn };
+}
+
+// GET /users/settings
+app.get('/settings', async (c) => {
+  const db = c.get('db');
+  const userId = c.get('userId');
+  
+  try {
+    const user = await db.select({
+      locale: users.locale,
+      weekStartDay: users.weekStartDay,
+    })
+    .from(users)
+    .where(eq(users.id, userId as string))
+    .get();
+    
+    if (!user) {
+      return c.json(
+        createLocalizedError('NOT_FOUND', c, { detail: 'User not found' }),
+        404 as ContentfulStatusCode
+      );
+    }
+    
+    // Map database fields to settings format using helper function
+    const settings = mapDbToUserSettings(user);
+    
+    return c.json(settings);
+  } catch (error) {
+    console.error('Get settings error:', error);
+    return c.json(
+      createLocalizedError('INTERNAL_ERROR', c),
+      500 as ContentfulStatusCode
+    );
+  }
+});
+
+// PUT /users/settings
+app.put('/settings', zValidator('json', updateUserSettingsSchema, springBootValidator), async (c) => {
+  const db = c.get('db');
+  const userId = c.get('userId');
+  const data = c.req.valid('json');
+  
+  try {
+    // Map settings to database fields
+    const dbUpdates: Partial<{
+      updatedAt: string;
+      locale: string;
+      weekStartDay: number;
+    }> = {
+      updatedAt: new Date().toISOString(),
+    };
+    
+    if (data.language !== undefined) {
+      dbUpdates.locale = data.language;
+    }
+    
+    if (data.weekStartsOn !== undefined) {
+      dbUpdates.weekStartDay = data.weekStartsOn;
+    }
+    
+    // Use returning() to get updated values in one query and detect if update was successful
+    const updatedRows = await db.update(users)
+      .set(dbUpdates)
+      .where(eq(users.id, userId as string))
+      .returning({
+        locale: users.locale,
+        weekStartDay: users.weekStartDay,
+      });
+    
+    const updatedUser = updatedRows[0];
+    
+    if (!updatedUser) {
+      return c.json(
+        createLocalizedError('NOT_FOUND', c, { detail: 'User not found' }),
+        404 as ContentfulStatusCode
+      );
+    }
+    
+    // Map database fields to settings format using helper function
+    const settings = mapDbToUserSettings(updatedUser);
+    
+    return c.json(settings);
+  } catch (error) {
+    console.error('Update settings error:', error);
     return c.json(
       createLocalizedError('INTERNAL_ERROR', c),
       500 as ContentfulStatusCode
