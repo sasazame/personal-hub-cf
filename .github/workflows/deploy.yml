@@ -62,7 +62,7 @@ jobs:
             echo "Failed to list migrations. Error output:"
             cat list.err
             # Check if it's an auth/binding error (non-zero exit usually indicates this)
-            if grep -q "authentication\|unauthorized\|binding\|not found" list.err; then
+            if grep -Eqi "authentication|unauthorized|binding|not found" list.err; then
               echo "Authentication or binding error detected. Please check:"
               echo "  - CLOUDFLARE_API_TOKEN is valid"
               echo "  - Database binding 'DB' exists in wrangler.toml"
