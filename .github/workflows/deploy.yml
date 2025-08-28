@@ -47,15 +47,36 @@ jobs:
       - name: Run database migrations
         id: migrations
         timeout-minutes: 10
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: apps/backend
-          command: d1 migrations apply DB --env production --remote
-      - name: Verify migrations applied
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
+          cd apps/backend
+          
+          # Show wrangler version for debugging
+          echo "Wrangler version:"
+          npx wrangler --version
+          
+          # Check migration status with proper error handling
+          echo "Checking migration status..."
+          if ! npx wrangler d1 migrations list DB --env production --remote 2>list.err; then
+            echo "Failed to list migrations. Error output:"
+            cat list.err
+            # Check if it's an auth/binding error (non-zero exit usually indicates this)
+            if grep -Eqi "authentication|unauthorized|binding|not found" list.err; then
+              echo "Authentication or binding error detected. Please check:"
+              echo "  - CLOUDFLARE_API_TOKEN is valid"
+              echo "  - Database binding 'DB' exists in wrangler.toml"
+              echo "  - Environment 'production' is configured"
+              exit 1
+            fi
+            # For other errors, we might want to continue
+            echo "Warning: Could not list migrations, but continuing..."
+          fi
+          
+          # Apply migrations
+          echo "Applying migrations..."
+          npx wrangler d1 migrations apply DB --env production --remote
           echo "Migrations applied successfully"
-          # Note: Wrangler will fail if migrations cannot be applied
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         timeout-minutes: 10
