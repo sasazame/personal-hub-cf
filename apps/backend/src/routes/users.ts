@@ -295,6 +295,139 @@ app.put('/email', zValidator('json', updateEmailSchema, springBootValidator), as
   }
 });
 
+// User settings type
+export interface UserSettings {
+  theme: 'light' | 'dark' | 'system';
+  language: 'ja' | 'en';
+  timezone: string;
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  pomodoroSound: boolean;
+  pomodoroVolume: number;
+  dateFormat: string;
+  timeFormat: '12h' | '24h';
+  weekStartsOn: 0 | 1 | 6;
+}
+
+// Default user settings
+const DEFAULT_USER_SETTINGS: UserSettings = {
+  theme: 'system',
+  language: 'ja',
+  timezone: 'Asia/Tokyo',
+  emailNotifications: true,
+  pushNotifications: true,
+  pomodoroSound: true,
+  pomodoroVolume: 50,
+  dateFormat: 'YYYY-MM-DD',
+  timeFormat: '24h',
+  weekStartsOn: 1,
+};
+
+const updateUserSettingsSchema = z.object({
+  theme: z.enum(['light', 'dark', 'system']).optional(),
+  language: z.enum(['ja', 'en']).optional(),
+  timezone: z.string().optional(),
+  emailNotifications: z.boolean().optional(),
+  pushNotifications: z.boolean().optional(),
+  pomodoroSound: z.boolean().optional(),
+  pomodoroVolume: z.number().min(0).max(100).optional(),
+  dateFormat: z.string().optional(),
+  timeFormat: z.enum(['12h', '24h']).optional(),
+  weekStartsOn: z.union([z.literal(0), z.literal(1), z.literal(6)]).optional(),
+});
+
+// GET /users/settings
+app.get('/settings', async (c) => {
+  const db = c.get('db');
+  const userId = c.get('userId');
+  
+  try {
+    const user = await db.select({
+      locale: users.locale,
+      weekStartDay: users.weekStartDay,
+    })
+    .from(users)
+    .where(eq(users.id, userId as string))
+    .get();
+    
+    if (!user) {
+      return c.json(
+        createLocalizedError('NOT_FOUND', c, { detail: 'User not found' }),
+        404 as ContentfulStatusCode
+      );
+    }
+    
+    // Map database fields to settings format
+    const settings: UserSettings = {
+      ...DEFAULT_USER_SETTINGS,
+      language: (user.locale === 'en' ? 'en' : 'ja') as 'ja' | 'en',
+      weekStartsOn: (user.weekStartDay ?? 1) as 0 | 1 | 6,
+    };
+    
+    return c.json(settings);
+  } catch (error) {
+    console.error('Get settings error:', error);
+    return c.json(
+      createLocalizedError('INTERNAL_ERROR', c),
+      500 as ContentfulStatusCode
+    );
+  }
+});
+
+// PUT /users/settings
+app.put('/settings', zValidator('json', updateUserSettingsSchema, springBootValidator), async (c) => {
+  const db = c.get('db');
+  const userId = c.get('userId');
+  const data = c.req.valid('json');
+  
+  try {
+    // Map settings to database fields
+    const dbUpdates: Partial<{
+      updatedAt: string;
+      locale: string;
+      weekStartDay: number;
+    }> = {
+      updatedAt: new Date().toISOString(),
+    };
+    
+    if (data.language !== undefined) {
+      dbUpdates.locale = data.language;
+    }
+    
+    if (data.weekStartsOn !== undefined) {
+      dbUpdates.weekStartDay = data.weekStartsOn;
+    }
+    
+    await db.update(users)
+      .set(dbUpdates)
+      .where(eq(users.id, userId as string));
+    
+    // Return the updated settings
+    const updatedUser = await db.select({
+      locale: users.locale,
+      weekStartDay: users.weekStartDay,
+    })
+    .from(users)
+    .where(eq(users.id, userId as string))
+    .get();
+    
+    const settings: UserSettings = {
+      ...DEFAULT_USER_SETTINGS,
+      ...data,
+      language: (updatedUser?.locale === 'en' ? 'en' : 'ja') as 'ja' | 'en',
+      weekStartsOn: (updatedUser?.weekStartDay ?? 1) as 0 | 1 | 6,
+    };
+    
+    return c.json(settings);
+  } catch (error) {
+    console.error('Update settings error:', error);
+    return c.json(
+      createLocalizedError('INTERNAL_ERROR', c),
+      500 as ContentfulStatusCode
+    );
+  }
+});
+
 // PUT /users/preferences
 app.put('/preferences', zValidator('json', updatePreferencesSchema, springBootValidator), async (c) => {
   const db = c.get('db');
