@@ -4,8 +4,16 @@
 - Development: `http://localhost:8787`
 - Production: `https://api.personalhub.com`
 
+## Base Path
+All endpoints are prefixed with `/api/v1`.
+
+Examples:
+- Todos: `GET /api/v1/todos`
+- Auth: `POST /api/v1/auth/login`
+- Users: `GET /api/v1/users/profile`
+
 ## Authentication
-All endpoints except `/auth/*` require JWT Bearer token in Authorization header:
+All endpoints except `/api/v1/auth/*` require JWT Bearer token in the Authorization header:
 ```
 Authorization: Bearer <access_token>
 ```
@@ -48,7 +56,7 @@ Authorization: Bearer <access_token>
 
 #### Register
 ```http
-POST /auth/register
+POST /api/v1/auth/register
 Content-Type: application/json
 
 {
@@ -60,7 +68,7 @@ Content-Type: application/json
 
 #### Login
 ```http
-POST /auth/login
+POST /api/v1/auth/login
 Content-Type: application/json
 
 {
@@ -87,7 +95,7 @@ Content-Type: application/json
 
 #### Refresh Token
 ```http
-POST /auth/refresh
+POST /api/v1/auth/refresh
 Content-Type: application/json
 
 {
@@ -99,12 +107,12 @@ Content-Type: application/json
 
 #### List Todos
 ```http
-GET /todos?status=TODO&priority=HIGH&tag=work&limit=20&offset=0
+GET /api/v1/todos?status=TODO&priority=HIGH&tag=work&limit=20&offset=0
 ```
 
 #### Create Todo
 ```http
-POST /todos
+POST /api/v1/todos
 Content-Type: application/json
 
 {
@@ -119,7 +127,7 @@ Content-Type: application/json
 
 #### Update Todo
 ```http
-PUT /todos/{id}
+PUT /api/v1/todos/{id}
 Content-Type: application/json
 
 {
@@ -129,19 +137,19 @@ Content-Type: application/json
 
 #### Delete Todo
 ```http
-DELETE /todos/{id}
+DELETE /api/v1/todos/{id}
 ```
 
 ### Notes
 
 #### List Notes
 ```http
-GET /notes?tag=meeting&category=work&search=api&limit=20&offset=0
+GET /api/v1/notes?tag=meeting&category=work&search=api&limit=20&offset=0
 ```
 
 #### Create Note
 ```http
-POST /notes
+POST /api/v1/notes
 Content-Type: application/json
 
 {
@@ -156,12 +164,12 @@ Content-Type: application/json
 
 #### List Moments
 ```http
-GET /moments?tag=insight&limit=20&offset=0
+GET /api/v1/moments?tag=insight&limit=20&offset=0
 ```
 
 #### Create Moment
 ```http
-POST /moments
+POST /api/v1/moments
 Content-Type: application/json
 
 {
@@ -172,24 +180,24 @@ Content-Type: application/json
 
 #### Get Default Tags
 ```http
-GET /moments/tags/default
+GET /api/v1/moments/tags/default
 ```
 
 ### Events
 
 #### List Events
 ```http
-GET /events?from=2025-01-01&to=2025-01-31
+GET /api/v1/events?from=2025-01-01&to=2025-01-31
 ```
 
 #### Get Events in Date Range
 ```http
-GET /events/range?startDate=2025-01-01&endDate=2025-01-31
+GET /api/v1/events/range?startDate=2025-01-01&endDate=2025-01-31
 ```
 
 #### Create Event
 ```http
-POST /events
+POST /api/v1/events
 Content-Type: application/json
 
 {
@@ -207,12 +215,12 @@ Content-Type: application/json
 
 #### List Goals
 ```http
-GET /goals?active=true
+GET /api/v1/goals?active=true
 ```
 
 #### Create Goal
 ```http
-POST /goals
+POST /api/v1/goals
 Content-Type: application/json
 
 {
@@ -229,7 +237,7 @@ Content-Type: application/json
 
 #### Record Achievement
 ```http
-POST /goals/{id}/achievements
+POST /api/v1/goals/{id}/achievements
 Content-Type: application/json
 
 {
@@ -241,12 +249,12 @@ Content-Type: application/json
 
 #### Get Active Session
 ```http
-GET /pomodoro/sessions/active
+GET /api/v1/pomodoro/sessions/active
 ```
 
 #### Start Session
 ```http
-POST /pomodoro/sessions
+POST /api/v1/pomodoro/sessions
 Content-Type: application/json
 
 {
@@ -268,7 +276,7 @@ Content-Type: application/json
 
 #### Update Session
 ```http
-PUT /pomodoro/sessions/{id}
+PUT /api/v1/pomodoro/sessions/{id}
 Content-Type: application/json
 
 {
@@ -279,68 +287,130 @@ Content-Type: application/json
 
 #### Get/Update Config
 ```http
-GET /pomodoro/config
-PUT /pomodoro/config
+GET /api/v1/pomodoro/config
+PUT /api/v1/pomodoro/config
 ```
 
 ### Analytics
 
 #### Overview
 ```http
-GET /analytics/overview
+GET /api/v1/analytics/overview
 ```
 
 #### Productivity
 ```http
-GET /analytics/productivity?fromDate=2025-01-01&toDate=2025-01-31
+GET /api/v1/analytics/productivity?fromDate=2025-01-01&toDate=2025-01-31
 ```
 
 #### Habits
 ```http
-GET /analytics/habits?days=30
+GET /api/v1/analytics/habits?days=30
 ```
 
 #### Goals Progress
 ```http
-GET /analytics/goals-progress
+GET /api/v1/analytics/goals-progress
 ```
 
 #### Tag Analytics
 ```http
-GET /analytics/tags
+GET /api/v1/analytics/tags
 ```
 
 #### Time Distribution
 ```http
-GET /analytics/time-distribution?days=7
+GET /api/v1/analytics/time-distribution?days=7
 ```
 
 ### Users
 
+All User Management endpoints require authentication and are under `/api/v1/users`.
+
 #### Get Profile
 ```http
-GET /users/me
+GET /api/v1/users/profile
 ```
 
 #### Update Profile
 ```http
-PUT /users/me
+PUT /api/v1/users/profile
 Content-Type: application/json
 
 {
   "username": "newusername",
+  "givenName": "John",
+  "familyName": "Doe",
+  "profilePictureUrl": "https://...",
+  "locale": "en",
   "weekStartDay": 1
 }
 ```
 
 #### Change Password
 ```http
-PUT /users/me/password
+PUT /api/v1/users/password
 Content-Type: application/json
 
 {
   "currentPassword": "OldPass123!",
   "newPassword": "NewPass456!"
+}
+```
+
+#### Update Email
+```http
+PUT /api/v1/users/email
+Content-Type: application/json
+
+{
+  "email": "new@example.com",
+  "password": "CurrentPass123!"
+}
+```
+
+#### Get/Update Settings
+```http
+GET /api/v1/users/settings
+PUT /api/v1/users/settings
+Content-Type: application/json
+
+{
+  "language": "en",         // 'ja' | 'en'
+  "weekStartsOn": 1          // 0 (Sun) | 1 (Mon) | 6 (Sat)
+}
+```
+
+#### Get/Update Feature Preferences
+```http
+GET /api/v1/users/feature-preferences
+PUT /api/v1/users/feature-preferences
+Content-Type: application/json
+
+{
+  "todos": true,
+  "goals": true,
+  "pomodoro": true,
+  "calendar": true,
+  "notes": true,
+  "moments": true,
+  "analytics": true
+}
+```
+
+#### Social Accounts
+```http
+GET /api/v1/users/social-accounts
+DELETE /api/v1/users/social-accounts/{provider}
+```
+
+#### Delete Account
+```http
+DELETE /api/v1/users/account
+Content-Type: application/json
+
+{
+  "password": "CurrentPass123!"
 }
 ```
 

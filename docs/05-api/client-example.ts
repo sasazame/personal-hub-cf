@@ -20,7 +20,7 @@ class ApiClient {
   private baseURL: string;
   private accessToken: string | null = null;
 
-  constructor(baseURL: string = 'http://localhost:8787') {
+  constructor(baseURL: string = 'http://localhost:8787/api/v1') {
     this.baseURL = baseURL;
   }
 

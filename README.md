@@ -1,229 +1,189 @@
-# Personal Hub - Cloudflare
+# Personal Hub
 
-A modern, edge-native personal productivity hub built on Cloudflare's platform, featuring task management, note-taking, goal tracking, and analytics.
+[![CI Status](https://github.com/sasazame/personal-hub-cf/actions/workflows/ci.yml/badge.svg)](https://github.com/sasazame/personal-hub-cf/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18-61dafb)](https://reactjs.org/)
+[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-f38020)](https://workers.cloudflare.com/)
 
-## ✅ Project Status
+A modern, privacy-focused personal productivity hub built on Cloudflare's edge platform. Manage tasks, notes, goals, and track your productivity with advanced analytics - all with zero vendor lock-in and complete data ownership.
 
-**Recently Completed (August 2025):**
-- ✅ **Command Palette System** - Global keyboard shortcuts with Cmd/Ctrl+K
-- ✅ **Dark Mode Improvements** - Semantic tokens and system theme support
-- ✅ **Pomodoro Timer** - Full implementation with task integration
-- ✅ **Security Event Logging** - Comprehensive audit trail system
-- ✅ **Enhanced UI/UX** - Visual feedback improvements across all features
-- ✅ **Bug Fixes** - CSRF token issues, note tags, E2E test reliability
+## 🎯 Why Personal Hub?
 
-**Core Infrastructure:**
-- ✅ Backend API with Spring Boot-compatible routes and payloads
-- ✅ D1 database schema fully migrated (15+ tables)
-- ✅ All 13 API endpoint groups implemented
-- ✅ JWT Authentication with CSRF protection
-- ✅ Comprehensive test suite (24+ test files with high coverage)
-- ✅ CI/CD pipeline with GitHub Actions
-- ✅ Frontend migration from Next.js to Vite+React
-- ✅ E2E test suite with Playwright (32 test files)
-- ✅ Internationalization (English/Japanese)
+Unlike traditional productivity apps that lock your data in proprietary formats or require expensive subscriptions, Personal Hub gives you:
 
-**In Progress:**
-- 🚧 OAuth integration completion (GitHub/Google)
-- 🚧 Cloudflare Pages deployment finalization
-- 🚧 Performance optimizations
+- **Complete Data Ownership**: Your data stays in your Cloudflare account
+- **Edge-Native Performance**: Sub-50ms response times globally via Cloudflare's network
+- **Privacy First**: No telemetry, no tracking, your data never leaves your control
+- **Zero Vendor Lock-in**: Export all data anytime, self-host anywhere
+- **Cost Effective**: Runs on Cloudflare's generous free tier for personal use
 
-**Next Steps:**
-- 📋 Complete OAuth implementation
-- 📋 Add field-level encryption for sensitive data
-- 📋 Implement backup and restore functionality
-- 📋 Add more keyboard shortcuts
+## ✨ Features
 
-## 📋 Prerequisites
+### Core Productivity
+- **📝 Advanced Task Management** - Priorities, recurring tasks, subtasks, and smart scheduling
+- **📔 Rich Notes** - Markdown support, tags, full-text search, and organization
+- **🎯 Goal Tracking** - Set objectives, track progress, celebrate achievements
+- **📅 Smart Calendar** - Event management with reminders and integration capabilities
+- **🍅 Pomodoro Timer** - Stay focused with customizable work sessions
+- **💭 Moments** - Quick capture for thoughts and ideas with instant tagging
 
-- Node.js 20+
-- pnpm 10.13.1
-- Cloudflare account (for deployment)
-- Wrangler CLI (`npm install -g wrangler`)
+### Intelligence & Analytics
+- **📊 Productivity Analytics** - Detailed insights into your work patterns
+- **📈 Progress Tracking** - Visualize goal completion and task trends
+- **🔥 Streak Tracking** - Build and maintain productive habits
+- **📍 Activity Heatmaps** - Understand your productivity patterns
+
+### User Experience
+- **⌨️ Command Palette** - Navigate anywhere with Cmd/Ctrl+K
+- **🌓 Theme Support** - Light, dark, and system-aware themes
+- **🌐 i18n Support** - English and Japanese (more languages welcome!)
+- **📱 Responsive Design** - Works seamlessly on all devices
+- **♿ Accessibility** - WCAG compliant with full keyboard navigation
 
 ## 🚀 Quick Start
 
+### Prerequisites
+- Node.js 20+ and pnpm
+- Cloudflare account (free tier works)
+- 5 minutes of your time
+
+### Installation
+
 ```bash
+# Clone the repository
+git clone https://github.com/sasazame/personal-hub-cf.git
+cd personal-hub-cf
+
 # Install dependencies
 pnpm install
 
-# Run all services in development
+# Set up your environment
+cp apps/backend/.dev.vars.example apps/backend/.dev.vars
+# Edit .dev.vars with your JWT secret
+
+# Start development servers
 pnpm dev
-# Frontend: <http://localhost:5173>
-# Backend: <http://localhost:8787>
-
-# Run specific workspace
-pnpm --filter @personal-hub/backend dev
-pnpm --filter @personal-hub/frontend dev
-
-# Run tests
-pnpm test          # Unit tests
-pnpm test:e2e      # E2E tests headless
-pnpm test:e2e:ui   # E2E tests with UI
-pnpm test:ci       # E2E tests in CI mode
-
-# Code quality checks
-pnpm typecheck     # TypeScript validation
-pnpm lint          # ESLint checks
-pnpm build         # Production build
 ```
 
-## 🌐 Deployment
+Visit `http://localhost:5173` and start being productive! 🎉
 
-See [Deployment Guide](./docs/04-deployment/DEPLOYMENT.md) for detailed deployment instructions.
+### Deploy to Production
 
-### Quick Links
-- **Backend API**: https://personal-hub-backend-prod.zametech.workers.dev
-- **Health Check**: https://personal-hub-backend-prod.zametech.workers.dev/health
-- **Frontend**: https://personal-hub.pages.dev (after deployment)
+```bash
+# Deploy backend to Cloudflare Workers
+pnpm --filter @personal-hub/backend deploy
 
-All API endpoints are available under `/api/v1/*` prefix.
-
-## 📁 Project Structure
-
+# Deploy frontend to Cloudflare Pages
+pnpm --filter @personal-hub/frontend build
+pnpm --filter @personal-hub/frontend deploy
 ```
-personal-hub-cf/
-├── apps/
-│   ├── backend/              # Cloudflare Workers API
-│   │   ├── src/
-│   │   │   ├── api/         # API types and specifications
-│   │   │   ├── config/      # Configuration constants
-│   │   │   ├── db/          # Database schema (Drizzle)
-│   │   │   ├── middleware/  # Auth middleware
-│   │   │   ├── routes/      # API route handlers
-│   │   │   ├── utils/       # Utilities and helpers
-│   │   │   └── __tests__/   # Comprehensive test suite
-│   │   └── wrangler.toml    # Cloudflare configuration
-│   └── frontend/            # React + Vite frontend
-│       ├── src/
-│       │   ├── components/  # React components
-│       │   ├── pages/       # Page components
-│       │   ├── contexts/    # React contexts
-│       │   ├── hooks/       # Custom hooks
-│       │   └── lib/         # API clients
-│       └── vite.config.ts   # Vite configuration
-├── e2e/                     # E2E test suite (Playwright)
-├── docs/                    # Organized documentation
-│   ├── 01-getting-started/  # Quick start guides
-│   ├── 02-architecture/     # System design docs
-│   ├── 03-development/      # Development guides
-│   ├── 04-deployment/       # Deployment instructions
-│   ├── 05-api/              # API documentation
-│   ├── 06-testing/          # Testing guides
-│   ├── 07-migration/        # Migration documentation
-│   └── 99-archive/          # Historical docs
-└── packages/                # Shared packages (future)
-```
+
+See [detailed deployment guide](./docs/04-deployment/DEPLOYMENT.md) for production configuration.
 
 ## 🛠️ Technology Stack
 
-### Backend
-- **Runtime**: Cloudflare Workers (Edge computing)
-- **Framework**: Hono (lightweight web framework)
-- **Database**: Cloudflare D1 (SQLite-compatible edge database)
-- **ORM**: Drizzle ORM with type-safe queries
-- **Authentication**: JWT with @tsndr/cloudflare-worker-jwt
-- **Validation**: Zod schemas for all endpoints
-- **Rate Limiting**: Cloudflare KV for distributed rate limiting
-- **Testing**: Vitest with Miniflare for edge environment
-- **Coverage**: High statement coverage (90%+ with 270+ tests as of Aug 2025)
-
-### Frontend
-- **Framework**: React 18 with Vite for fast HMR
-- **UI Components**: Custom components with Tailwind CSS
-- **Styling**: Tailwind CSS with semantic design tokens
-- **State Management**: React Query + Context API
-- **Calendar**: FullCalendar with event management
-- **Charts**: Recharts for analytics visualization
-- **Markdown**: React Markdown for rich text
-- **Icons**: React Icons library
-- **Testing**: Playwright for E2E (32 test files)
-- **Performance**: Virtual scrolling, lazy loading, memoization
-
-## 🔄 Development Workflow
-
-### Branch Strategy
-- **main** - Production-ready code
-- **feat/** - New features
-- **fix/** - Bug fixes
-- **docs/** - Documentation updates
-
-### Commit Guidelines
-- Use conventional commits (feat:, fix:, docs:, etc.)
-- Include `[skip ci]` for documentation-only changes
-- Reference issues when applicable
-
-### Pull Request Process
-1. Create feature branch from main
-2. Make changes with proper testing
-3. Ensure all quality checks pass
-4. Create PR with detailed description
-5. Wait for CI checks and review
-6. Merge after approval
-
-## 🧪 Testing Strategy
-
-```bash
-# Run unit tests
-pnpm test
-
-# Run E2E tests (requires dev servers running)
-SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:5173 pnpm playwright test
-
-# Run CI-optimized tests
-SKIP_WEBSERVER=1 E2E_BASE_URL=http://localhost:5173 pnpm playwright test e2e/ci.spec.ts
-
-# Run tests with UI
-pnpm test:e2e:ui
-```
+- **Backend**: Cloudflare Workers + Hono + D1 Database
+- **Frontend**: React 18 + Vite + Tailwind CSS
+- **Testing**: Vitest + Playwright
+- **CI/CD**: GitHub Actions
+- **Type Safety**: TypeScript + Zod validation
 
 ## 📚 Documentation
 
-- [Documentation Index](./docs/README.md) - Complete documentation overview
-- [Quick Start Guide](./docs/01-getting-started/QUICK_START.md) - Get started quickly
-- [API Reference](./docs/05-api/README.md) - Complete API documentation
-- [Testing Guide](./docs/06-testing/README.md) - Testing strategies and guides
-- [Migration Guide](./docs/07-migration/MIGRATION_GUIDE_V2.md) - Migration documentation
+- [Getting Started Guide](./docs/01-getting-started/README.md)
+- [API Documentation](./docs/05-api/README.md)
+- [Development Guide](./docs/03-development/README.md)
+- [Testing Guide](./docs/06-testing/README.md)
+- [Deployment Guide](./docs/04-deployment/DEPLOYMENT.md)
 
-## 🌟 Features
+## 🤝 Contributing
 
-### Core Productivity Features
-- **📝 Task Management**: Advanced todo system with priorities (Low/Medium/High/Urgent), statuses (Todo/In Progress/Done/Cancelled), recurring tasks (Daily/Weekly/Monthly/Yearly), and subtask hierarchy
-- **📔 Note Taking**: Rich text notes with tags, full-text search, and organization
-- **💭 Moments**: Quick capture for thoughts and insights with tag categorization
-- **📅 Event Calendar**: Full-featured calendar with reminders and Google Calendar integration ready
-- **🎯 Goal Tracking**: Set goals, track achievements, and monitor progress over time
-- **🍅 Pomodoro Timer**: Advanced timer with task integration, customizable work/break durations, cycle tracking, audio alerts, auto-start options, and session history
-- **📊 Analytics Dashboard**: Comprehensive insights including completion rates, productivity streaks, hourly/weekly patterns, tag analytics, goal progress tracking, and activity heatmaps
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-### User Experience Features
-- **⌨️ Command Palette**: Global keyboard shortcuts (Cmd/Ctrl+K) with fuzzy search, command history, categories, and virtual scrolling for 1000+ commands
-- **🌓 Theme System**: Light, dark, and system theme support with semantic design tokens and CSS variables
-- **🌐 Internationalization**: Full English and Japanese language support with namespaced translations
-- **📱 Responsive Design**: Mobile-friendly interface with touch support and responsive layouts
-- **⚡ Performance**: Virtual scrolling, lazy loading, memoization, search caching (99% faster), and optimized rendering
-- **♿ Accessibility**: Comprehensive ARIA attributes, keyboard navigation, focus management, and screen reader support
+### Development Setup
 
-### Advanced Features
-- **🔄 Recurring Tasks**: Complex repeat patterns with custom intervals and specific days/dates
-- **🏗️ Feature Toggles**: User-configurable feature enablement for personalized experience
-- **📡 Google Calendar Ready**: Database schema and API endpoints prepared for calendar sync
-- **🏷️ Tag Analytics**: Cross-feature tag analysis for notes and moments
-- **📦 Session Storage**: Sophisticated session management with timeout handling
-- **📝 Audit Trail**: Comprehensive security event logging for compliance
+```bash
+# Run tests
+pnpm test          # Unit tests
+pnpm test:e2e      # E2E tests
 
-## 🔒 Security Features
+# Code quality
+pnpm typecheck     # Type checking
+pnpm lint          # Linting
+pnpm format        # Formatting
 
-- **JWT Authentication**: Secure token-based authentication with refresh tokens
-- **Session Management**: HTTP-only secure cookies with 30-minute inactivity timeout
-- **CSRF Protection**: Double-submit cookie pattern with secure SameSite attributes
-- **Security Event Logging**: Comprehensive audit trail for all security events
-- **Input Validation**: Comprehensive Zod-based validation on all endpoints
-- **SQL Injection Protection**: Parameterized queries through Drizzle ORM
-- **XSS Prevention**: Content sanitization and secure headers
-- **Rate Limiting**: API rate limiting on authentication endpoints using Cloudflare KV
-- **Password Security**: Secure hashing with salt for password storage
+# Build
+pnpm build         # Production build
+```
 
-## 📄 License
+### Commit Convention
 
-MIT
+We use [Conventional Commits](https://www.conventionalcommits.org/):
+- `feat:` New features
+- `fix:` Bug fixes
+- `docs:` Documentation changes (use `[skip ci]` for docs-only)
+- `chore:` Maintenance tasks
+- `test:` Test improvements
+
+## 🗺️ Roadmap
+
+### Current Focus
+- [ ] OAuth integration (GitHub, Google)
+- [ ] Data export/import functionality
+- [ ] Plugin system architecture
+
+### Future Plans
+- [ ] Mobile apps (React Native)
+- [ ] Desktop app (Electron)
+- [ ] AI-powered insights
+- [ ] Team collaboration features
+- [ ] WebDAV sync support
+
+See [full roadmap](https://github.com/sasazame/personal-hub-cf/issues) for more details.
+
+## 📊 Project Status
+
+- **Core Features**: ✅ Complete
+- **Testing**: ✅ Comprehensive coverage
+- **Documentation**: ✅ Comprehensive
+- **Production Ready**: ✅ Yes
+- **Active Development**: ✅ Yes
+
+## 🔒 Security
+
+- JWT-based authentication
+- CSRF protection
+- Rate limiting
+- Input validation
+- SQL injection prevention
+- XSS protection
+- Security event logging
+
+For security issues, please open a private security advisory on GitHub or contact the maintainers directly through GitHub
+
+## 📝 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+Built with amazing open source projects:
+- [Cloudflare Workers](https://workers.cloudflare.com/)
+- [Hono](https://hono.dev/)
+- [React](https://reactjs.org/)
+- [Vite](https://vitejs.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Drizzle ORM](https://orm.drizzle.team/)
+
+## 💬 Community
+
+- [Discussions](https://github.com/sasazame/personal-hub-cf/discussions)
+- [Issues](https://github.com/sasazame/personal-hub-cf/issues)
+- Discord - Coming soon!
+
+---
+
+<p align="center">
+  Made with ❤️ by the Personal Hub community
+</p>

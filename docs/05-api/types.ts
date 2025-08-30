@@ -432,6 +432,22 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
+// User settings and preferences
+export interface UserSettings {
+  language: 'ja' | 'en';
+  weekStartsOn: 0 | 1 | 6;
+}
+
+export interface FeaturePreferences {
+  todos: boolean;
+  goals: boolean;
+  pomodoro: boolean;
+  calendar: boolean;
+  notes: boolean;
+  moments: boolean;
+  analytics: boolean;
+}
+
 // API Client Helper Types
 export interface ApiResponse<T> {
   data: T;

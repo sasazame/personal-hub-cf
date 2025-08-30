@@ -42,6 +42,11 @@ The application will be available at:
 4. Explore features:
    - Press `Cmd/Ctrl + K` to open the Command Palette
    - Use keyboard shortcuts (e.g., `Alt + T` for Todos)
+   
+#### Keyboard Shortcuts
+- Navigation: `Alt + D/T/N/G/P/C/M/A` (Dashboard, Todos, Notes, Goals, Pomodoro, Calendar, Moments, Analytics)
+- Settings: `Alt + Shift + T` (toggle theme), `Alt + Shift + L` (logout)
+- Moments tags: `Shift + F1..F5` to toggle default tags (Ideas, Discoveries, Emotions, Log, Other)
    - Create tasks, notes, and track your productivity
 
 ### Via API
