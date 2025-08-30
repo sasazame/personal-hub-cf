@@ -31,10 +31,9 @@ pnpm test:e2e
 
 ## CI/CD Integration
 
-All tests run automatically on:
-- Pull requests
-- Main branch commits
-- Pre-deployment checks
+- Build and unit tests run on pull requests and pushes to `main`.
+- E2E tests run on pull requests. Pushes to `main` skip E2E (already validated in PR).
+- Deploy workflow performs post-deploy health checks.
 
 ## Best Practices
 

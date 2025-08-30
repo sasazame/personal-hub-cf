@@ -81,6 +81,8 @@ Deployments are triggered automatically on push to the `main` branch:
 1. **Backend (Workers)**: Deployed first
 2. **Frontend (Pages)**: Deployed after backend succeeds
 
+During backend deployment, database migrations are automatically applied to the D1 database using the binding `DB` and the production environment. The workflow also verifies a protected endpoint (`/api/v1/users/feature-preferences`) returns 401 for anonymous requests.
+
 ### Manual Deployment
 
 To deploy manually:
@@ -156,7 +158,10 @@ wrangler pages deploy dist --project-name=personal-hub
 1. **API Token**: Use minimum required permissions
 2. **Secrets**: Never commit secrets to repository
 3. **CORS**: Backend configures CORS for production domain
-4. **Authentication**: JWT tokens expire after 24 hours
+4. **Authentication**: Token and session durations
+   - Access token: 1 hour
+   - Session cookie: 24 hours (sliding window)
+   - Refresh token: 7 days
 
 ## Cost Optimization
 

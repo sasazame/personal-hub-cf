@@ -47,10 +47,12 @@ Welcome to the Personal Hub documentation. This guide is organized to help you q
 ## Quick Links
 
 - [Quick Start Guide](./01-getting-started/QUICK_START.md)
+- [Development Checklist](./DEVELOPMENT_CHECKLIST.md)
 - [API Reference](./05-api/README.md)
 - [Deployment Guide](./04-deployment/DEPLOYMENT.md)
 - [Testing Guide](./06-testing/local-ci-testing.md)
+- [Contributing Guide](../CONTRIBUTING.md)
 
 ## Contributing
 
-Please ensure any new documentation follows the established structure and naming conventions.
+Please ensure any new documentation follows the established structure and naming conventions. Refer to the [Contributing Guide](../CONTRIBUTING.md) and [Development Checklist](./DEVELOPMENT_CHECKLIST.md) for detailed guidelines.

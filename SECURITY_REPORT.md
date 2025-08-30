@@ -16,7 +16,7 @@ This report provides a comprehensive security analysis of the Personal Hub appli
    - Passwords are never stored in plain text
 
 2. **JWT Implementation**
-   - Short-lived access tokens (15 minutes) and longer refresh tokens (7 days) (apps/backend/src/utils/auth.ts:84,93)
+   - Short-lived access tokens (1 hour) and longer refresh tokens (7 days) (apps/backend/src/config/constants.ts)
    - Proper token type validation (access vs refresh) (apps/backend/src/middleware/auth.ts:27-32)
    - Token signature verification using @tsndr/cloudflare-worker-jwt
 
@@ -75,9 +75,7 @@ This report provides a comprehensive security analysis of the Personal Hub appli
 
 ### Areas for Improvement
 
-1. **Security Headers** - Missing headers like X-Content-Type-Options, X-Frame-Options, CSP
-2. **Request Size Limits** - No explicit request size limits configured
-3. **Origin Validation Enhancement** - Consider implementing additional origin validation beyond CORS for sensitive operations
+1. **Origin Validation Enhancement** - Consider implementing additional origin validation beyond CORS for sensitive operations
 
 ## 4. Data Protection
 
@@ -170,7 +168,7 @@ This report provides a comprehensive security analysis of the Personal Hub appli
    - Lock account after 5 failed attempts
    - Require email verification to unlock
 
-2. **CSRF Protection** ✅ **IMPLEMENTED**
+2. **CSRF Protection** ✅ IMPLEMENTED
    - Double-submit cookie pattern with CSRF tokens for state-changing operations
    - Timing-safe token comparison to prevent timing attacks
    - SameSite cookie attributes configured appropriately:
@@ -190,9 +188,9 @@ This report provides a comprehensive security analysis of the Personal Hub appli
    - TOTP-based 2FA
    - Recovery codes
 
-2. **Implement Security Event Logging**
-   - Use existing securityEvents table
-   - Log authentication attempts, password changes
+2. **Security Event Logging** ✅ IMPLEMENTED
+   - Auth events, password changes, rate limits, suspicious activity are logged
+   - See `apps/backend/src/utils/security-events.ts`
 
 3. **Add Field-Level Encryption**
    - Encrypt sensitive user data

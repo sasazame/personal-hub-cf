@@ -64,6 +64,9 @@ act pull_request
 
 # Simulate push to main
 act push -b main
+
+# Note: In CI, E2E tests are executed on pull requests.
+# Pushes to main skip E2E (validated at PR time).
 ```
 
 ## Troubleshooting
