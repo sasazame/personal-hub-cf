@@ -13,7 +13,7 @@ Examples:
 - Users: `GET /api/v1/users/profile`
 
 ## Authentication
-All endpoints except `/auth/*` require JWT Bearer token in Authorization header:
+All endpoints except `/api/v1/auth/*` require JWT Bearer token in the Authorization header:
 ```
 Authorization: Bearer <access_token>
 ```
@@ -56,7 +56,7 @@ Authorization: Bearer <access_token>
 
 #### Register
 ```http
-POST /auth/register
+POST /api/v1/auth/register
 Content-Type: application/json
 
 {
@@ -68,7 +68,7 @@ Content-Type: application/json
 
 #### Login
 ```http
-POST /auth/login
+POST /api/v1/auth/login
 Content-Type: application/json
 
 {
@@ -95,7 +95,7 @@ Content-Type: application/json
 
 #### Refresh Token
 ```http
-POST /auth/refresh
+POST /api/v1/auth/refresh
 Content-Type: application/json
 
 {
@@ -107,12 +107,12 @@ Content-Type: application/json
 
 #### List Todos
 ```http
-GET /todos?status=TODO&priority=HIGH&tag=work&limit=20&offset=0
+GET /api/v1/todos?status=TODO&priority=HIGH&tag=work&limit=20&offset=0
 ```
 
 #### Create Todo
 ```http
-POST /todos
+POST /api/v1/todos
 Content-Type: application/json
 
 {
@@ -127,7 +127,7 @@ Content-Type: application/json
 
 #### Update Todo
 ```http
-PUT /todos/{id}
+PUT /api/v1/todos/{id}
 Content-Type: application/json
 
 {
@@ -137,19 +137,19 @@ Content-Type: application/json
 
 #### Delete Todo
 ```http
-DELETE /todos/{id}
+DELETE /api/v1/todos/{id}
 ```
 
 ### Notes
 
 #### List Notes
 ```http
-GET /notes?tag=meeting&category=work&search=api&limit=20&offset=0
+GET /api/v1/notes?tag=meeting&category=work&search=api&limit=20&offset=0
 ```
 
 #### Create Note
 ```http
-POST /notes
+POST /api/v1/notes
 Content-Type: application/json
 
 {
@@ -164,12 +164,12 @@ Content-Type: application/json
 
 #### List Moments
 ```http
-GET /moments?tag=insight&limit=20&offset=0
+GET /api/v1/moments?tag=insight&limit=20&offset=0
 ```
 
 #### Create Moment
 ```http
-POST /moments
+POST /api/v1/moments
 Content-Type: application/json
 
 {
@@ -180,24 +180,24 @@ Content-Type: application/json
 
 #### Get Default Tags
 ```http
-GET /moments/tags/default
+GET /api/v1/moments/tags/default
 ```
 
 ### Events
 
 #### List Events
 ```http
-GET /events?from=2025-01-01&to=2025-01-31
+GET /api/v1/events?from=2025-01-01&to=2025-01-31
 ```
 
 #### Get Events in Date Range
 ```http
-GET /events/range?startDate=2025-01-01&endDate=2025-01-31
+GET /api/v1/events/range?startDate=2025-01-01&endDate=2025-01-31
 ```
 
 #### Create Event
 ```http
-POST /events
+POST /api/v1/events
 Content-Type: application/json
 
 {
@@ -215,12 +215,12 @@ Content-Type: application/json
 
 #### List Goals
 ```http
-GET /goals?active=true
+GET /api/v1/goals?active=true
 ```
 
 #### Create Goal
 ```http
-POST /goals
+POST /api/v1/goals
 Content-Type: application/json
 
 {
@@ -237,7 +237,7 @@ Content-Type: application/json
 
 #### Record Achievement
 ```http
-POST /goals/{id}/achievements
+POST /api/v1/goals/{id}/achievements
 Content-Type: application/json
 
 {
@@ -320,7 +320,7 @@ GET /api/v1/analytics/tags
 
 #### Time Distribution
 ```http
-GET /analytics/time-distribution?days=7
+GET /api/v1/analytics/time-distribution?days=7
 ```
 
 ### Users
