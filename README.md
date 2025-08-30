@@ -145,7 +145,7 @@ See [full roadmap](https://github.com/sasazame/personal-hub-cf/issues) for more 
 ## 📊 Project Status
 
 - **Core Features**: ✅ Complete
-- **Testing**: ✅ 90%+ coverage
+- **Testing**: ✅ Comprehensive coverage
 - **Documentation**: ✅ Comprehensive
 - **Production Ready**: ✅ Yes
 - **Active Development**: ✅ Yes
