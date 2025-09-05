@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
 
+// These tests depend on an "original" frontend running on :3001.
+// Skip by default unless explicitly enabled.
+test.skip(!process.env.RUN_ORIGINAL_UI, 'Original UI not enabled (set RUN_ORIGINAL_UI=1 to run)');
+
 test.describe('Collect Original UI Information', () => {
   test.beforeEach(async ({ page, context }) => {
     // Clear cookies and set locale

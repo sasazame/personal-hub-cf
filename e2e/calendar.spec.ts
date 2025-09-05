@@ -105,8 +105,11 @@ test.describe('Calendar Feature E2E Tests', () => {
       await colorOptions.first().click();
     }
     
-    // Submit form
-    await page.getByRole('button', { name: 'Create' }).click();
+    // Submit form and wait for events refetch
+    await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 }),
+      page.getByRole('button', { name: 'Create' }).click()
+    ]);
     
     // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'New Event' })).not.toBeVisible({ timeout: 10000 });
