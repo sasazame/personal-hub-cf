@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useOptimistic } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout';
 import { Button, Modal } from '@/components/ui';
@@ -11,6 +11,7 @@ import {
   CreateGoalDto,
   UpdateGoalDto,
   GoalFilter,
+  GoalStatus,
 } from '@/types/goal';
 import { format, addDays, subDays } from 'date-fns';
 import {
@@ -30,6 +31,25 @@ export function Goals() {
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [goals, setGoals] = useState<GoalWithStatus[]>([]);
+  type GoalAction =
+    | { type: 'create'; goal: GoalWithStatus }
+    | { type: 'update'; id: number; delta: Partial<GoalWithStatus> }
+    | { type: 'toggleComplete'; id: number }
+  const [optimisticGoals, updateGoalsOptimistic] = useOptimistic<GoalWithStatus[], GoalAction>(
+    goals,
+    (state, action) => {
+      switch (action.type) {
+        case 'create':
+          return [action.goal, ...state]
+        case 'update':
+          return state.map((g) => (g.id === action.id ? { ...g, ...action.delta } : g))
+        case 'toggleComplete':
+          return state.map((g) => (g.id === action.id ? { ...g, completed: !g.completed } : g))
+        default:
+          return state
+      }
+    }
+  )
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<GoalFilter>('active');
   const [expandedGroups, setExpandedGroups] = useState<Record<GoalType, boolean>>({
@@ -74,6 +94,29 @@ export function Goals() {
 
   const handleCreateGoal = async (data: CreateGoalDto) => {
     try {
+      // Optimistically add a temporary goal
+      const nowIso = new Date().toISOString();
+      const temp: GoalWithStatus = {
+        id: -Date.now(),
+        title: data.title,
+        description: data.description,
+        goalType: data.goalType,
+        metricType: data.metricType,
+        metricUnit: data.metricUnit,
+        targetValue: data.targetValue,
+        currentValue: 0,
+        progressPercentage: 0,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        status: GoalStatus.ACTIVE,
+        isActive: true,
+        createdAt: nowIso,
+        updatedAt: nowIso,
+        completed: false,
+        currentStreak: 0,
+        longestStreak: 0,
+      }
+      updateGoalsOptimistic({ type: 'create', goal: temp })
       await goalApi.createGoal(data);
       toast.success('Goal created successfully');
       setIsFormOpen(false);
@@ -81,11 +124,13 @@ export function Goals() {
     } catch (error) {
       toast.error('Failed to create goal');
       console.error(error);
+      loadGoals();
     }
   };
 
   const handleUpdateGoal = async (id: number, data: UpdateGoalDto) => {
     try {
+      updateGoalsOptimistic({ type: 'update', id, delta: data as Partial<GoalWithStatus> })
       await goalApi.updateGoal(id, data);
       toast.success('Goal updated successfully');
       setIsFormOpen(false);
@@ -94,6 +139,7 @@ export function Goals() {
     } catch (error) {
       toast.error('Failed to update goal');
       console.error(error);
+      loadGoals();
     }
   };
 
@@ -113,12 +159,15 @@ export function Goals() {
 
   const handleToggleAchievement = async (goalId: number) => {
     try {
+      // Optimistically toggle completion flag; server will compute stats
+      updateGoalsOptimistic({ type: 'toggleComplete', id: goalId })
       await goalApi.toggleAchievement(goalId, format(selectedDate, 'yyyy-MM-dd'));
       toast.success('Progress updated');
       loadGoals();
     } catch (error) {
       toast.error('Failed to update progress');
       console.error(error);
+      loadGoals();
     }
   };
 
@@ -130,10 +179,10 @@ export function Goals() {
   };
 
   const goalsByType = {
-    [GoalType.DAILY]: goals.filter((g) => g.goalType === GoalType.DAILY),
-    [GoalType.WEEKLY]: goals.filter((g) => g.goalType === GoalType.WEEKLY),
-    [GoalType.MONTHLY]: goals.filter((g) => g.goalType === GoalType.MONTHLY),
-    [GoalType.ANNUAL]: goals.filter((g) => g.goalType === GoalType.ANNUAL),
+    [GoalType.DAILY]: optimisticGoals.filter((g) => g.goalType === GoalType.DAILY),
+    [GoalType.WEEKLY]: optimisticGoals.filter((g) => g.goalType === GoalType.WEEKLY),
+    [GoalType.MONTHLY]: optimisticGoals.filter((g) => g.goalType === GoalType.MONTHLY),
+    [GoalType.ANNUAL]: optimisticGoals.filter((g) => g.goalType === GoalType.ANNUAL),
   };
 
   const typeLabels = {

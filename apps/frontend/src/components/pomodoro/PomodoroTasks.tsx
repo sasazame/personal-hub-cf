@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useOptimistic } from 'react';
 import { PomodoroTask } from '@/types/pomodoro';
 import { pomodoroApi } from '@/lib/pomodoro-api';
 import { Button } from '@/components/ui';
@@ -24,6 +24,24 @@ export function PomodoroTasks({
   const [newTaskDescription, setNewTaskDescription] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Optimistic task list (avoid optimistic delete per guidelines)
+  type TaskAction =
+    | { type: 'create'; task: PomodoroTask }
+    | { type: 'toggle'; id: string }
+  const [optimisticTasks, applyTasksOptimistic] = useOptimistic<PomodoroTask[], TaskAction>(
+    tasks,
+    (state, action) => {
+      switch (action.type) {
+        case 'create':
+          return [...state, action.task]
+        case 'toggle':
+          return state.map((t) => (t.id === action.id ? { ...t, completed: !t.completed } : t))
+        default:
+          return state
+      }
+    }
+  )
 
   const handleAddTask = async () => {
     if (!newTaskDescription.trim()) {
@@ -41,6 +59,17 @@ export function PomodoroTasks({
 
     setIsAdding(true);
     try {
+      const nowIso = new Date().toISOString()
+      const temp: PomodoroTask = {
+        id: `temp-${Date.now()}`,
+        sessionId: sessionId ?? 'temp-session',
+        description: newTaskDescription,
+        completed: false,
+        orderIndex: optimisticTasks.length,
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      }
+      applyTasksOptimistic({ type: 'create', task: temp })
       await pomodoroApi.createTask(sessionId, {
         description: newTaskDescription
       });
@@ -51,6 +80,7 @@ export function PomodoroTasks({
     } catch (error) {
       console.error('Failed to add task:', error);
       toast.error('タスクの追加に失敗しました');
+      queryClient.invalidateQueries({ queryKey: ['pomodoro-session-active'] });
     } finally {
       setIsAdding(false);
     }
@@ -60,6 +90,7 @@ export function PomodoroTasks({
     if (!sessionId) return;
 
     try {
+      applyTasksOptimistic({ type: 'toggle', id: task.id })
       await pomodoroApi.updateTask(sessionId, task.id, {
         completed: !task.completed
       });
@@ -68,6 +99,7 @@ export function PomodoroTasks({
     } catch (error) {
       console.error('Failed to update task:', error);
       toast.error('タスクの更新に失敗しました');
+      queryClient.invalidateQueries({ queryKey: ['pomodoro-session-active'] });
     }
   };
 
@@ -84,7 +116,7 @@ export function PomodoroTasks({
     }
   };
 
-  const sortedTasks = [...tasks].sort((a, b) => a.orderIndex - b.orderIndex);
+  const sortedTasks = [...optimisticTasks].sort((a, b) => a.orderIndex - b.orderIndex);
 
   return (
     <div className="space-y-4">

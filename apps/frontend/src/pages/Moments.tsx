@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useOptimistic } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout';
 import { Button, Input, Modal } from '@/components/ui';
@@ -26,6 +26,34 @@ export function Moments() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pages, setPages] = useState<MomentPage[]>([]);
+  type MomentsAction =
+    | { type: 'create'; moment: Moment }
+    | { type: 'update'; id: number; delta: Partial<Moment> }
+  const [optimisticPages, addMomentsOptimistic] = useOptimistic<MomentPage[], MomentsAction>(
+    pages,
+    (state, action) => {
+      switch (action.type) {
+        case 'create': {
+          if (state.length === 0) return state
+          const first = state[0]
+          const newFirst: MomentPage = {
+            ...first,
+            content: [action.moment, ...first.content],
+            totalElements: (first.totalElements ?? first.content.length) + 1
+          }
+          return [newFirst, ...state.slice(1)]
+        }
+        case 'update': {
+          return state.map((pg) => ({
+            ...pg,
+            content: pg.content.map((m) => (m.id === action.id ? { ...m, ...action.delta, updatedAt: new Date().toISOString() } : m))
+          }))
+        }
+        default:
+          return state
+      }
+    }
+  )
   const [hasNextPage, setHasNextPage] = useState(false);
   const [isFetchingNextPage, setIsFetchingNextPage] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
@@ -100,6 +128,16 @@ export function Moments() {
   const handleCreateMoment = async (data: CreateMomentDto) => {
     try {
       setIsSubmitting(true);
+      // Optimistically add a temporary moment at top of first page
+      const temp: Moment = {
+        id: -Date.now(),
+        content: data.content,
+        tags: data.tags || [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        userId: ''
+      }
+      addMomentsOptimistic({ type: 'create', moment: temp })
       await momentApi.createMoment(data);
       toast.success('Moment created successfully');
       setIsFormOpen(false);
@@ -107,6 +145,8 @@ export function Moments() {
     } catch (error) {
       toast.error('Failed to create moment');
       console.error(error);
+      // Revert by reloading
+      loadMoments();
     } finally {
       setIsSubmitting(false);
     }
@@ -117,6 +157,7 @@ export function Moments() {
 
     try {
       setIsSubmitting(true);
+      addMomentsOptimistic({ type: 'update', id: selectedMoment.id, delta: data as Partial<Moment> })
       await momentApi.updateMoment(selectedMoment.id, data);
       toast.success('Moment updated successfully');
       setIsFormOpen(false);
@@ -126,6 +167,7 @@ export function Moments() {
     } catch (error) {
       toast.error('Failed to update moment');
       console.error(error);
+      loadMoments();
     } finally {
       setIsSubmitting(false);
     }
@@ -238,7 +280,7 @@ export function Moments() {
         )}
 
         <MomentList
-          pages={pages}
+          pages={optimisticPages}
           onMomentClick={handleViewMoment}
           onEditMoment={handleEditMoment}
           onDeleteMoment={setMomentToDelete}

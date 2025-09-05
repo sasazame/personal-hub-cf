@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useOptimistic } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppLayout } from '@/components/layout';
@@ -22,6 +22,25 @@ export function Calendar() {
   const [showGoogleSettings, setShowGoogleSettings] = useState(false);
   // const [viewMode, setViewMode] = useState<CalendarView>('month'); // For future implementation
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  type EventAction =
+    | { type: 'create'; event: CalendarEvent }
+    | { type: 'update'; id: number; delta: Partial<CalendarEvent> }
+    | { type: 'move'; id: number; startDateTime: string; endDateTime: string }
+  const [optimisticEvents, applyEventsOptimistic] = useOptimistic<CalendarEvent[], EventAction>(
+    events,
+    (state, action) => {
+      switch (action.type) {
+        case 'create':
+          return [action.event, ...state]
+        case 'update':
+          return state.map((e) => (e.id === action.id ? { ...e, ...action.delta } : e))
+        case 'move':
+          return state.map((e) => (e.id === action.id ? { ...e, startDateTime: action.startDateTime, endDateTime: action.endDateTime } : e))
+        default:
+          return state
+      }
+    }
+  )
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -61,6 +80,18 @@ export function Calendar() {
   const handleCreateEvent = async (data: CreateCalendarEventDto) => {
     try {
       setIsSubmitting(true);
+      // Optimistically add a temporary event
+      const temp: CalendarEvent = {
+        id: -Date.now(),
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        allDay: !!data.allDay,
+        color: data.color ?? 'blue',
+        startDateTime: data.startDateTime,
+        endDateTime: data.endDateTime,
+      }
+      applyEventsOptimistic({ type: 'create', event: temp })
       await calendarApi.createEvent(data);
       toast.success(t('messages.eventCreated'));
       setIsEventFormOpen(false);
@@ -69,6 +100,7 @@ export function Calendar() {
     } catch (error) {
       toast.error(t('messages.eventCreateFailed'));
       console.error(error);
+      loadEvents();
     } finally {
       setIsSubmitting(false);
     }
@@ -79,6 +111,7 @@ export function Calendar() {
 
     try {
       setIsSubmitting(true);
+      applyEventsOptimistic({ type: 'update', id: selectedEvent.id, delta: data as Partial<CalendarEvent> })
       await calendarApi.updateEvent(selectedEvent.id, data);
       toast.success(t('messages.eventUpdated'));
       setIsEventFormOpen(false);
@@ -87,6 +120,7 @@ export function Calendar() {
     } catch (error) {
       toast.error(t('messages.eventUpdateFailed'));
       console.error(error);
+      loadEvents();
     } finally {
       setIsSubmitting(false);
     }
@@ -149,6 +183,8 @@ export function Calendar() {
       const newStartDateTime = new Date(new Date(event.startDateTime).getTime() + timeDiff);
       const newEndDateTime = new Date(new Date(event.endDateTime).getTime() + timeDiff);
 
+      // Optimistically move event
+      applyEventsOptimistic({ type: 'move', id: eventId, startDateTime: newStartDateTime.toISOString(), endDateTime: newEndDateTime.toISOString() })
       await calendarApi.updateEvent(eventId, {
         startDateTime: newStartDateTime.toISOString(),
         endDateTime: newEndDateTime.toISOString(),
@@ -229,7 +265,7 @@ export function Calendar() {
         {/* Calendar View */}
         <CalendarGrid
           currentDate={currentDate}
-          events={events}
+          events={optimisticEvents}
           onDateClick={handleDateClick}
           onEventClick={handleEventClick}
           onEventDateChange={handleEventDateChange}

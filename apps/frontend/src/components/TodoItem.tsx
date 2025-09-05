@@ -1,4 +1,4 @@
-import { useState, memo } from 'react'
+import { useState, memo, useOptimistic } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Todo, CreateTodoDto } from '@/types/todo'
 import { todoApi } from '@/lib/todo-api'
@@ -22,8 +22,24 @@ export const TodoItem = memo(function TodoItem({ todo, onUpdate, onDelete, onAdd
   const [isHoveringCheckbox, setIsHoveringCheckbox] = useState(false)
   const queryClient = useQueryClient()
   
+  // Local optimistic state for quick interactions
+  type LocalUpdate = { type: 'toggle'; nextStatus: Todo['status'] } | { type: 'patch'; delta: Partial<Todo> }
+  const [optimisticTodo, applyOptimistic] = useOptimistic<Todo, LocalUpdate>(
+    todo,
+    (current, action) => {
+      switch (action.type) {
+        case 'toggle':
+          return { ...current, status: action.nextStatus, updatedAt: new Date().toISOString() }
+        case 'patch':
+          return { ...current, ...action.delta, updatedAt: new Date().toISOString() }
+        default:
+          return current
+      }
+    }
+  )
+  
   // Check if todo is overdue
-  const isOverdue = todo.status !== 'DONE' && todo.dueDate && new Date(todo.dueDate) < new Date(new Date().setHours(0, 0, 0, 0))
+  const isOverdue = optimisticTodo.status !== 'DONE' && optimisticTodo.dueDate && new Date(optimisticTodo.dueDate) < new Date(new Date().setHours(0, 0, 0, 0))
   
   // Check if todo has children
   const { data: childrenCheck = [] } = useQuery({
@@ -43,7 +59,9 @@ export const TodoItem = memo(function TodoItem({ todo, onUpdate, onDelete, onAdd
   // Mutation for quick status toggle
   const toggleStatusMutation = useMutation({
     mutationFn: async () => {
-      const updatedTodo = await todoApi.toggleStatus(todo.id)
+      const nextStatus: Todo['status'] = optimisticTodo.status === 'DONE' ? 'TODO' : 'DONE'
+      applyOptimistic({ type: 'toggle', nextStatus })
+      const updatedTodo = await todoApi.toggleStatus(optimisticTodo.id)
       return updatedTodo
     },
     onSuccess: (updatedTodo) => {
@@ -54,6 +72,8 @@ export const TodoItem = memo(function TodoItem({ todo, onUpdate, onDelete, onAdd
     onError: (error) => {
       console.error('Failed to update todo status:', error)
       showError('Failed to update todo')
+      // Revert via refetch
+      queryClient.invalidateQueries({ queryKey: ['todos'] })
     },
   })
 
@@ -159,7 +179,7 @@ export const TodoItem = memo(function TodoItem({ todo, onUpdate, onDelete, onAdd
             disabled={toggleStatusMutation.isPending}
             className={`
               relative z-10 mt-1 w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center
-              ${todo.status === 'DONE' 
+              ${optimisticTodo.status === 'DONE' 
                 ? 'bg-primary text-white border-primary' 
                 : 'border-gray-400 hover:border-primary hover:bg-primary/10'
               }
@@ -167,10 +187,10 @@ export const TodoItem = memo(function TodoItem({ todo, onUpdate, onDelete, onAdd
               ${toggleStatusMutation.isPending ? 'animate-pulse' : ''}
               focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
             `}
-            aria-label={todo.status === 'DONE' ? 'Mark incomplete' : 'Mark complete'}
-            title={todo.status === 'DONE' ? 'Mark incomplete' : 'Mark complete'}
+            aria-label={optimisticTodo.status === 'DONE' ? 'Mark incomplete' : 'Mark complete'}
+            title={optimisticTodo.status === 'DONE' ? 'Mark incomplete' : 'Mark complete'}
           >
-            {(todo.status === 'DONE' || isHoveringCheckbox) && (
+            {(optimisticTodo.status === 'DONE' || isHoveringCheckbox) && (
               <Check className="w-3 h-3" strokeWidth={3} />
             )}
           </button>
@@ -193,13 +213,13 @@ export const TodoItem = memo(function TodoItem({ todo, onUpdate, onDelete, onAdd
                   </button>
                 )}
                 <div className="flex items-center gap-2">
-                  <h3 className={`text-lg font-semibold ${todo.status === 'DONE' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                    {todo.title}
+                  <h3 className={`text-lg font-semibold ${optimisticTodo.status === 'DONE' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                    {optimisticTodo.title}
                   </h3>
-                  {todo.isRepeatable && (
+                  {optimisticTodo.isRepeatable && (
                     <Repeat className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   )}
-                  {todo.originalTodoId && (
+                  {optimisticTodo.originalTodoId && (
                     <Link className="w-4 h-4 text-green-600 dark:text-green-400" />
                   )}
                 </div>
@@ -207,38 +227,38 @@ export const TodoItem = memo(function TodoItem({ todo, onUpdate, onDelete, onAdd
               <div className="flex gap-2">
                 <span
                   className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                    todo.status
+                    optimisticTodo.status
                   )}`}
                 >
-                  {todo.status === 'TODO' ? 'To Do' : todo.status === 'IN_PROGRESS' ? 'In Progress' : 'Done'}
+                  {optimisticTodo.status === 'TODO' ? 'To Do' : optimisticTodo.status === 'IN_PROGRESS' ? 'In Progress' : 'Done'}
                 </span>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(todo.priority)}`}>
-                  {todo.priority}
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(optimisticTodo.priority)}`}>
+                  {optimisticTodo.priority}
                 </span>
               </div>
             </div>
             
-            {todo.description && (
-              <p className={`text-muted-foreground mb-3 ${todo.status === 'DONE' ? 'line-through' : ''}`}>
-                {todo.description}
+            {optimisticTodo.description && (
+              <p className={`text-muted-foreground mb-3 ${optimisticTodo.status === 'DONE' ? 'line-through' : ''}`}>
+                {optimisticTodo.description}
               </p>
             )}
             
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                {todo.dueDate && (
+                {optimisticTodo.dueDate && (
                   <span className={isOverdue ? 'text-red-600 font-medium' : ''}>
-                    Due: {new Date(todo.dueDate).toLocaleDateString()}
+                    Due: {new Date(optimisticTodo.dueDate).toLocaleDateString()}
                   </span>
                 )}
-                {todo.status === 'DONE' && todo.updatedAt && (
-                  <span>Completed: {new Date(todo.updatedAt).toLocaleDateString()}</span>
+                {optimisticTodo.status === 'DONE' && optimisticTodo.updatedAt && (
+                  <span>Completed: {new Date(optimisticTodo.updatedAt).toLocaleDateString()}</span>
                 )}
                 {level === 0 && (
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => onAddChild(todo.id)}
+                    onClick={() => onAddChild(optimisticTodo.id)}
                     className="text-xs"
                   >
                     Add Subtask

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useOptimistic } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { todoApi } from '@/lib/todo-api'
@@ -49,8 +49,35 @@ export function Todos() {
 
   const todos = todosResponse?.content || []
 
+  // Optimistic UI state for todo list (non-destructive actions only)
+  type TodoAction =
+    | { type: 'create'; payload: Todo }
+    | { type: 'update'; id: number; delta: Partial<Todo> }
+    | { type: 'toggle'; id: number; nextStatus: TodoStatus }
+
+  const [optimisticTodos, addOptimisticTodo] = useOptimistic<Todo[], TodoAction>(
+    todos,
+    (state, action) => {
+      switch (action.type) {
+        case 'create':
+          // Prepend new todo so users see it immediately
+          return [action.payload, ...state]
+        case 'update':
+          return state.map((t) =>
+            t.id === action.id ? { ...t, ...action.delta, updatedAt: new Date().toISOString() } : t
+          )
+        case 'toggle':
+          return state.map((t) =>
+            t.id === action.id ? { ...t, status: action.nextStatus, updatedAt: new Date().toISOString() } : t
+          )
+        default:
+          return state
+      }
+    }
+  )
+
   // Sort todos: incomplete tasks with near deadlines first
-  const sortedTodos = [...todos].sort((a, b) => {
+  const sortedTodos = [...optimisticTodos].sort((a, b) => {
     // First, sort by completion status (incomplete first)
     if (a.status === 'DONE' && b.status !== 'DONE') return 1
     if (a.status !== 'DONE' && b.status === 'DONE') return -1
@@ -129,6 +156,25 @@ export function Todos() {
     if (parentIdForNewTodo !== null) {
       payload.parentId = parentIdForNewTodo
     }
+    // Optimistically add a temporary todo item
+    const tempId = -Date.now()
+    addOptimisticTodo({
+      type: 'create',
+      payload: {
+        id: tempId,
+        title: payload.title,
+        description: payload.description,
+        status: payload.status || 'TODO',
+        priority: payload.priority || 'MEDIUM',
+        dueDate: payload.dueDate,
+        parentId: payload.parentId ?? undefined,
+        isRepeatable: payload.isRepeatable,
+        repeatConfig: payload.repeatConfig,
+        originalTodoId: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    })
     createMutation.mutate(payload)
   }
 
@@ -138,6 +184,9 @@ export function Todos() {
 
   const handleUpdateSubmit = (data: UpdateTodoDto) => {
     if (editingTodo) {
+      // Optimistically reflect updates
+      addOptimisticTodo({ type: 'update', id: editingTodo.id, delta: data as Partial<Todo> })
+      setEditingTodo(null)
       updateMutation.mutate({ id: editingTodo.id, data })
     }
   }
