@@ -124,6 +124,12 @@ test.describe('Calendar Feature E2E Tests', () => {
     // The calendar has two grids - weekday headers and the actual calendar
     // We need the second one which contains the dates and events
     const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
+    
+    // Expand any collapsed day cells ("+N more") so the event title becomes visible in DOM
+    const moreButtons1 = await page.locator('button', { name: /\+\d+ more/ }).all();
+    for (const btn of moreButtons1) {
+      try { await btn.click({ timeout: 500 }); } catch {}
+    }
     const gridContent = await calendarGrid.textContent();
     
     console.log('Calendar grid content after creation:', gridContent?.substring(0, 500));
@@ -189,7 +195,11 @@ test.describe('Calendar Feature E2E Tests', () => {
     await page.waitForTimeout(1000);
     
     // The calendar has two grids - we need the second one
-    const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
+    const calendarGrid2 = page.locator('.grid.grid-cols-7').nth(1);
+    const moreButtons2 = await page.locator('button', { name: /\+\d+ more/ }).all();
+    for (const btn of moreButtons2) {
+      try { await btn.click({ timeout: 500 }); } catch {}
+    }
     const gridContent = await calendarGrid.textContent();
     
     let event;
@@ -230,7 +240,11 @@ test.describe('Calendar Feature E2E Tests', () => {
     await page.waitForTimeout(1000);
     
     // The calendar has two grids - we need the second one
-    const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
+    const calendarGrid3 = page.locator('.grid.grid-cols-7').nth(1);
+    const moreButtons3 = await page.locator('button', { name: /\+\d+ more/ }).all();
+    for (const btn of moreButtons3) {
+      try { await btn.click({ timeout: 500 }); } catch {}
+    }
     const gridContent = await calendarGrid.textContent();
     
     // Check if event exists in the calendar
@@ -308,7 +322,11 @@ test.describe('Calendar Feature E2E Tests', () => {
     await page.waitForTimeout(1000);
     
     // The calendar has two grids - we need the second one
-    const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
+    const calendarGrid4 = page.locator('.grid.grid-cols-7').nth(1);
+    const moreButtons4 = await page.locator('button', { name: /\+\d+ more/ }).all();
+    for (const btn of moreButtons4) {
+      try { await btn.click({ timeout: 500 }); } catch {}
+    }
     const gridContent = await calendarGrid.textContent();
     
     // Check if event exists in the calendar

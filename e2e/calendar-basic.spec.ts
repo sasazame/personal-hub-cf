@@ -51,6 +51,11 @@ test.describe('Calendar Basic E2E Tests', () => {
       page.getByRole('button', { name: 'Create' }).click()
     ]);
     
+    // Expand any collapsed day cells ("+N more") to make sure the new event is visible
+    const moreButtons = await page.locator('button', { hasText: /\+\d+ more/ }).all();
+    for (const btn of moreButtons) {
+      try { await btn.click({ timeout: 500 }); } catch {}
+    }
     // Verify event appears
     await expect(page.locator('[data-testid="calendar-grid"]').locator(`text=${eventTitle}`)).toBeVisible();
   });
