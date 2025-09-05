@@ -195,7 +195,7 @@ test.describe('Calendar Feature E2E Tests', () => {
     await page.waitForTimeout(1000);
     
     // The calendar has two grids - we need the second one
-    const calendarGrid2 = page.locator('.grid.grid-cols-7').nth(1);
+    const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
     const moreButtons2 = await page.locator('button', { name: /\+\d+ more/ }).all();
     for (const btn of moreButtons2) {
       try { await btn.click({ timeout: 500 }); } catch {}
@@ -240,7 +240,7 @@ test.describe('Calendar Feature E2E Tests', () => {
     await page.waitForTimeout(1000);
     
     // The calendar has two grids - we need the second one
-    const calendarGrid3 = page.locator('.grid.grid-cols-7').nth(1);
+    const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
     const moreButtons3 = await page.locator('button', { name: /\+\d+ more/ }).all();
     for (const btn of moreButtons3) {
       try { await btn.click({ timeout: 500 }); } catch {}
@@ -322,7 +322,7 @@ test.describe('Calendar Feature E2E Tests', () => {
     await page.waitForTimeout(1000);
     
     // The calendar has two grids - we need the second one
-    const calendarGrid4 = page.locator('.grid.grid-cols-7').nth(1);
+    const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
     const moreButtons4 = await page.locator('button', { name: /\+\d+ more/ }).all();
     for (const btn of moreButtons4) {
       try { await btn.click({ timeout: 500 }); } catch {}
