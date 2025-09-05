@@ -136,7 +136,8 @@ test.describe('Calendar Feature E2E Tests', () => {
     }
     
     // Check if event exists anywhere on the page
-    const eventAnywhere = await page.getByText(eventTitle).count();
+    // Match event title anywhere (allow prefix like time)
+    const eventAnywhere = await page.getByText(eventTitle, { exact: false }).count();
     console.log(`Event '${eventTitle}' found ${eventAnywhere} times on page`);
     
     if (eventAnywhere > 0) {

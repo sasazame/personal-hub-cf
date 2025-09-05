@@ -51,14 +51,34 @@ export async function logout(page: Page) {
  * Ensures user is logged out and clears all authentication state
  */
 export async function ensureLoggedOut(page: Page) {
-  // Navigate to a valid page first to ensure context
+  // Navigate to root to ensure correct origin
   try {
-    await page.goto('/login', { waitUntil: 'domcontentloaded', timeout: 10000 });
-  } catch {
-    // If navigation fails, continue anyway
+    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 10000 });
+  } catch {}
+
+  // If currently authenticated, perform server-side logout with CSRF header
+  try {
+    const me = await page.evaluate(async () => {
+      const res = await fetch('/api/v1/auth/me', { credentials: 'include' });
+      if (!res.ok) return null;
+      return res.json();
+    });
+
+    if (me && me.csrfToken) {
+      await page.evaluate(async (token: string) => {
+        await fetch('/api/v1/auth/logout', {
+          method: 'POST',
+          headers: { 'X-CSRF-Token': token },
+          credentials: 'include',
+        });
+      }, me.csrfToken as string);
+    }
+  } catch (e) {
+    // best-effort
+    console.warn('ensureLoggedOut: server-side logout skipped:', e);
   }
-  
-  // Clear all storage - wrap in try-catch for security errors
+
+  // Clear storage and cookies regardless
   try {
     await page.context().clearCookies();
     await page.evaluate(() => {
@@ -67,11 +87,10 @@ export async function ensureLoggedOut(page: Page) {
       sessionStorage.clear();
     });
   } catch (error) {
-    // Log but don't fail if storage clearing fails
     console.log('Warning: Could not clear storage:', error);
   }
-  
-  // Ensure we're on login page
+
+  // Ensure we land on login page
   if (!page.url().includes('/login')) {
     await page.goto('/login', { waitUntil: 'networkidle', timeout: 10000 });
   }

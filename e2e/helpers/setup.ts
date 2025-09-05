@@ -45,9 +45,29 @@ export async function setupTestUser(page: Page) {
     await page.locator('button[type="submit"]').click();
     
     // Wait for navigation
-    await page.waitForURL((url) => !url.href.includes('/login'), { timeout: 5000 });
+    await page.waitForURL((url) => !url.href.includes('/login'), { timeout: 10000 });
     
-    // User exists, logout
+    // User exists, perform server-side logout to ensure clean state
+    try {
+      const me = await page.evaluate(async () => {
+        const res = await fetch('/api/v1/auth/me', { credentials: 'include' });
+        if (!res.ok) return null;
+        return res.json();
+      });
+      if (me && me.csrfToken) {
+        await page.evaluate(async (token: string) => {
+          await fetch('/api/v1/auth/logout', {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': token },
+            credentials: 'include',
+          });
+        }, me.csrfToken as string);
+      }
+    } catch {}
+    
+    // Clear any client-side state and move to login page
+    await page.context().clearCookies();
+    await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
     await page.goto('/login', { waitUntil: 'networkidle' });
     return;
   } catch {
@@ -68,12 +88,29 @@ export async function setupTestUser(page: Page) {
   await page.locator('button[type="submit"]').click();
   
   // Wait for registration to complete and navigate away from register page
-  await page.waitForURL((url) => !url.href.includes('/register'), { timeout: 10000 });
+  await page.waitForURL((url) => !url.href.includes('/register'), { timeout: 15000 });
   
-  // Wait for any post-registration redirects to complete
-  await page.waitForLoadState('networkidle', { timeout: 5000 });
+  // Perform server-side logout to ensure clean state
+  try {
+    const me = await page.evaluate(async () => {
+      const res = await fetch('/api/v1/auth/me', { credentials: 'include' });
+      if (!res.ok) return null;
+      return res.json();
+    });
+    if (me && me.csrfToken) {
+      await page.evaluate(async (token: string) => {
+        await fetch('/api/v1/auth/logout', {
+          method: 'POST',
+          headers: { 'X-CSRF-Token': token },
+          credentials: 'include',
+        });
+      }, me.csrfToken as string);
+    }
+  } catch {}
   
-  // Navigate to login page to ensure clean state
+  // Clear client-side storage and go to login
+  await page.context().clearCookies();
+  await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
   await page.goto('/login', { waitUntil: 'networkidle' });
 }
 
