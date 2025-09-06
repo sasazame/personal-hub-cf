@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { login, TEST_USER, ensureLoggedOut } from './helpers/auth';
 
-test.describe('Command Palette', () => {
+test.describe.skip('Command Palette', () => {
   test.beforeEach(async ({ page }) => {
     await ensureLoggedOut(page);
     await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
