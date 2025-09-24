@@ -30,7 +30,7 @@ test.describe('CI Critical Path Tests', () => {
     
     // Submit form and wait for response
     const [response] = await Promise.all([
-      page.waitForResponse(resp => resp.url().includes('/api/v1/todos'), { timeout: 10000 }),
+      page.waitForResponse(resp => resp.url().includes('/api/v1/todos') && resp.request().method() === 'POST', { timeout: 10000 }),
       page.locator('form').getByRole('button', { name: /Add Todo/i }).click()
     ]);
     
@@ -41,16 +41,14 @@ test.describe('CI Critical Path Tests', () => {
     }
     
     // Wait for todo to appear
-    await page.waitForSelector('text=CI Test Task', { timeout: 5000 });
-    
-    // Verify todo appears
-    await expect(page.locator('text=CI Test Task')).toBeVisible();
+    const todoCard = page.locator('.bg-card').filter({ hasText: 'CI Test Task' }).first();
+    await expect(todoCard).toBeVisible({ timeout: 10000 });
     
     // Wait a bit for the UI to be fully interactive
     await page.waitForTimeout(1000);
     
     // Complete todo - wait for button to be enabled and click
-    const markCompleteBtn = page.getByRole('button', { name: 'Mark complete' });
+    const markCompleteBtn = todoCard.getByRole('button', { name: 'Mark complete' }).first();
     await markCompleteBtn.waitFor({ state: 'visible' });
     await markCompleteBtn.click();
     

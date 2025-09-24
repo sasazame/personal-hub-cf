@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useOptimistic } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus, Search } from 'lucide-react';
@@ -23,6 +23,22 @@ export function Notes() {
   const navigate = useNavigate();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [notes, setNotes] = useState<Note[]>([]);
+  type NoteAction =
+    | { type: 'create'; note: Note }
+    | { type: 'update'; id: string; delta: Partial<Note> }
+  const [optimisticNotes, addNoteOptimistic] = useOptimistic<Note[], NoteAction>(
+    notes,
+    (state, action) => {
+      switch (action.type) {
+        case 'create':
+          return [action.note, ...state]
+        case 'update':
+          return state.map((n) => (n.id === action.id ? { ...n, ...action.delta, updatedAt: new Date().toISOString() } : n))
+        default:
+          return state
+      }
+    }
+  )
   const [tags, setTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [tagsLoaded, setTagsLoaded] = useState(false);
@@ -97,6 +113,20 @@ export function Notes() {
   const handleCreateNote = async (data: CreateNoteDto) => {
     setIsSubmitting(true);
     try {
+      // Optimistically add a temporary note
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      addNoteOptimistic({
+        type: 'create',
+        note: {
+          id: tempId,
+          title: data.title,
+          content: data.content,
+          tags: data.tags || [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          userId: ''
+        }
+      })
       await createNote(data);
       showSuccess(t('messages.noteCreated'));
       setIsFormOpen(false);
@@ -118,6 +148,8 @@ export function Notes() {
     
     setIsSubmitting(true);
     try {
+      // Optimistically patch current note
+      addNoteOptimistic({ type: 'update', id: selectedNote.id, delta: data as Partial<Note> })
       await updateNote(selectedNote.id, data);
       showSuccess(t('messages.noteUpdated'));
       setIsFormOpen(false);
@@ -261,7 +293,7 @@ export function Notes() {
 
         {/* Note List */}
         <NoteList
-          notes={notes}
+          notes={optimisticNotes}
           onNoteClick={handleViewNote}
           onEditNote={handleEditNote}
           onDeleteNote={setNoteToDelete}

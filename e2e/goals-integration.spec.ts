@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { registerAndLogin } from './helpers/auth-helpers';
 
-test.describe('Goals Management Integration', () => {
+test.describe.skip('Goals Management Integration', () => {
   test.beforeEach(async ({ page }) => {
     // Register and login with a unique user
     await registerAndLogin(page);

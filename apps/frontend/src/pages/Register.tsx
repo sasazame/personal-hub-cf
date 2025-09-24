@@ -68,10 +68,11 @@ export function Register() {
       {/* Back to Home Link */}
       <Link
         to="/"
+        aria-label={t('common:app.backToHome')}
         className="absolute top-4 left-4 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
       >
         <ArrowLeft className="h-5 w-5" />
-        <span className="text-sm font-medium">Back to Home</span>
+        <span className="text-sm font-medium">{t('common:app.backToHome')}</span>
       </Link>
       
       {/* Premium Glass Card */}
