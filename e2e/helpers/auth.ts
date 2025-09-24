@@ -11,7 +11,7 @@ export async function login(page: Page, email: string, password: string) {
   }
   
   // Wait for login form to be visible
-  await page.waitForSelector('form', { state: 'visible', timeout: 5000 });
+  await page.waitForSelector('input[type="email"], input[name="email"]', { state: 'visible', timeout: 10000 });
   
   // Fill in login form using Playwright's built-in robust methods
   await page.locator('input[type="email"], input[name="email"]').fill(email);

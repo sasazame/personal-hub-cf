@@ -79,27 +79,27 @@ test.describe('CI Critical Path Tests', () => {
     
     // Submit and wait for creation
     const createPromise = page.waitForResponse(
-      resp => resp.url().includes('/api/v1/todos') && resp.status() === 201,
+      resp => resp.url().includes('/api/v1/todos') && resp.status() === 201 && resp.request().method() === 'POST',
       { timeout: 10000 }
     );
     await page.locator('form').getByRole('button', { name: /Add Todo/i }).click();
     await createPromise;
-    
+
     // Verify todo appears
-    await page.waitForSelector(`text="${testData.todoTitle}"`, { timeout: 10000 });
-    await expect(page.locator(`text="${testData.todoTitle}"`)).toBeVisible();
-    
+    const todoCard = page.locator('.bg-card').filter({ hasText: testData.todoTitle }).first();
+    await expect(todoCard).toBeVisible({ timeout: 10000 });
+
     // Mark as complete
-    const completeBtn = page.getByRole('button', { name: 'Mark complete' }).first();
+    const completeBtn = todoCard.getByRole('button', { name: 'Mark complete' }).first();
     await completeBtn.waitFor({ state: 'visible' });
     await completeBtn.click();
-    
+
     // Wait for the API response that updates the todo status
     await page.waitForResponse(
-      resp => resp.url().includes('/api/v1/todos') && resp.status() === 200,
+      resp => resp.url().includes('/api/v1/todos') && resp.url().includes('/complete') && resp.status() === 200 && resp.request().method() === 'POST',
       { timeout: 5000 }
     );
-    await expect(page.locator('span').filter({ hasText: 'Done' }).first()).toBeVisible({ timeout: 10000 });
+    await expect(todoCard.locator('span').filter({ hasText: 'Done' }).first()).toBeVisible({ timeout: 10000 });
   });
 
   test('Note: Should create and view notes', async ({ page }) => {

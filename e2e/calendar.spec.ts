@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { login, TEST_USER, ensureLoggedOut } from './helpers/auth';
 
 test.describe('Calendar Feature E2E Tests', () => {
+  test.describe.configure({ mode: 'serial' });
   test.beforeEach(async ({ page }) => {
     // Set English locale
     await page.context().addCookies([{ name: 'locale', value: 'en', domain: 'localhost', path: '/' }]);
@@ -14,6 +15,40 @@ test.describe('Calendar Feature E2E Tests', () => {
     // Navigate to calendar
     await page.goto('/calendar');
     await expect(page.getByRole('heading', { name: 'Calendar' })).toBeVisible();
+
+    // Clear existing events to keep test data isolated
+    await page.evaluate(async () => {
+      const meResponse = await fetch('/api/v1/auth/me', { credentials: 'include' });
+      if (!meResponse.ok) {
+        return;
+      }
+      const me = await meResponse.json();
+      if (!me?.csrfToken) {
+        return;
+      }
+
+      const eventsResponse = await fetch('/api/v1/events', { credentials: 'include' });
+      if (!eventsResponse.ok) {
+        return;
+      }
+      const items = await eventsResponse.json();
+      if (!Array.isArray(items)) {
+        return;
+      }
+
+      await Promise.all(
+        items.map((event: { id: number }) =>
+          fetch(`/api/v1/events/${event.id}`, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: { 'X-CSRF-Token': me.csrfToken as string },
+          })
+        )
+      );
+    });
+
+    await page.reload();
+    await page.waitForSelector('.grid.grid-cols-7', { timeout: 10000 });
   });
 
   test('should display calendar with current month', async ({ page }) => {
@@ -105,20 +140,22 @@ test.describe('Calendar Feature E2E Tests', () => {
       await colorOptions.first().click();
     }
     
-    // Submit form and wait for events refetch
-    await Promise.all([
-      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 }),
+    // Submit form and wait for create request to complete
+    const [createResponse] = await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'POST', { timeout: 10000 }),
       page.getByRole('button', { name: 'Create' }).click()
     ]);
+    expect(createResponse.ok()).toBeTruthy();
     
     // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'New Event' })).not.toBeVisible({ timeout: 10000 });
     
-    // Wait longer for backend and frontend to sync
-    await page.waitForTimeout(5000);
+    // Brief pause to allow UI to settle
+    await page.waitForTimeout(1000);
     
     // Force a page reload to ensure we get the latest events from the backend
     await page.reload();
+    await page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 });
     await page.waitForSelector('.grid.grid-cols-7', { timeout: 10000 });
     
     // The calendar has two grids - weekday headers and the actual calendar
@@ -126,10 +163,15 @@ test.describe('Calendar Feature E2E Tests', () => {
     const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
     
     // Expand any collapsed day cells ("+N more") so the event title becomes visible in DOM
-    const moreButtons1 = await page.locator('button', { name: /\+\d+ more/ }).all();
-    for (const btn of moreButtons1) {
-      try { await btn.click({ timeout: 500 }); } catch {}
+    const moreButtonLocator = page.locator('button', { name: /\+\d+ more/ });
+    while (await moreButtonLocator.count()) {
+      try {
+        await moreButtonLocator.first().click({ timeout: 500 });
+      } catch {
+        break;
+      }
     }
+    await page.keyboard.press('Escape').catch(() => {});
     const gridContent = await calendarGrid.textContent();
     
     console.log('Calendar grid content after creation:', gridContent?.substring(0, 500));
@@ -182,11 +224,12 @@ test.describe('Calendar Feature E2E Tests', () => {
     const dateInputCount = await dateInputs.count();
     expect(dateInputCount).toBeGreaterThan(0);
     
-    // Submit form and wait for the GET request to refetch events
-    await Promise.all([
-      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 }),
+    // Submit form and wait for create request to complete
+    const [allDayResponse] = await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'POST', { timeout: 10000 }),
       page.getByRole('button', { name: 'Create' }).click()
     ]);
+    expect(allDayResponse.ok()).toBeTruthy();
     
     // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'New Event' })).not.toBeVisible({ timeout: 10000 });
@@ -196,6 +239,7 @@ test.describe('Calendar Feature E2E Tests', () => {
     
     // Refresh to ensure list sync then verify anywhere on page
     await page.reload();
+    await page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 });
     const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
     const moreButtons2 = await page.locator('button', { name: /\+\d+ more/ }).all();
     for (const btn of moreButtons2) { try { await btn.click({ timeout: 500 }); } catch {} }
@@ -212,11 +256,12 @@ test.describe('Calendar Feature E2E Tests', () => {
     
     const eventTitle = `Edit Test ${Date.now()}`;
     await page.fill('input[placeholder="Event title"]', eventTitle);
-    // Submit form and wait for the GET request to refetch events
-    await Promise.all([
-      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 }),
+    // Submit form and wait for create request to complete
+    const [createForEditResponse] = await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'POST', { timeout: 10000 }),
       page.getByRole('button', { name: 'Create' }).click()
     ]);
+    expect(createForEditResponse.ok()).toBeTruthy();
     
     // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'New Event' })).not.toBeVisible({ timeout: 10000 });
@@ -226,9 +271,11 @@ test.describe('Calendar Feature E2E Tests', () => {
     
     // Reload and expand collapsed cells, then find the event anywhere and click
     await page.reload();
+    await page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 });
     const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
     const moreButtons3 = await page.locator('button', { name: /\+\d+ more/ }).all();
     for (const btn of moreButtons3) { try { await btn.click({ timeout: 500 }); } catch {} }
+    await page.keyboard.press('Escape').catch(() => {});
     const eventElement = page.getByText(eventTitle, { exact: false }).first();
     await expect(eventElement).toBeVisible();
     
@@ -249,11 +296,12 @@ test.describe('Calendar Feature E2E Tests', () => {
       await colorOptions.nth(1).click();
     }
     
-    // Save changes and wait for the GET request to refetch events
-    await Promise.all([
-      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 }),
+    // Save changes and wait for update request to complete
+    const [updateResponse] = await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'PUT', { timeout: 10000 }),
       page.getByRole('button', { name: 'Update' }).click()
     ]);
+    expect(updateResponse.ok()).toBeTruthy();
     
     // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'Edit Event' })).not.toBeVisible({ timeout: 10000 });
@@ -276,11 +324,12 @@ test.describe('Calendar Feature E2E Tests', () => {
     
     const eventTitle = `Delete Test ${Date.now()}`;
     await page.fill('input[placeholder="Event title"]', eventTitle);
-    // Submit form and wait for the GET request to refetch events
-    await Promise.all([
-      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 }),
+    // Submit form and wait for create request to complete
+    const [createForDeleteResponse] = await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'POST', { timeout: 10000 }),
       page.getByRole('button', { name: 'Create' }).click()
     ]);
+    expect(createForDeleteResponse.ok()).toBeTruthy();
     
     // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'New Event' })).not.toBeVisible({ timeout: 10000 });
@@ -290,9 +339,11 @@ test.describe('Calendar Feature E2E Tests', () => {
     
     // Reload then expand collapsed cells and find event anywhere
     await page.reload();
+    await page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 });
     const calendarGrid = page.locator('.grid.grid-cols-7').nth(1);
     const moreButtons4 = await page.locator('button', { name: /\+\d+ more/ }).all();
     for (const btn of moreButtons4) { try { await btn.click({ timeout: 500 }); } catch {} }
+    await page.keyboard.press('Escape').catch(() => {});
     let eventElement = page.getByText(eventTitle, { exact: false }).first();
     await expect(eventElement).toBeVisible();
     
@@ -304,21 +355,25 @@ test.describe('Calendar Feature E2E Tests', () => {
     await page.getByRole('button', { name: 'Delete' }).click();
     
     // Confirm deletion - look for confirmation dialog
-    const confirmText = page.getByText(/Are you sure|Delete.*event|confirm.*delete/i);
-    await expect(confirmText).toBeVisible({ timeout: 10000 });
+    const confirmHeading = page.getByRole('heading', { name: /delete event/i }).first();
+    await expect(confirmHeading).toBeVisible({ timeout: 10000 });
     
     // Click the confirm delete button (usually the second Delete button)
     const deleteButtons = page.getByRole('button', { name: 'Delete' });
     const deleteCount = await deleteButtons.count();
-    if (deleteCount > 1) {
-      await deleteButtons.nth(1).click();
-    } else {
-      // Fallback: click any confirm/yes button
-      await page.getByRole('button', { name: /confirm|yes|delete/i }).last().click();
-    }
-    
+    const confirmButton = deleteCount > 1
+      ? deleteButtons.nth(1)
+      : page.getByRole('button', { name: /confirm|yes|delete/i }).last();
+
+    const [deleteResponse] = await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'DELETE', { timeout: 10000 }),
+      confirmButton.click()
+    ]);
+    expect(deleteResponse.ok()).toBeTruthy();
+
     // Verify event is removed (reload and check absence)
     await page.reload();
+    await page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 });
     await expect(page.getByText(eventTitle, { exact: false }).first()).toHaveCount(0);
   });
 
@@ -339,11 +394,12 @@ test.describe('Calendar Feature E2E Tests', () => {
     await expect(page.getByRole('heading', { name: 'New Event' })).toBeVisible({ timeout: 10000 });
     const eventTitle = `Drag Test ${Date.now()}`;
     await page.fill('input[placeholder="Event title"]', eventTitle);
-    // Submit form and wait for the GET request to refetch events
-    await Promise.all([
-      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 }),
+    // Submit form and wait for create request to complete
+    const [createForDragResponse] = await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'POST', { timeout: 10000 }),
       page.getByRole('button', { name: 'Create' }).click()
     ]);
+    expect(createForDragResponse.ok()).toBeTruthy();
     
     // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'New Event' })).not.toBeVisible({ timeout: 10000 });
@@ -390,14 +446,12 @@ test.describe('Calendar Feature E2E Tests', () => {
     await page.mouse.down();
     await dateCell20.hover();
     
-    // Complete the drop and wait for the PUT/PATCH request and subsequent GET
-    await Promise.all([
+    // Complete the drop and wait for the update request to finish
+    const [moveResponse] = await Promise.all([
       page.waitForResponse(resp => resp.url().includes('/api/v1/events') && (resp.request().method() === 'PUT' || resp.request().method() === 'PATCH'), { timeout: 10000 }),
       page.mouse.up()
     ]);
-    
-    // Wait for the events to be refetched
-    await page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 });
+    expect(moveResponse.ok()).toBeTruthy();
     
     // Additional wait for React to re-render
     await page.waitForTimeout(1000);
@@ -443,11 +497,12 @@ test.describe('Calendar Feature E2E Tests', () => {
       
       await expect(page.getByRole('heading', { name: 'New Event' })).toBeVisible({ timeout: 10000 });
       await page.fill('input[placeholder="Event title"]', `Multi Event ${i}`);
-      // Submit form and wait for the GET request to refetch events
-      await Promise.all([
-        page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 }),
+      // Submit form and wait for create request to complete
+      const [multiEventResponse] = await Promise.all([
+        page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'POST', { timeout: 10000 }),
         page.getByRole('button', { name: 'Create' }).click()
       ]);
+      expect(multiEventResponse.ok()).toBeTruthy();
       
       // Wait for modal to close
       await expect(page.getByRole('heading', { name: 'New Event' })).not.toBeVisible({ timeout: 10000 });
@@ -524,11 +579,12 @@ test.describe('Calendar Feature E2E Tests', () => {
     await dateTimeInputs.first().fill(startDateTime);
     await dateTimeInputs.last().fill(endDateTime);
     
-    // Submit form and wait for the GET request to refetch events
-    await Promise.all([
-      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 }),
+    // Submit form and wait for create request to complete
+    const [timedEventResponse] = await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'POST', { timeout: 10000 }),
       page.getByRole('button', { name: 'Create' }).click()
     ]);
+    expect(timedEventResponse.ok()).toBeTruthy();
     
     // Wait for modal to close
     await expect(page.getByRole('heading', { name: 'New Event' })).not.toBeVisible({ timeout: 10000 });
@@ -538,6 +594,8 @@ test.describe('Calendar Feature E2E Tests', () => {
     
     // The calendar has two grids - we need the second one
     await page.reload();
+    await page.waitForResponse(resp => resp.url().includes('/api/v1/events') && resp.request().method() === 'GET', { timeout: 10000 });
+    await page.keyboard.press('Escape').catch(() => {});
     await expect(page.getByText(eventTitle, { exact: false }).first()).toBeVisible();
   });
 

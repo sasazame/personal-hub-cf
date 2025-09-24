@@ -23,6 +23,8 @@ done
 # Cleanup on exit
 SERVERS_STARTED=false
 BACKEND_PID=""; FRONTEND_PID=""
+TEST_TIMEOUT="${TEST_TIMEOUT:-900}"
+TIMEOUT_BIN="$(command -v timeout || true)"
 cleanup() {
   if [ "$SERVERS_STARTED" = true ]; then
     echo "🧹 Cleaning up servers..."
@@ -97,8 +99,17 @@ if [ ${#FILTERED_ARGS[@]} -eq 0 ]; then
   FILTERED_ARGS=("--reporter=line" "--max-failures=10")
 fi
 
-pnpm test:e2e "${FILTERED_ARGS[@]}" || TEST_RESULT=$? || true
+TEST_RESULT=0
+if [ -n "$TIMEOUT_BIN" ]; then
+  "$TIMEOUT_BIN" --foreground "$TEST_TIMEOUT" pnpm test:e2e "${FILTERED_ARGS[@]}" || TEST_RESULT=$? || true
+else
+  pnpm test:e2e "${FILTERED_ARGS[@]}" || TEST_RESULT=$? || true
+fi
 TEST_RESULT=${TEST_RESULT:-0}
+
+if [ $TEST_RESULT -eq 124 ] && [ -n "$TIMEOUT_BIN" ]; then
+  echo "⏰ E2E run exceeded ${TEST_TIMEOUT}s and was terminated."
+fi
 
 if [ $TEST_RESULT -eq 0 ]; then
   echo "✅ All E2E tests passed!"

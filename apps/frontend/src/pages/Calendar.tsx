@@ -26,6 +26,7 @@ export function Calendar() {
     | { type: 'create'; event: CalendarEvent }
     | { type: 'update'; id: number; delta: Partial<CalendarEvent> }
     | { type: 'move'; id: number; startDateTime: string; endDateTime: string }
+    | { type: 'delete'; id: number }
   const [optimisticEvents, applyEventsOptimistic] = useOptimistic<CalendarEvent[], EventAction>(
     events,
     (state, action) => {
@@ -36,6 +37,8 @@ export function Calendar() {
           return state.map((e) => (e.id === action.id ? { ...e, ...action.delta } : e))
         case 'move':
           return state.map((e) => (e.id === action.id ? { ...e, startDateTime: action.startDateTime, endDateTime: action.endDateTime } : e))
+        case 'delete':
+          return state.filter((e) => e.id !== action.id)
         default:
           return state
       }
@@ -61,9 +64,12 @@ export function Calendar() {
     }
   }, [location.state, navigate]);
 
-  const loadEvents = async () => {
+  const loadEvents = async (options?: { silent?: boolean }) => {
+    const silent = options?.silent ?? false;
     try {
-      setIsLoading(true);
+      if (!silent) {
+        setIsLoading(true);
+      }
       const data = await calendarApi.getEvents({
         year: currentDate.getFullYear(),
         month: currentDate.getMonth() + 1,
@@ -73,7 +79,9 @@ export function Calendar() {
       toast.error(t('messages.loadFailed'));
       console.error(error);
     } finally {
-      setIsLoading(false);
+      if (!silent) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -81,8 +89,9 @@ export function Calendar() {
     try {
       setIsSubmitting(true);
       // Optimistically add a temporary event
+      const tempId = -Date.now()
       const temp: CalendarEvent = {
-        id: -Date.now(),
+        id: tempId,
         title: data.title,
         description: data.description,
         location: data.location,
@@ -92,11 +101,13 @@ export function Calendar() {
         endDateTime: data.endDateTime,
       }
       applyEventsOptimistic({ type: 'create', event: temp })
-      await calendarApi.createEvent(data);
+      const created = await calendarApi.createEvent(data);
+      applyEventsOptimistic({ type: 'update', id: tempId, delta: { ...created } })
+      setEvents((prev) => [created, ...prev.filter((event) => event.id !== created.id)])
+      loadEvents({ silent: true });
       toast.success(t('messages.eventCreated'));
       setIsEventFormOpen(false);
       setSelectedDate(null);
-      loadEvents();
     } catch (error) {
       toast.error(t('messages.eventCreateFailed'));
       console.error(error);
@@ -108,15 +119,22 @@ export function Calendar() {
 
   const handleUpdateEvent = async (data: UpdateCalendarEventDto) => {
     if (!selectedEvent?.id) return;
+    const existingId = selectedEvent.id;
 
     try {
       setIsSubmitting(true);
-      applyEventsOptimistic({ type: 'update', id: selectedEvent.id, delta: data as Partial<CalendarEvent> })
-      await calendarApi.updateEvent(selectedEvent.id, data);
+      applyEventsOptimistic({ type: 'update', id: existingId, delta: data as Partial<CalendarEvent> })
+      const updated = await calendarApi.updateEvent(existingId, data);
+      if (updated.id == null) {
+        await loadEvents({ silent: true });
+        return;
+      }
+      applyEventsOptimistic({ type: 'update', id: existingId, delta: { ...updated } })
+      setEvents((prev) => prev.map((event) => (event.id === updated.id ? updated : event)))
+      loadEvents({ silent: true });
       toast.success(t('messages.eventUpdated'));
       setIsEventFormOpen(false);
       setSelectedEvent(null);
-      loadEvents();
     } catch (error) {
       toast.error(t('messages.eventUpdateFailed'));
       console.error(error);
@@ -128,10 +146,11 @@ export function Calendar() {
 
   const handleDeleteEvent = async () => {
     if (!eventToDelete?.id) return;
+    const deleteId = eventToDelete.id;
 
     try {
       setIsSubmitting(true);
-      await calendarApi.deleteEvent(eventToDelete.id);
+      await calendarApi.deleteEvent(deleteId);
       toast.success(t('messages.eventDeleted'));
       setEventToDelete(null);
       // Close the event form modal if it's open with the deleted event
@@ -139,7 +158,9 @@ export function Calendar() {
         setIsEventFormOpen(false);
         setSelectedEvent(null);
       }
-      loadEvents();
+      applyEventsOptimistic({ type: 'delete', id: deleteId })
+      setEvents((prev) => prev.filter((event) => event.id !== deleteId))
+      loadEvents({ silent: true });
     } catch (error) {
       toast.error(t('messages.eventDeleteFailed'));
       console.error(error);
@@ -185,16 +206,19 @@ export function Calendar() {
 
       // Optimistically move event
       applyEventsOptimistic({ type: 'move', id: eventId, startDateTime: newStartDateTime.toISOString(), endDateTime: newEndDateTime.toISOString() })
-      await calendarApi.updateEvent(eventId, {
+      const updated = await calendarApi.updateEvent(eventId, {
         startDateTime: newStartDateTime.toISOString(),
         endDateTime: newEndDateTime.toISOString(),
       });
 
+      applyEventsOptimistic({ type: 'update', id: eventId, delta: { ...updated } })
+      setEvents((prev) => prev.map((e) => (e.id === eventId ? updated : e)))
+      loadEvents({ silent: true });
       toast.success(t('messages.eventMoved'));
-      loadEvents();
     } catch (error) {
       toast.error(t('messages.eventMoveFailed'));
       console.error(error);
+      loadEvents();
     }
   };
 
