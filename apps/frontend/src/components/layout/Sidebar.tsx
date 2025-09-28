@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFeatures } from '@/contexts/FeatureContext';
 import { useCommandPalette } from '@/contexts/CommandPaletteContext';
@@ -33,12 +33,15 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const { t } = useTranslation('common');
   const { features: featurePreferences } = useFeatures();
   const { openCommandPalette } = useCommandPalette();
+  const previousPathRef = useRef(location.pathname);
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
-    if (isOpen && onClose) {
+    if (previousPathRef.current !== location.pathname && isOpen && onClose) {
       onClose();
     }
+
+    previousPathRef.current = location.pathname;
   }, [location.pathname, isOpen, onClose]);
 
   const allNavItems: (NavItem & { featureKey?: keyof typeof featurePreferences })[] = [
