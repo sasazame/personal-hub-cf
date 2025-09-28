@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useCommandPalette } from '@/contexts/CommandPaletteContext';
-import { Menu, User, LogOut, Settings, ChevronDown, Sun, Moon, Languages, Terminal } from 'lucide-react';
+import { Menu, User, LogOut, Settings, ChevronDown, Sun, Moon, Globe, Terminal, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -15,6 +15,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const { openCommandPalette } = useCommandPalette();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
   const { t, i18n } = useTranslation('common');
   
   const changeLanguage = (lng: string) => {
@@ -38,7 +39,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-lg">P</span>
               </div>
-              <h1 className="text-xl font-semibold text-foreground">
+              <h1 className="hidden md:block text-xl font-semibold text-foreground">
                 {t('app.name')}
               </h1>
             </Link>
@@ -47,17 +48,13 @@ export function Header({ onMenuClick }: HeaderProps) {
           {/* Right side actions */}
           <div className="flex items-center gap-2">
             {/* Language Switcher */}
-            <div className="flex items-center">
-              <Languages className="w-5 h-5 text-muted-foreground mr-2" />
-              <select
-                value={i18n.language}
-                onChange={(e) => changeLanguage(e.target.value)}
-                className="bg-transparent border border-border rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="en">EN</option>
-                <option value="ja">日本語</option>
-              </select>
-            </div>
+            <button
+              onClick={() => setIsLanguageModalOpen(true)}
+              className="p-2 rounded-md text-foreground hover:bg-muted transition-colors"
+              aria-label={t('language.openSelector')}
+            >
+              <Globe className="h-5 w-5" />
+            </button>
             
             {/* Command Palette Button */}
             <button
@@ -141,6 +138,68 @@ export function Header({ onMenuClick }: HeaderProps) {
           </div>
         </div>
       </div>
+
+      {isLanguageModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/50"
+            aria-hidden="true"
+            onClick={() => setIsLanguageModalOpen(false)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="language-modal-title"
+            className="relative bg-card border border-border rounded-lg shadow-lg p-6 w-[90%] max-w-sm"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <h2 id="language-modal-title" className="text-lg font-semibold text-card-foreground">
+                {t('language.title')}
+              </h2>
+              <button
+                onClick={() => setIsLanguageModalOpen(false)}
+                className="p-2 rounded-md text-foreground hover:bg-muted"
+                aria-label={t('app.close')}
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+                <span className="sr-only">{t('app.close')}</span>
+              </button>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              {t('language.description')}
+            </p>
+            <div className="space-y-2">
+              {[
+                { code: 'en', label: t('language.english'), shortLabel: t('language.englishShort') },
+                { code: 'ja', label: t('language.japanese'), shortLabel: t('language.japaneseShort') }
+              ].map(({ code, label, shortLabel }) => {
+                const isActive = i18n.language === code;
+                return (
+                  <button
+                    key={code}
+                    onClick={() => {
+                      changeLanguage(code);
+                      setIsLanguageModalOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-md border transition-colors ${
+                      isActive ? 'border-primary bg-primary/10 text-primary' : 'border-border text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <span className="text-sm font-medium">{label}</span>
+                    <span className="text-xs text-muted-foreground">{shortLabel}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => setIsLanguageModalOpen(false)}
+              className="mt-4 w-full px-3 py-2 text-sm font-medium rounded-md border border-border text-foreground hover:bg-muted"
+            >
+              {t('app.cancel')}
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

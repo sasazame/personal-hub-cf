@@ -47,6 +47,15 @@
     "required": "Required",
     "optional": "Optional"
   },
+  "language": {
+    "openSelector": "Open language selection",
+    "title": "Choose your language",
+    "description": "Select the language you prefer to use.",
+    "english": "English",
+    "japanese": "Japanese",
+    "englishShort": "EN",
+    "japaneseShort": "JA"
+  },
   "navigation": {
     "dashboard": "Dashboard",
     "todos": "TODOs",
