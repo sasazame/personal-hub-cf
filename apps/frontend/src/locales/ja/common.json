@@ -47,6 +47,15 @@
     "required": "必須",
     "optional": "任意"
   },
+  "language": {
+    "openSelector": "言語を選択",
+    "title": "言語を選択してください",
+    "description": "使用する言語を選択してください。",
+    "english": "英語",
+    "japanese": "日本語",
+    "englishShort": "EN",
+    "japaneseShort": "JA"
+  },
   "navigation": {
     "dashboard": "ダッシュボード",
     "todos": "TODO",
