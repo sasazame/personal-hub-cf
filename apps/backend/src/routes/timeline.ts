@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { and, between, eq, gte, lte, or, like } from 'drizzle-orm';
+import { and, between, eq, gte, lte, or, like, type SQL } from 'drizzle-orm';
 import { timelineEntries, events } from '../db/schema';
 import type { Bindings, Variables } from '../types';
 import { authMiddleware } from '../middleware/auth';
@@ -35,7 +35,7 @@ app.get('/', async (c) => {
   const tag = c.req.query('tag');
 
   try {
-    const conditions = [eq(timelineEntries.userId, userId)];
+    const conditions: SQL<unknown>[] = [eq(timelineEntries.userId, userId)];
 
     if (fromDate && toDate) {
       conditions.push(between(timelineEntries.date, fromDate, toDate));
@@ -55,14 +55,19 @@ app.get('/', async (c) => {
 
     if (search) {
       const likeSearch = `%${search}%`;
-      conditions.push(
-        or(
-          like(timelineEntries.title, likeSearch),
-          like(timelineEntries.memo, likeSearch),
-          like(timelineEntries.tags, likeSearch),
-          like(timelineEntries.category, likeSearch),
-        )
-      );
+      const searchConditions: SQL<unknown>[] = [];
+      searchConditions.push(like(timelineEntries.title, likeSearch));
+      searchConditions.push(like(timelineEntries.memo, likeSearch));
+      searchConditions.push(like(timelineEntries.tags, likeSearch));
+      searchConditions.push(like(timelineEntries.category, likeSearch));
+      const [s1, s2, s3, s4] = searchConditions as [
+        SQL<unknown>,
+        SQL<unknown>,
+        SQL<unknown>,
+        SQL<unknown>
+      ];
+      const searchCondition = or(s1, s2, s3, s4);
+      conditions.push(searchCondition as SQL<unknown>);
     }
 
     const items = await db.select()
