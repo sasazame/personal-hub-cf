@@ -48,7 +48,7 @@ export function ChronologicalTable({
     const list: Date[] = []
     let cursor = new Date(range.start)
     while (cursor <= range.end) {
-      list.push(cursor)
+      list.push(new Date(cursor))
       cursor = addDays(cursor, 1)
     }
     return list
