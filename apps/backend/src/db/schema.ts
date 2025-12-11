@@ -56,6 +56,7 @@ export const events = sqliteTable('events', {
   endDateTime: text('end_date_time').notNull(),
   location: text('location'),
   allDay: integer('all_day', { mode: 'boolean' }).default(false).notNull(),
+  category: text('category'),
   reminderMinutes: integer('reminder_minutes'),
   color: text('color'),
   googleCalendarId: text('google_calendar_id'),
@@ -165,6 +166,20 @@ export const calendarSyncSettings = sqliteTable('calendar_sync_settings', {
   syncDirection: text('sync_direction', { length: 20 }).default('BIDIRECTIONAL').notNull(),
   autoSync: integer('auto_sync', { mode: 'boolean' }).default(true).notNull(),
   syncInterval: integer('sync_interval').default(30).notNull(),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+// Timeline entries table (separate from calendar events)
+export const timelineEntries = sqliteTable('timeline_entries', {
+  id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
+  userId: text('user_id').notNull().references(() => users.id),
+  title: text('title').notNull(),
+  memo: text('memo'),
+  category: text('category'),
+  tags: text('tags'),
+  eventId: integer('event_id'),
+  date: text('date').notNull(), // ISO date string (YYYY-MM-DD)
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 });

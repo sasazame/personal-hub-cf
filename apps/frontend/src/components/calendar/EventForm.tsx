@@ -13,6 +13,7 @@ interface EventFormProps {
   defaultDate?: Date;
   isSubmitting?: boolean;
   onDelete?: () => void;
+  onImportToTimeline?: (eventId: number) => void;
 }
 
 const useColorOptions = (t: (key: string) => string) => [
@@ -30,7 +31,8 @@ export function EventForm({
   event, 
   defaultDate, 
   isSubmitting, 
-  onDelete 
+  onDelete,
+  onImportToTimeline
 }: EventFormProps) {
   const { t } = useTranslation(['calendar', 'common']);
   const colorOptions = useColorOptions(t);
@@ -288,7 +290,7 @@ export function EventForm({
               placeholder={t('form.locationPlaceholder')}
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium mb-2">
               <Palette className="w-4 h-4 inline mr-1" />
@@ -320,6 +322,17 @@ export function EventForm({
               >
                 <Trash2 className="w-4 h-4 mr-1" />
                 {t('labels.delete')}
+              </Button>
+            )}
+            {event?.id && onImportToTimeline && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => onImportToTimeline(event.id!)}
+                disabled={isSubmitting}
+                className="gap-2"
+              >
+                {t('chronological.sendToTimeline')}
               </Button>
             )}
             <div className={`flex gap-2 ${!event || !onDelete ? 'ml-auto' : ''}`}>

@@ -81,6 +81,7 @@ describe('Events Routes', () => {
           startDateTime: '2024-01-15T10:00:00Z',
           endDateTime: '2024-01-15T11:00:00Z',
           allDay: false,
+          category: 'work',
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -155,6 +156,7 @@ describe('Events Routes', () => {
         startDateTime: '2024-01-20T14:00:00Z',
         endDateTime: '2024-01-20T15:00:00Z',
         allDay: false,
+        category: 'general',
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -177,6 +179,7 @@ describe('Events Routes', () => {
           startDateTime: '2024-01-20T14:00:00Z',
           endDateTime: '2024-01-20T15:00:00Z',
           allDay: false,
+          category: 'general',
         }),
       }, env);
 
@@ -193,6 +196,7 @@ describe('Events Routes', () => {
         id: 1,
         userId,
         title: 'Existing Event',
+        category: 'general',
         startTime: '2024-01-20T14:00:00Z',
         endTime: '2024-01-20T15:00:00Z',
       };

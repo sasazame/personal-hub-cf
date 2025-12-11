@@ -78,6 +78,8 @@ export interface EventResponse {
   startDateTime: string;
   endDateTime: string;
   location: string | null;
+  category: string | null;
+  color?: string | null;
   reminder: boolean;
   reminderMinutes: number | null;
   createdAt: string;

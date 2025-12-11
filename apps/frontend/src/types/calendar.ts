@@ -18,6 +18,7 @@ export interface CalendarEvent {
   endDateTime: string;   // ISO 8601
   location?: string;
   allDay: boolean;
+  category?: string;
   reminders?: Reminder[];
   color?: string;
   recurrence?: RecurrenceRule;
@@ -34,6 +35,7 @@ export interface CreateCalendarEventDto {
   endDateTime: string;
   location?: string;
   allDay: boolean;
+  category?: string;
   reminders?: Reminder[];
   color?: string;
   recurrence?: RecurrenceRule;
@@ -47,6 +49,7 @@ export interface UpdateCalendarEventDto {
   endDateTime?: string;
   location?: string;
   allDay?: boolean;
+  category?: string;
   reminders?: Reminder[];
   color?: string;
   recurrence?: RecurrenceRule;
@@ -84,7 +87,10 @@ export interface EventFilters {
   year?: number;
   startDate?: string;
   endDate?: string;
+  fromDate?: string;
+  toDate?: string;
   search?: string;
+  category?: string;
 }
 
 export interface CalendarApiResponse {
