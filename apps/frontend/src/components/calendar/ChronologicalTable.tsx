@@ -1,30 +1,30 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
-import { addDays, format, intervalToDuration, isWithinInterval } from 'date-fns';
-import { CalendarEvent } from '@/types/calendar';
-import { Button, Input } from '@/components/ui';
-import { Clock, Plus, Search } from 'lucide-react';
+import { useEffect, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
+import { addDays, format, intervalToDuration, isWithinInterval } from 'date-fns'
+import { TimelineEntry } from '@/types/timeline'
+import { Button, Input } from '@/components/ui'
+import { Clock, Plus, Search, Tag } from 'lucide-react'
 
-type TimelineDirection = 'past' | 'future';
+type TimelineDirection = 'past' | 'future'
 
 interface ChronologicalTableProps {
-  events: CalendarEvent[];
-  range: { start: Date; end: Date };
-  onLoadMore: (direction: TimelineDirection) => void;
-  onEventClick: (event: CalendarEvent) => void;
-  onCreate: (date: Date, category?: string) => void;
-  searchTerm: string;
-  onSearchChange: (value: string) => void;
-  selectedCategory?: string;
-  onCategoryChange: (value?: string) => void;
-  isLoading?: boolean;
+  entries: TimelineEntry[]
+  range: { start: Date; end: Date }
+  onLoadMore: (direction: TimelineDirection) => void
+  onEntryClick: (entry: TimelineEntry) => void
+  onCreate: (date: Date, category?: string) => void
+  searchTerm: string
+  onSearchChange: (value: string) => void
+  selectedCategory?: string
+  onCategoryChange: (value?: string) => void
+  isLoading?: boolean
 }
 
 export function ChronologicalTable({
-  events,
+  entries,
   range,
   onLoadMore,
-  onEventClick,
+  onEntryClick,
   onCreate,
   searchTerm,
   onSearchChange,
@@ -32,104 +32,98 @@ export function ChronologicalTable({
   onCategoryChange,
   isLoading,
 }: ChronologicalTableProps) {
-  const { t } = useTranslation('calendar');
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const topSentinelRef = useRef<HTMLDivElement | null>(null);
-  const bottomSentinelRef = useRef<HTMLDivElement | null>(null);
+  const { t } = useTranslation('calendar')
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const topSentinelRef = useRef<HTMLDivElement | null>(null)
+  const bottomSentinelRef = useRef<HTMLDivElement | null>(null)
   const colorPalette: Record<string, string> = {
     blue: '#3b82f6',
     green: '#22c55e',
     red: '#ef4444',
     purple: '#a855f7',
     orange: '#f97316',
-  };
+  }
 
   const days = useMemo(() => {
-    const list: Date[] = [];
-    let cursor = new Date(range.start);
+    const list: Date[] = []
+    let cursor = new Date(range.start)
     while (cursor <= range.end) {
-      list.push(cursor);
-      cursor = addDays(cursor, 1);
+      list.push(cursor)
+      cursor = addDays(cursor, 1)
     }
-    return list;
-  }, [range.end, range.start]);
+    return list
+  }, [range.end, range.start])
 
-  const filteredEvents = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
-    return events.filter((event) => {
-      const eventDate = new Date(event.startDateTime);
-      const category = (event.category || 'general').toLowerCase();
-      const isInRange = isWithinInterval(eventDate, { start: range.start, end: range.end });
-      if (!isInRange) return false;
-      if (selectedCategory && category !== selectedCategory.toLowerCase()) return false;
-      if (!query) return true;
+  const filteredEntries = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase()
+    return entries.filter((entry) => {
+      const entryDate = new Date(entry.date)
+      const category = (entry.category || 'general').toLowerCase()
+      const isInRange = isWithinInterval(entryDate, { start: range.start, end: range.end })
+      if (!isInRange) return false
+      if (selectedCategory && category !== selectedCategory.toLowerCase()) return false
+      if (!query) return true
       return (
-        event.title.toLowerCase().includes(query) ||
-        (event.description && event.description.toLowerCase().includes(query)) ||
-        (event.location && event.location.toLowerCase().includes(query))
-      );
-    });
-  }, [events, range.end, range.start, searchTerm, selectedCategory]);
+        entry.title.toLowerCase().includes(query) ||
+        (entry.memo && entry.memo.toLowerCase().includes(query)) ||
+        (entry.tags && entry.tags.toLowerCase().includes(query))
+      )
+    })
+  }, [entries, range.end, range.start, searchTerm, selectedCategory])
 
   const categories = useMemo(() => {
-    const set = new Set<string>();
-    filteredEvents.forEach((event) => {
-      set.add(event.category || 'general');
-    });
-    if (!set.size) {
-      set.add('general');
-    }
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [filteredEvents]);
+    const set = new Set<string>()
+    filteredEntries.forEach((entry) => {
+      set.add(entry.category || 'general')
+    })
+    if (!set.size) set.add('general')
+    return Array.from(set).sort((a, b) => a.localeCompare(b))
+  }, [filteredEntries])
 
-  const eventsByDate = useMemo(() => {
-    const byDate = new Map<string, CalendarEvent[]>();
-    filteredEvents.forEach((event) => {
-      const key = event.startDateTime.slice(0, 10);
-      const current = byDate.get(key) || [];
-      current.push(event);
-      byDate.set(key, current);
-    });
+  const entriesByDate = useMemo(() => {
+    const byDate = new Map<string, TimelineEntry[]>()
+    filteredEntries.forEach((entry) => {
+      const key = entry.date
+      const current = byDate.get(key) || []
+      current.push(entry)
+      byDate.set(key, current)
+    })
 
     for (const [, value] of byDate.entries()) {
-      value.sort(
-        (a, b) =>
-          new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime()
-      );
+      value.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     }
-    return byDate;
-  }, [filteredEvents]);
+    return byDate
+  }, [filteredEntries])
 
-  const getElapsedLabel = (eventDate: Date) => {
-    const duration = intervalToDuration({ start: eventDate, end: new Date() });
-    const years = duration.years || 0;
-    const months = duration.months || 0;
-    const daysElapsed = duration.days || 0;
+  const getElapsedLabel = (entryDate: Date) => {
+    const duration = intervalToDuration({ start: entryDate, end: new Date() })
+    const years = duration.years || 0
+    const months = duration.months || 0
+    const daysElapsed = duration.days || 0
     return t('chronological.elapsed', {
       years,
       months,
       days: daysElapsed,
-    });
-  };
+    })
+  }
 
-  const formatEventTime = (event: CalendarEvent) => {
-    if (event.allDay) return t('labels.allDayEvent');
-    const start = new Date(event.startDateTime);
-    return format(start, 'HH:mm');
-  };
+  const formatEntryTime = (entry: TimelineEntry) => {
+    if (entry.eventId) return t('chronological.linkedEvent')
+    return t('chronological.allDay')
+  }
 
   useEffect(() => {
-    const root = containerRef.current;
-    if (!root) return;
+    const root = containerRef.current
+    if (!root) return
     const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          if (isLoading) continue;
+      (entriesObserver) => {
+        for (const entry of entriesObserver) {
+          if (!entry.isIntersecting) continue
+          if (isLoading) continue
           if (entry.target === topSentinelRef.current) {
-            onLoadMore('past');
+            onLoadMore('past')
           } else if (entry.target === bottomSentinelRef.current) {
-            onLoadMore('future');
+            onLoadMore('future')
           }
         }
       },
@@ -137,13 +131,13 @@ export function ChronologicalTable({
         root,
         threshold: 0.1,
       }
-    );
+    )
 
-    if (topSentinelRef.current) observer.observe(topSentinelRef.current);
-    if (bottomSentinelRef.current) observer.observe(bottomSentinelRef.current);
+    if (topSentinelRef.current) observer.observe(topSentinelRef.current)
+    if (bottomSentinelRef.current) observer.observe(bottomSentinelRef.current)
 
-    return () => observer.disconnect();
-  }, [isLoading, onLoadMore]);
+    return () => observer.disconnect()
+  }, [isLoading, onLoadMore])
 
   return (
     <div className="rounded-2xl border bg-card shadow-sm">
@@ -201,8 +195,8 @@ export function ChronologicalTable({
         )}
         <div className="min-w-[720px] divide-y">
           {days.map((day) => {
-            const dayKey = format(day, 'yyyy-MM-dd');
-            const dayEvents = eventsByDate.get(dayKey) || [];
+            const dayKey = format(day, 'yyyy-MM-dd')
+            const dayEntries = entriesByDate.get(dayKey) || []
             return (
               <div
                 key={dayKey}
@@ -215,56 +209,56 @@ export function ChronologicalTable({
                   <span className="text-sm font-semibold text-foreground">
                     {format(day, 'MMM d (EEE)')}
                   </span>
-                  <span className="text-xs text-muted-foreground">
-                    {format(day, 'yyyy')}
-                  </span>
+                  <span className="text-xs text-muted-foreground">{format(day, 'yyyy')}</span>
                 </div>
 
                 {categories.map((category) => {
-                  const categoryEvents = dayEvents.filter(
-                    (event) => (event.category || 'general') === category
-                  );
+                  const categoryEntries = dayEntries.filter((entry) => (entry.category || 'general') === category)
                   return (
                     <div key={`${dayKey}-${category}`} className="space-y-3">
-                      {categoryEvents.map((event) => {
-                        const eventDate = new Date(event.startDateTime);
-                        const elapsed = getElapsedLabel(eventDate);
+                      {categoryEntries.map((entry) => {
+                        const entryDate = new Date(entry.date)
+                        const elapsed = getElapsedLabel(entryDate)
                         return (
                           <div
-                            key={event.id ?? `${event.title}-${event.startDateTime}`}
+                            key={entry.id ?? `${entry.title}-${entry.date}`}
                             className="group relative cursor-pointer rounded-xl border bg-card/70 p-3 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/70"
-                            onClick={() => onEventClick(event)}
+                            onClick={() => onEntryClick(entry)}
                           >
                             <div className="flex items-center justify-between text-xs text-muted-foreground">
                               <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5">
                                 <span
                                   className="h-2 w-2 rounded-full"
-                                  style={{ backgroundColor: colorPalette[event.color || 'blue'] || colorPalette.blue }}
+                                  style={{ backgroundColor: colorPalette[entry.category || 'blue'] || colorPalette.blue }}
                                 />
                                 {category || t('chronological.uncategorized')}
                               </span>
                               <span className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
-                                {formatEventTime(event)}
+                                {formatEntryTime(entry)}
                               </span>
                             </div>
-                            <div className="mt-2 text-sm font-semibold text-foreground">
-                              {event.title}
-                            </div>
-                            {event.description && (
-                              <p className="text-xs text-muted-foreground line-clamp-2">
-                                {event.description}
-                              </p>
+                            <div className="mt-2 text-sm font-semibold text-foreground">{entry.title}</div>
+                            {entry.memo && (
+                              <p className="text-xs text-muted-foreground line-clamp-2">{entry.memo}</p>
+                            )}
+                            {entry.tags && (
+                              <div className="mt-2 flex flex-wrap gap-1 text-[11px] text-muted-foreground">
+                                {entry.tags.split(',').map((tag) => (
+                                  <span key={tag} className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5">
+                                    <Tag className="h-3 w-3" />
+                                    {tag.trim()}
+                                  </span>
+                                ))}
+                              </div>
                             )}
                             <div className="pointer-events-none absolute left-0 right-0 top-full z-10 hidden translate-y-2 rounded-xl border bg-popover p-3 text-xs text-popover-foreground shadow-lg group-hover:block">
-                              <div className="font-semibold text-foreground">{event.title}</div>
-                              <p className="mt-1 text-muted-foreground">
-                                {event.description || t('chronological.noMemo')}
-                              </p>
+                              <div className="font-semibold text-foreground">{entry.title}</div>
+                              <p className="mt-1 text-muted-foreground">{entry.memo || t('chronological.noMemo')}</p>
                               <div className="mt-2 text-emerald-500">{elapsed}</div>
                             </div>
                           </div>
-                        );
+                        )
                       })}
                       <Button
                         variant="ghost"
@@ -276,7 +270,7 @@ export function ChronologicalTable({
                         {t('chronological.addInCategory', { category })}
                       </Button>
                     </div>
-                  );
+                  )
                 })}
 
                 <div className="flex justify-end">
@@ -291,11 +285,11 @@ export function ChronologicalTable({
                   </Button>
                 </div>
               </div>
-            );
+            )
           })}
         </div>
         <div ref={bottomSentinelRef} />
       </div>
     </div>
-  );
+  )
 }

@@ -85,6 +85,18 @@
     "loading": "Loading timeline...",
     "empty": "No events in this range. Create the first entry.",
     "elapsed": "{{years}}y {{months}}m {{days}}d since",
-    "rangeLabel": "Viewing {{start}} - {{end}}"
+    "rangeLabel": "Viewing {{start}} - {{end}}",
+    "newEntry": "New timeline entry",
+    "editEntry": "Edit timeline entry",
+    "tags": "Tags",
+    "tagsPlaceholder": "Comma separated, e.g. Meiji, Bakumatsu",
+    "created": "Timeline entry created",
+    "updated": "Timeline entry updated",
+    "deleted": "Timeline entry deleted",
+    "imported": "Imported from calendar",
+    "importFailed": "Failed to import event",
+    "sendToTimeline": "Send to timeline",
+    "linkedEvent": "Linked event",
+    "allDay": "All day"
   }
 }

@@ -170,6 +170,20 @@ export const calendarSyncSettings = sqliteTable('calendar_sync_settings', {
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// Timeline entries table (separate from calendar events)
+export const timelineEntries = sqliteTable('timeline_entries', {
+  id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
+  userId: text('user_id').notNull().references(() => users.id),
+  title: text('title').notNull(),
+  memo: text('memo'),
+  category: text('category'),
+  tags: text('tags'),
+  eventId: integer('event_id'),
+  date: text('date').notNull(), // ISO date string (YYYY-MM-DD)
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // User social accounts table
 export const userSocialAccounts = sqliteTable('user_social_accounts', {
   id: text('id').primaryKey(),

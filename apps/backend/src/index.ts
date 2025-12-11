@@ -13,6 +13,7 @@ import notesRoutes from './routes/notes';
 import momentsRoutes from './routes/moments';
 import usersRoutes from './routes/users';
 import analyticsRoutes from './routes/analytics';
+import timelineRoutes from './routes/timeline';
 import { createValidationError } from './utils/spring-boot-compat';
 import { securityHeaders } from './middleware/security-headers';
 import { csrfMiddleware } from './middleware/csrf';
@@ -104,6 +105,7 @@ app.route('/api/v1/notes', notesRoutes);
 app.route('/api/v1/moments', momentsRoutes);
 app.route('/api/v1/users', usersRoutes);
 app.route('/api/v1/analytics', analyticsRoutes);
+app.route('/api/v1/timeline', timelineRoutes);
 
 // 404 handler
 app.notFound((c) => {

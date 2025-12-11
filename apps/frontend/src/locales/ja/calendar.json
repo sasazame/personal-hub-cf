@@ -84,6 +84,18 @@
     "loading": "年表を読み込み中...",
     "empty": "この範囲にはイベントがありません。最初の記録を追加しましょう。",
     "elapsed": "経過: {{years}}年 {{months}}か月 {{days}}日",
-    "rangeLabel": "{{start}} 〜 {{end}} を表示中"
+    "rangeLabel": "{{start}} 〜 {{end}} を表示中",
+    "newEntry": "新しい年表記録",
+    "editEntry": "年表記録を編集",
+    "tags": "タグ",
+    "tagsPlaceholder": "例: 明治, 幕末",
+    "created": "年表に追加しました",
+    "updated": "年表を更新しました",
+    "deleted": "年表の記録を削除しました",
+    "imported": "カレンダーから取り込みました",
+    "importFailed": "取り込みに失敗しました",
+    "sendToTimeline": "年表に送る",
+    "linkedEvent": "カレンダーリンク",
+    "allDay": "終日"
   }
 }

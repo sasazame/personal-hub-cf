@@ -3,11 +3,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppLayout } from '@/components/layout';
 import { Button, Modal } from '@/components/ui';
-import { CalendarGrid, EventForm } from '@/components/calendar';
-import { ChronologicalTable } from '@/components/calendar/ChronologicalTable';
+import { CalendarGrid, EventForm, ChronologicalTable, TimelineEntryForm } from '@/components/calendar';
 import { calendarApi } from '@/lib/calendar-api';
+import { timelineApi } from '@/lib/timeline-api';
 import { toast } from '@/components/ui/toast';
 import { CalendarEvent, CreateCalendarEventDto, UpdateCalendarEventDto } from '@/types/calendar';
+import { TimelineEntry } from '@/types/timeline';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, addDays } from 'date-fns';
 import { ChevronLeft, ChevronRight, ListTree, Plus, Settings, Sparkles } from 'lucide-react';
 
@@ -19,12 +20,12 @@ export function Calendar() {
   const [isEventFormOpen, setIsEventFormOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [draftCategory, setDraftCategory] = useState<string | undefined>();
   const [eventToDelete, setEventToDelete] = useState<CalendarEvent | null>(null);
   const [showGoogleSettings, setShowGoogleSettings] = useState(false);
   const [viewMode, setViewMode] = useState<'manage' | 'timeline'>('manage');
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [loadedRange, setLoadedRange] = useState<{ start: Date; end: Date } | null>(null);
+  const [eventLoadedRange, setEventLoadedRange] = useState<{ start: Date; end: Date } | null>(null);
+  const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
   const initialTimelineRange = useMemo(() => {
     const start = startOfMonth(subMonths(new Date(), 2));
     const end = endOfMonth(addMonths(new Date(), 3));
@@ -33,6 +34,8 @@ export function Calendar() {
   const [timelineRange, setTimelineRange] = useState<{ start: Date; end: Date }>(initialTimelineRange);
   const [timelineSearch, setTimelineSearch] = useState('');
   const [timelineCategory, setTimelineCategory] = useState<string | undefined>();
+  const [timelineDraftDate, setTimelineDraftDate] = useState<string | undefined>();
+  const [timelineDraftCategory, setTimelineDraftCategory] = useState<string | undefined>();
   type EventAction =
     | { type: 'create'; event: CalendarEvent }
     | { type: 'update'; id: number; delta: Partial<CalendarEvent> }
@@ -57,7 +60,9 @@ export function Calendar() {
   )
   const [isLoading, setIsLoading] = useState(true);
   const [isTimelineLoading, setIsTimelineLoading] = useState(false);
+  const [isTimelineFormOpen, setIsTimelineFormOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedTimelineEntry, setSelectedTimelineEntry] = useState<TimelineEntry | null>(null);
 
   const loadEventsForRange = useCallback(async (
     start: Date,
@@ -84,7 +89,7 @@ export function Calendar() {
         });
         return Array.from(map.values());
       });
-      setLoadedRange((prev) => {
+      setEventLoadedRange((prev) => {
         if (!prev || options?.replace) return { start, end };
         return {
           start: start < prev.start ? start : prev.start,
@@ -101,17 +106,40 @@ export function Calendar() {
     }
   }, [t]);
 
+  const loadTimelineEntries = useCallback(async (start: Date, end: Date, options?: { replace?: boolean; silent?: boolean }) => {
+    const silent = options?.silent ?? false;
+    if (!silent) setIsTimelineLoading(true);
+    try {
+      const data = await timelineApi.getTimelineEntries({ fromDate: start.toISOString().slice(0, 10), toDate: end.toISOString().slice(0, 10) });
+      setTimelineEntries((prev) => {
+        if (options?.replace) return data;
+        const map = new Map<number | string, TimelineEntry>();
+        [...prev, ...data].forEach((entry) => {
+          const key = entry.id ?? `${entry.title}-${entry.date}`;
+          map.set(key, entry);
+        });
+        return Array.from(map.values());
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error(t('messages.loadFailed'));
+    } finally {
+      if (!silent) setIsTimelineLoading(false);
+    }
+  }, [t]);
+
   useEffect(() => {
     loadEventsForRange(timelineRange.start, timelineRange.end, { replace: true }).finally(() => setIsLoading(false));
-  }, [loadEventsForRange, timelineRange.end, timelineRange.start]);
+    loadTimelineEntries(timelineRange.start, timelineRange.end, { replace: true });
+  }, [loadEventsForRange, loadTimelineEntries, timelineRange.end, timelineRange.start]);
 
   useEffect(() => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
-    if (!loadedRange || monthStart < loadedRange.start || monthEnd > loadedRange.end) {
+    if (!eventLoadedRange || monthStart < eventLoadedRange.start || monthEnd > eventLoadedRange.end) {
       loadEventsForRange(monthStart, monthEnd, { silent: true });
     }
-  }, [currentDate, loadEventsForRange, loadedRange]);
+  }, [currentDate, loadEventsForRange, eventLoadedRange]);
 
   // Handle navigation state from command palette
   useEffect(() => {
@@ -137,7 +165,6 @@ export function Calendar() {
         description: data.description,
         location: data.location,
         allDay: !!data.allDay,
-        category: data.category ?? 'general',
         color: data.color ?? 'blue',
         startDateTime: data.startDateTime,
         endDateTime: data.endDateTime,
@@ -150,7 +177,6 @@ export function Calendar() {
       toast.success(t('messages.eventCreated'));
       setIsEventFormOpen(false);
       setSelectedDate(null);
-      setDraftCategory(undefined);
     } catch (error) {
       toast.error(t('messages.eventCreateFailed'));
       console.error(error);
@@ -178,7 +204,6 @@ export function Calendar() {
       toast.success(t('messages.eventUpdated'));
       setIsEventFormOpen(false);
       setSelectedEvent(null);
-      setDraftCategory(undefined);
       setSelectedDate(null);
     } catch (error) {
       toast.error(t('messages.eventUpdateFailed'));
@@ -217,7 +242,6 @@ export function Calendar() {
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
     setSelectedEvent(null);
-    setDraftCategory(undefined);
     setIsEventFormOpen(true);
   };
 
@@ -230,7 +254,6 @@ export function Calendar() {
   const handleNewEvent = () => {
     setSelectedEvent(null);
     setSelectedDate(new Date());
-    setDraftCategory(undefined);
     setIsEventFormOpen(true);
   };
 
@@ -240,13 +263,6 @@ export function Calendar() {
 
   const handleNextMonth = () => {
     setCurrentDate(addMonths(currentDate, 1));
-  };
-
-  const handleCreateFromTimeline = (date: Date, category?: string) => {
-    setSelectedEvent(null);
-    setSelectedDate(date);
-    setDraftCategory(category);
-    setIsEventFormOpen(true);
   };
 
   const handleTimelineLoadMore = useCallback(
@@ -270,12 +286,27 @@ export function Calendar() {
 
       setTimelineRange({ start: newStart, end: newEnd });
       try {
-        await loadEventsForRange(fetchStart, fetchEnd, { silent: true });
+        await loadTimelineEntries(fetchStart, fetchEnd, { silent: true });
       } finally {
         setIsTimelineLoading(false);
       }
     },
-    [isTimelineLoading, loadEventsForRange, timelineRange.end, timelineRange.start]
+    [isTimelineLoading, loadTimelineEntries, timelineRange.end, timelineRange.start]
+  );
+
+  const ensureTimelineRange = useCallback(
+    (isoDate: string) => {
+      const date = new Date(isoDate);
+      let nextStart = timelineRange.start;
+      let nextEnd = timelineRange.end;
+      if (date < timelineRange.start) nextStart = startOfMonth(subMonths(date, 1));
+      if (date > timelineRange.end) nextEnd = endOfMonth(addMonths(date, 1));
+      if (nextStart !== timelineRange.start || nextEnd !== timelineRange.end) {
+        setTimelineRange({ start: nextStart, end: nextEnd });
+        loadTimelineEntries(nextStart, nextEnd, { silent: true });
+      }
+    },
+    [timelineRange.end, timelineRange.start, loadTimelineEntries]
   );
 
   const handleEventDateChange = async (eventId: number, newDate: Date) => {
@@ -302,6 +333,76 @@ export function Calendar() {
       toast.error(t('messages.eventMoveFailed'));
       console.error(error);
       loadEventsForRange(timelineRange.start, timelineRange.end);
+    }
+  };
+
+  const openTimelineForm = (date?: Date, category?: string, entry?: TimelineEntry) => {
+    setSelectedTimelineEntry(entry ?? null);
+    setTimelineDraftDate(date ? date.toISOString().slice(0, 10) : undefined);
+    setTimelineDraftCategory(category);
+    setIsTimelineFormOpen(true);
+  };
+
+  const handleTimelineEntryClick = (entry: TimelineEntry) => {
+    openTimelineForm(undefined, entry.category, entry);
+  };
+
+  const handleTimelineCreate = (date: Date, category?: string) => {
+    openTimelineForm(date, category);
+  };
+
+  const handleTimelineSubmit = async (data: TimelineEntry) => {
+    try {
+      const payload: TimelineEntry = {
+        ...data,
+        category: data.category ?? timelineDraftCategory,
+        date: data.date || timelineDraftDate || new Date().toISOString().slice(0, 10),
+      };
+
+      if (selectedTimelineEntry?.id) {
+        const updated = await timelineApi.updateTimelineEntry(selectedTimelineEntry.id, payload);
+        setTimelineEntries((prev) => prev.map((entry) => (entry.id === updated.id ? updated : entry)));
+        toast.success(t('chronological.updated'));
+      } else {
+        const created = await timelineApi.createTimelineEntry(payload);
+        setTimelineEntries((prev) => [created, ...prev]);
+        ensureTimelineRange(created.date);
+        toast.success(t('chronological.created'));
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(t('messages.eventCreateFailed'));
+    } finally {
+      setIsTimelineFormOpen(false);
+      setSelectedTimelineEntry(null);
+      setTimelineDraftCategory(undefined);
+      setTimelineDraftDate(undefined);
+    }
+  };
+
+  const handleTimelineDelete = async (id: number) => {
+    try {
+      await timelineApi.deleteTimelineEntry(id);
+      setTimelineEntries((prev) => prev.filter((entry) => entry.id !== id));
+      toast.success(t('chronological.deleted'));
+    } catch (error) {
+      console.error(error);
+      toast.error(t('messages.eventDeleteFailed'));
+    } finally {
+      setIsTimelineFormOpen(false);
+      setSelectedTimelineEntry(null);
+    }
+  };
+
+  const handleImportEventToTimeline = async (eventId: number) => {
+    try {
+      const created = await timelineApi.importEventToTimeline(eventId);
+      setTimelineEntries((prev) => [created, ...prev]);
+      ensureTimelineRange(created.date);
+      toast.success(t('chronological.imported'));
+    } catch (error) {
+      console.error(error);
+      toast.error(t('chronological.importFailed'));
     }
   };
 
@@ -414,11 +515,11 @@ export function Calendar() {
 
         {viewMode === 'timeline' && (
           <ChronologicalTable
-            events={optimisticEvents}
+            entries={timelineEntries}
             range={timelineRange}
             onLoadMore={handleTimelineLoadMore}
-            onEventClick={handleEventClick}
-            onCreate={handleCreateFromTimeline}
+            onEntryClick={handleTimelineEntryClick}
+            onCreate={handleTimelineCreate}
             searchTerm={timelineSearch}
             onSearchChange={setTimelineSearch}
             selectedCategory={timelineCategory}
@@ -434,7 +535,6 @@ export function Calendar() {
             setIsEventFormOpen(false);
             setSelectedEvent(null);
             setSelectedDate(null);
-            setDraftCategory(undefined);
           }}
           onSubmit={(data) => {
             if (selectedEvent) {
@@ -445,9 +545,24 @@ export function Calendar() {
           }}
           event={selectedEvent || undefined}
           defaultDate={selectedDate || undefined}
-          defaultCategory={draftCategory}
           isSubmitting={isSubmitting}
           onDelete={selectedEvent ? () => setEventToDelete(selectedEvent) : undefined}
+          onImportToTimeline={selectedEvent?.id ? handleImportEventToTimeline : undefined}
+        />
+
+        <TimelineEntryForm
+          open={isTimelineFormOpen}
+          onClose={() => {
+            setIsTimelineFormOpen(false);
+            setSelectedTimelineEntry(null);
+            setTimelineDraftCategory(undefined);
+            setTimelineDraftDate(undefined);
+          }}
+          onSubmit={handleTimelineSubmit}
+          entry={selectedTimelineEntry || undefined}
+          defaultDate={timelineDraftDate}
+          defaultCategory={timelineDraftCategory}
+          onDelete={selectedTimelineEntry?.id ? handleTimelineDelete : undefined}
         />
 
         {/* Delete Confirmation Modal */}
