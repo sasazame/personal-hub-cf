@@ -11,6 +11,7 @@ interface EventFormProps {
   onSubmit: (data: CreateCalendarEventDto | UpdateCalendarEventDto) => void;
   event?: CalendarEvent;
   defaultDate?: Date;
+  defaultCategory?: string;
   isSubmitting?: boolean;
   onDelete?: () => void;
 }
@@ -29,6 +30,7 @@ export function EventForm({
   onSubmit, 
   event, 
   defaultDate, 
+  defaultCategory,
   isSubmitting, 
   onDelete 
 }: EventFormProps) {
@@ -40,6 +42,7 @@ export function EventForm({
   const [endDateTime, setEndDateTime] = useState('');
   const [location, setLocation] = useState('');
   const [allDay, setAllDay] = useState(false);
+  const [category, setCategory] = useState('general');
   const [color, setColor] = useState('blue');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -51,6 +54,7 @@ export function EventForm({
         setDescription(event.description || '');
         setLocation(event.location || '');
         setAllDay(event.allDay);
+        setCategory(event.category || 'general');
         setColor(event.color || 'blue');
         
         if (event.allDay) {
@@ -66,6 +70,7 @@ export function EventForm({
         setDescription('');
         setLocation('');
         setAllDay(false);
+        setCategory(defaultCategory || 'general');
         setColor('blue');
         
         if (defaultDate) {
@@ -92,7 +97,7 @@ export function EventForm({
       }
       setErrors({});
     }
-  }, [isOpen, event, defaultDate]);
+  }, [isOpen, event, defaultDate, defaultCategory]);
 
   const formatDateTimeForInput = (isoString: string) => {
     const date = new Date(isoString);
@@ -159,6 +164,7 @@ export function EventForm({
       description: description.trim() || undefined,
       location: location.trim() || undefined,
       allDay,
+      category: category.trim() || undefined,
       color,
       startDateTime: allDay 
         ? new Date(startDateTime + 'T00:00:00').toISOString()
@@ -175,6 +181,7 @@ export function EventForm({
       if (formData.description !== event.description) updateData.description = formData.description;
       if (formData.location !== event.location) updateData.location = formData.location;
       if (formData.allDay !== event.allDay) updateData.allDay = formData.allDay;
+      if (formData.category !== event.category) updateData.category = formData.category;
       if (formData.color !== event.color) updateData.color = formData.color;
       if (formData.startDateTime !== event.startDateTime) updateData.startDateTime = formData.startDateTime;
       if (formData.endDateTime !== event.endDateTime) updateData.endDateTime = formData.endDateTime;
@@ -287,6 +294,20 @@ export function EventForm({
               onChange={(e) => setLocation(e.target.value)}
               placeholder={t('form.locationPlaceholder')}
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              {t('labels.category')}
+            </label>
+            <Input
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder={t('form.categoryPlaceholder')}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              {t('form.categoryHelp')}
+            </p>
           </div>
           
           <div>

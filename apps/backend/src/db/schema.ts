@@ -56,6 +56,7 @@ export const events = sqliteTable('events', {
   endDateTime: text('end_date_time').notNull(),
   location: text('location'),
   allDay: integer('all_day', { mode: 'boolean' }).default(false).notNull(),
+  category: text('category'),
   reminderMinutes: integer('reminder_minutes'),
   color: text('color'),
   googleCalendarId: text('google_calendar_id'),

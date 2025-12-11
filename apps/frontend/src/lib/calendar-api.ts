@@ -14,9 +14,12 @@ export async function getCalendarEvents(filters?: EventFilters): Promise<Calenda
   if (filters) {
     if (filters.year) params.append('year', filters.year.toString());
     if (filters.month) params.append('month', filters.month.toString());
-    if (filters.startDate) params.append('startDate', filters.startDate);
-    if (filters.endDate) params.append('endDate', filters.endDate);
+    const fromDate = filters.fromDate || filters.startDate;
+    const toDate = filters.toDate || filters.endDate;
+    if (fromDate) params.append('fromDate', fromDate);
+    if (toDate) params.append('toDate', toDate);
     if (filters.search) params.append('search', filters.search);
+    if (filters.category) params.append('category', filters.category);
   }
   
   const queryString = params.toString();

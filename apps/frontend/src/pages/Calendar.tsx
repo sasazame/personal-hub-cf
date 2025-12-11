@@ -1,14 +1,15 @@
-import { useState, useEffect, useOptimistic } from 'react';
+import { useState, useEffect, useOptimistic, useMemo, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppLayout } from '@/components/layout';
 import { Button, Modal } from '@/components/ui';
 import { CalendarGrid, EventForm } from '@/components/calendar';
+import { ChronologicalTable } from '@/components/calendar/ChronologicalTable';
 import { calendarApi } from '@/lib/calendar-api';
 import { toast } from '@/components/ui/toast';
 import { CalendarEvent, CreateCalendarEventDto, UpdateCalendarEventDto } from '@/types/calendar';
-import { format, addMonths, subMonths } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, Settings } from 'lucide-react';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, addDays } from 'date-fns';
+import { ChevronLeft, ChevronRight, ListTree, Plus, Settings, Sparkles } from 'lucide-react';
 
 export function Calendar() {
   const location = useLocation();
@@ -18,10 +19,20 @@ export function Calendar() {
   const [isEventFormOpen, setIsEventFormOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [draftCategory, setDraftCategory] = useState<string | undefined>();
   const [eventToDelete, setEventToDelete] = useState<CalendarEvent | null>(null);
   const [showGoogleSettings, setShowGoogleSettings] = useState(false);
-  // const [viewMode, setViewMode] = useState<CalendarView>('month'); // For future implementation
+  const [viewMode, setViewMode] = useState<'manage' | 'timeline'>('manage');
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [loadedRange, setLoadedRange] = useState<{ start: Date; end: Date } | null>(null);
+  const initialTimelineRange = useMemo(() => {
+    const start = startOfMonth(subMonths(new Date(), 2));
+    const end = endOfMonth(addMonths(new Date(), 3));
+    return { start, end };
+  }, []);
+  const [timelineRange, setTimelineRange] = useState<{ start: Date; end: Date }>(initialTimelineRange);
+  const [timelineSearch, setTimelineSearch] = useState('');
+  const [timelineCategory, setTimelineCategory] = useState<string | undefined>();
   type EventAction =
     | { type: 'create'; event: CalendarEvent }
     | { type: 'update'; id: number; delta: Partial<CalendarEvent> }
@@ -45,11 +56,62 @@ export function Calendar() {
     }
   )
   const [isLoading, setIsLoading] = useState(true);
+  const [isTimelineLoading, setIsTimelineLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const loadEventsForRange = useCallback(async (
+    start: Date,
+    end: Date,
+    options?: { silent?: boolean; replace?: boolean }
+  ) => {
+    const silent = options?.silent ?? false;
+    try {
+      if (!silent) {
+        setIsLoading(true);
+      }
+      const data = await calendarApi.getEvents({
+        fromDate: start.toISOString(),
+        toDate: end.toISOString(),
+      });
+      setEvents((prev) => {
+        if (options?.replace) {
+          return data;
+        }
+        const map = new Map<number | string, CalendarEvent>();
+        [...prev, ...data].forEach((event) => {
+          const key = event.id ?? `${event.title}-${event.startDateTime}`;
+          map.set(key, event);
+        });
+        return Array.from(map.values());
+      });
+      setLoadedRange((prev) => {
+        if (!prev || options?.replace) return { start, end };
+        return {
+          start: start < prev.start ? start : prev.start,
+          end: end > prev.end ? end : prev.end,
+        };
+      });
+    } catch (error) {
+      toast.error(t('messages.loadFailed'));
+      console.error(error);
+    } finally {
+      if (!silent) {
+        setIsLoading(false);
+      }
+    }
+  }, [t]);
+
   useEffect(() => {
-    loadEvents();
-  }, [currentDate]);
+    loadEventsForRange(timelineRange.start, timelineRange.end, { replace: true }).finally(() => setIsLoading(false));
+  }, [loadEventsForRange, timelineRange.end, timelineRange.start]);
+
+  useEffect(() => {
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(currentDate);
+    if (!loadedRange || monthStart < loadedRange.start || monthEnd > loadedRange.end) {
+      loadEventsForRange(monthStart, monthEnd, { silent: true });
+    }
+  }, [currentDate, loadEventsForRange, loadedRange]);
 
   // Handle navigation state from command palette
   useEffect(() => {
@@ -64,27 +126,6 @@ export function Calendar() {
     }
   }, [location.state, navigate]);
 
-  const loadEvents = async (options?: { silent?: boolean }) => {
-    const silent = options?.silent ?? false;
-    try {
-      if (!silent) {
-        setIsLoading(true);
-      }
-      const data = await calendarApi.getEvents({
-        year: currentDate.getFullYear(),
-        month: currentDate.getMonth() + 1,
-      });
-      setEvents(data);
-    } catch (error) {
-      toast.error(t('messages.loadFailed'));
-      console.error(error);
-    } finally {
-      if (!silent) {
-        setIsLoading(false);
-      }
-    }
-  };
-
   const handleCreateEvent = async (data: CreateCalendarEventDto) => {
     try {
       setIsSubmitting(true);
@@ -96,6 +137,7 @@ export function Calendar() {
         description: data.description,
         location: data.location,
         allDay: !!data.allDay,
+        category: data.category ?? 'general',
         color: data.color ?? 'blue',
         startDateTime: data.startDateTime,
         endDateTime: data.endDateTime,
@@ -104,14 +146,15 @@ export function Calendar() {
       const created = await calendarApi.createEvent(data);
       applyEventsOptimistic({ type: 'update', id: tempId, delta: { ...created } })
       setEvents((prev) => [created, ...prev.filter((event) => event.id !== created.id)])
-      loadEvents({ silent: true });
+      loadEventsForRange(timelineRange.start, timelineRange.end, { silent: true });
       toast.success(t('messages.eventCreated'));
       setIsEventFormOpen(false);
       setSelectedDate(null);
+      setDraftCategory(undefined);
     } catch (error) {
       toast.error(t('messages.eventCreateFailed'));
       console.error(error);
-      loadEvents();
+      loadEventsForRange(timelineRange.start, timelineRange.end);
     } finally {
       setIsSubmitting(false);
     }
@@ -126,19 +169,21 @@ export function Calendar() {
       applyEventsOptimistic({ type: 'update', id: existingId, delta: data as Partial<CalendarEvent> })
       const updated = await calendarApi.updateEvent(existingId, data);
       if (updated.id == null) {
-        await loadEvents({ silent: true });
+        await loadEventsForRange(timelineRange.start, timelineRange.end, { silent: true });
         return;
       }
       applyEventsOptimistic({ type: 'update', id: existingId, delta: { ...updated } })
       setEvents((prev) => prev.map((event) => (event.id === updated.id ? updated : event)))
-      loadEvents({ silent: true });
+      loadEventsForRange(timelineRange.start, timelineRange.end, { silent: true });
       toast.success(t('messages.eventUpdated'));
       setIsEventFormOpen(false);
       setSelectedEvent(null);
+      setDraftCategory(undefined);
+      setSelectedDate(null);
     } catch (error) {
       toast.error(t('messages.eventUpdateFailed'));
       console.error(error);
-      loadEvents();
+      loadEventsForRange(timelineRange.start, timelineRange.end);
     } finally {
       setIsSubmitting(false);
     }
@@ -160,7 +205,7 @@ export function Calendar() {
       }
       applyEventsOptimistic({ type: 'delete', id: deleteId })
       setEvents((prev) => prev.filter((event) => event.id !== deleteId))
-      loadEvents({ silent: true });
+      loadEventsForRange(timelineRange.start, timelineRange.end, { silent: true });
     } catch (error) {
       toast.error(t('messages.eventDeleteFailed'));
       console.error(error);
@@ -172,6 +217,7 @@ export function Calendar() {
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
     setSelectedEvent(null);
+    setDraftCategory(undefined);
     setIsEventFormOpen(true);
   };
 
@@ -184,6 +230,7 @@ export function Calendar() {
   const handleNewEvent = () => {
     setSelectedEvent(null);
     setSelectedDate(new Date());
+    setDraftCategory(undefined);
     setIsEventFormOpen(true);
   };
 
@@ -194,6 +241,42 @@ export function Calendar() {
   const handleNextMonth = () => {
     setCurrentDate(addMonths(currentDate, 1));
   };
+
+  const handleCreateFromTimeline = (date: Date, category?: string) => {
+    setSelectedEvent(null);
+    setSelectedDate(date);
+    setDraftCategory(category);
+    setIsEventFormOpen(true);
+  };
+
+  const handleTimelineLoadMore = useCallback(
+    async (direction: 'past' | 'future') => {
+      if (isTimelineLoading) return;
+      setIsTimelineLoading(true);
+      const extension = 90;
+      const newStart =
+        direction === 'past' ? addDays(timelineRange.start, -extension) : timelineRange.start;
+      const newEnd =
+        direction === 'future' ? addDays(timelineRange.end, extension) : timelineRange.end;
+      const fetchStart =
+        direction === 'past' ? newStart : addDays(timelineRange.end, 1);
+      const fetchEnd =
+        direction === 'past' ? addDays(timelineRange.start, -1) : newEnd;
+
+      if (fetchStart > fetchEnd) {
+        setIsTimelineLoading(false);
+        return;
+      }
+
+      setTimelineRange({ start: newStart, end: newEnd });
+      try {
+        await loadEventsForRange(fetchStart, fetchEnd, { silent: true });
+      } finally {
+        setIsTimelineLoading(false);
+      }
+    },
+    [isTimelineLoading, loadEventsForRange, timelineRange.end, timelineRange.start]
+  );
 
   const handleEventDateChange = async (eventId: number, newDate: Date) => {
     const event = events.find((e) => e.id === eventId);
@@ -213,12 +296,12 @@ export function Calendar() {
 
       applyEventsOptimistic({ type: 'update', id: eventId, delta: { ...updated } })
       setEvents((prev) => prev.map((e) => (e.id === eventId ? updated : e)))
-      loadEvents({ silent: true });
+      loadEventsForRange(timelineRange.start, timelineRange.end, { silent: true });
       toast.success(t('messages.eventMoved'));
     } catch (error) {
       toast.error(t('messages.eventMoveFailed'));
       console.error(error);
-      loadEvents();
+      loadEventsForRange(timelineRange.start, timelineRange.end);
     }
   };
 
@@ -236,64 +319,113 @@ export function Calendar() {
     <AppLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">{t('labels.calendar')}</h1>
-            <p className="text-muted-foreground mt-1">{t('labels.subtitle')}</p>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">{t('labels.calendar')}</h1>
+              <p className="text-muted-foreground mt-1">{t('labels.subtitle')}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => setShowGoogleSettings(!showGoogleSettings)}
+                className="gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                {t('labels.googleSettings')}
+              </Button>
+              <Button onClick={handleNewEvent} variant="primary" size="lg" className="gap-2">
+                <Plus className="w-5 h-5" />
+                {t('newEvent')}
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => setShowGoogleSettings(!showGoogleSettings)}
-              className="gap-2"
-            >
-              <Settings className="w-4 h-4" />
-              {t('labels.googleSettings')}
-            </Button>
-            <Button onClick={handleNewEvent} variant="primary" size="lg" className="gap-2">
-              <Plus className="w-5 h-5" />
-              {t('newEvent')}
-            </Button>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="inline-flex rounded-lg border bg-muted/50 p-1 shadow-sm">
+              <Button
+                variant={viewMode === 'manage' ? 'primary' : 'ghost'}
+                size="sm"
+                className="gap-2"
+                onClick={() => setViewMode('manage')}
+              >
+                <ListTree className="h-4 w-4" />
+                {t('chronological.manageMode')}
+              </Button>
+              <Button
+                variant={viewMode === 'timeline' ? 'primary' : 'ghost'}
+                size="sm"
+                className="gap-2"
+                onClick={() => setViewMode('timeline')}
+              >
+                <Sparkles className="h-4 w-4" />
+                {t('chronological.timelineMode')}
+              </Button>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {t('chronological.rangeLabel', {
+                start: format(timelineRange.start, 'MMM d, yyyy'),
+                end: format(timelineRange.end, 'MMM d, yyyy'),
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Calendar Navigation */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handlePrevMonth}
-              className="p-2 hover:bg-accent rounded-lg transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
+        {viewMode === 'manage' && (
+          <>
+            {/* Calendar Navigation */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handlePrevMonth}
+                  className="p-2 hover:bg-accent rounded-lg transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
 
-            <h2 className="text-xl font-semibold text-foreground min-w-[200px] text-center">
-              {format(currentDate, 'MMMM yyyy')}
-            </h2>
+                <h2 className="text-xl font-semibold text-foreground min-w-[200px] text-center">
+                  {format(currentDate, 'MMMM yyyy')}
+                </h2>
 
-            <button
-              onClick={handleNextMonth}
-              className="p-2 hover:bg-accent rounded-lg transition-colors"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
+                <button
+                  onClick={handleNextMonth}
+                  className="p-2 hover:bg-accent rounded-lg transition-colors"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
 
-          <div className="flex items-center gap-2">
-            <Button variant="secondary" onClick={() => setCurrentDate(new Date())}>
-              {t('today')}
-            </Button>
-          </div>
-        </div>
+              <div className="flex items-center gap-2">
+                <Button variant="secondary" onClick={() => setCurrentDate(new Date())}>
+                  {t('today')}
+                </Button>
+              </div>
+            </div>
 
-        {/* Calendar View */}
-        <CalendarGrid
-          currentDate={currentDate}
-          events={optimisticEvents}
-          onDateClick={handleDateClick}
-          onEventClick={handleEventClick}
-          onEventDateChange={handleEventDateChange}
-        />
+            {/* Calendar View */}
+            <CalendarGrid
+              currentDate={currentDate}
+              events={optimisticEvents}
+              onDateClick={handleDateClick}
+              onEventClick={handleEventClick}
+              onEventDateChange={handleEventDateChange}
+            />
+          </>
+        )}
+
+        {viewMode === 'timeline' && (
+          <ChronologicalTable
+            events={optimisticEvents}
+            range={timelineRange}
+            onLoadMore={handleTimelineLoadMore}
+            onEventClick={handleEventClick}
+            onCreate={handleCreateFromTimeline}
+            searchTerm={timelineSearch}
+            onSearchChange={setTimelineSearch}
+            selectedCategory={timelineCategory}
+            onCategoryChange={setTimelineCategory}
+            isLoading={isTimelineLoading}
+          />
+        )}
 
         {/* Event Form */}
         <EventForm
@@ -302,6 +434,7 @@ export function Calendar() {
             setIsEventFormOpen(false);
             setSelectedEvent(null);
             setSelectedDate(null);
+            setDraftCategory(undefined);
           }}
           onSubmit={(data) => {
             if (selectedEvent) {
@@ -312,6 +445,7 @@ export function Calendar() {
           }}
           event={selectedEvent || undefined}
           defaultDate={selectedDate || undefined}
+          defaultCategory={draftCategory}
           isSubmitting={isSubmitting}
           onDelete={selectedEvent ? () => setEventToDelete(selectedEvent) : undefined}
         />

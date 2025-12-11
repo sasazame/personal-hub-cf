@@ -23,6 +23,7 @@ const createEventSchema = z.object({
   endDateTime: z.string(),
   location: z.string().optional(),
   allDay: z.boolean().optional(),
+  category: z.string().max(60).optional(),
   reminderMinutes: z.number().optional(),
   color: z.string().optional(),
   googleCalendarId: z.string().optional(),
@@ -44,9 +45,27 @@ const syncSettingsSchema = z.object({
 app.get('/', async (c) => {
   const db = c.get('db');
   const userId = c.get('userId') as string;
-  const fromDate = c.req.query('fromDate');
-  const toDate = c.req.query('toDate');
+  const fromDateQuery = c.req.query('fromDate') || c.req.query('startDate');
+  const toDateQuery = c.req.query('toDate') || c.req.query('endDate');
+  const yearQuery = c.req.query('year');
+  const monthQuery = c.req.query('month');
   const search = c.req.query('search');
+  const categoryFilter = c.req.query('category');
+
+  let fromDate = fromDateQuery;
+  let toDate = toDateQuery;
+
+  // Allow year/month as a shorthand for monthly ranges
+  if (!fromDate && !toDate && yearQuery && monthQuery) {
+    const year = parseInt(yearQuery, 10);
+    const month = parseInt(monthQuery, 10);
+    if (!Number.isNaN(year) && !Number.isNaN(month) && month >= 1 && month <= 12) {
+      const start = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
+      const end = new Date(Date.UTC(year, month, 0, 23, 59, 59));
+      fromDate = start.toISOString();
+      toDate = end.toISOString();
+    }
+  }
   
   try {
     const conditions = [eq(events.userId, userId as string)];
@@ -68,6 +87,10 @@ app.get('/', async (c) => {
       conditions.push(gte(events.endDateTime, fromDate));
     } else if (toDate) {
       conditions.push(lte(events.startDateTime, toDate));
+    }
+
+    if (categoryFilter) {
+      conditions.push(eq(events.category, categoryFilter));
     }
     
     // Search filter
@@ -101,8 +124,9 @@ app.get('/', async (c) => {
 app.get('/range', async (c) => {
   const db = c.get('db');
   const userId = c.get('userId') as string;
-  const fromDate = c.req.query('fromDate') || c.req.query('start');
-  const toDate = c.req.query('toDate') || c.req.query('end');
+  const fromDate = c.req.query('fromDate') || c.req.query('start') || c.req.query('startDate');
+  const toDate = c.req.query('toDate') || c.req.query('end') || c.req.query('endDate');
+  const categoryFilter = c.req.query('category');
   
   try {
     const conditions = [eq(events.userId, userId as string)];
@@ -116,6 +140,10 @@ app.get('/range', async (c) => {
       conditions.push(gte(events.startDateTime, new Date(fromDate).toISOString()));
     } else if (toDate) {
       conditions.push(lte(events.endDateTime, new Date(toDate).toISOString()));
+    }
+
+    if (categoryFilter) {
+      conditions.push(eq(events.category, categoryFilter));
     }
     
     const items = await db.select()
@@ -181,6 +209,7 @@ app.post('/', zValidator('json', createEventSchema, springBootValidator), async 
       ...data,
       userId,
       allDay: data.allDay ?? false,
+      category: data.category ?? 'general',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
